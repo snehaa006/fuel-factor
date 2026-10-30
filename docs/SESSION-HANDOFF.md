@@ -70,12 +70,26 @@ spring release and haptics. Verified running on the iOS simulator in both themes
 clean. 15 foods seeded from the Week 1 deck: 7 with its carbohydrate figures, the
 rest null, zero protein and fat anywhere because the deck gives neither.
 
-**71 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
+**Step 3** — Today screen. Streak chip, Training/Rest switch, the fuel ring
+drawn as a *band* (5-7 g/kg training, 3-4 g/kg rest, never a midpoint), the
+six-slot meal timeline, one advice card and the DQ slot showing "Not scored
+yet". Seeds 0003-0005 added the three footballers, their nine baseline urine
+readings, two Cooper runs, the team, and a demo day for Theo. Verified on the
+iOS simulator in both themes.
+
+**148 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests.
+
+## The one thing blocking live data
+
+Every RLS policy is `to authenticated` and the app has no sign-in, so the Today
+screen reads zero rows. **Anonymous sign-ins are disabled on the project** —
+turn them on in the Supabase dashboard under Authentication → Sign In /
+Providers, then point `participant_profiles.user_id` at the signed-in user.
+Until then `EXPO_PUBLIC_DEMO_DATA=1` draws the screen from a fixture.
 
 ## What's next
 
-3. Today screen — fuel ring and meal timeline, reading seeded data
 4. Food logger (search + portion) — **this one lets us re-run their 15 existing
    recall-days through the food database, replacing hand-typed calorie guesses
    with real macro grams for Theo's pitch**
@@ -84,6 +98,15 @@ lint and tests.
 7. Learn — Week 1 from the PDF
 8. Team and leaderboard
 9. Coach dashboard (web, after the demo)
+
+## Still waiting on Theo
+
+The four logo lockups as files — the brand board came through as an image, so
+`design-system/brand/` holds the spec and the README but no artwork. The app
+icon is still Expo's placeholder. See `design-system/brand/README.md`.
+
+The 15 recall-days' meal text, so they can be re-run through the food database.
+The roster seed has everything else the tracker holds.
 
 ## Still waiting on Sofia
 

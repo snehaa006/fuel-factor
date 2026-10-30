@@ -1,75 +1,113 @@
-import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { PushButton, type PushButtonVariant } from '@/components/push-button';
+import { DayTypeSwitch } from '@/components/day-type-switch';
+import { FuelRing } from '@/components/fuel-ring';
+import { MealTimeline } from '@/components/meal-timeline';
+import { NudgeCard } from '@/components/nudge-card';
+import { PushButton } from '@/components/push-button';
+import { StreakChip } from '@/components/streak-chip';
+import { topNudge } from '@/lib/advice';
+import { streakLength, loggedToday } from '@/lib/streak';
+import { useToday } from '@/lib/use-today';
 import { useTheme } from '@/theme';
 
-const VARIANTS: { variant: PushButtonVariant; label: string; caption: string }[] = [
-  { variant: 'primary', label: 'Log breakfast', caption: 'Primary' },
-  { variant: 'success', label: 'Mark done', caption: 'Success' },
-  { variant: 'alert', label: 'End streak', caption: 'Alert' },
-  { variant: 'ghost', label: 'Skip for now', caption: 'Ghost' },
-];
-
-export default function ButtonShowcase() {
+export default function Today() {
+  const state = useToday();
   const { colors, spacing, typography } = useTheme();
-  const [lastPressed, setLastPressed] = useState<string | null>(null);
+
+  const message = (title: string, detail: string) => (
+    <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
+      <View style={{ padding: spacing['space-6'], gap: spacing['space-2'], alignItems: 'center' }}>
+        <Text style={[typography['heading-l'], { color: colors.ink, textAlign: 'center' }]}>{title}</Text>
+        <Text style={[typography['body-m'], { color: colors['ink-muted'], textAlign: 'center' }]}>
+          {detail}
+        </Text>
+      </View>
+    </SafeAreaView>
+  );
+
+  if (state.status === 'loading') {
+    return (
+      <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
+        <ActivityIndicator color={colors.pisang} />
+      </SafeAreaView>
+    );
+  }
+
+  if (state.status === 'signed-out') {
+    return message('Not signed in', 'Sign-in arrives with the onboarding gate. Until then the day cannot be read.');
+  }
+
+  if (state.status === 'empty') {
+    return message('No athlete yet', 'This account is not linked to a participant row.');
+  }
+
+  if (state.status === 'error') {
+    return message('Could not load today', state.message);
+  }
+
+  const { data, rules, date } = state;
+  const { summary } = data;
+  const streak = streakLength(data.activeDates, date);
+  const nudge = topNudge(summary, rules);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
-      <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-6'] }]}>
-        <Text style={[typography['display-l'], { color: colors.ink }]}>Fuel Factor</Text>
-        <Text style={[typography['body-m'], { color: colors['ink-muted'], marginTop: spacing['space-2'] }]}>
-          Step 1 — tokens, fonts and the push button. Press and hold one.
-        </Text>
-
-        <View style={{ gap: spacing['space-6'], marginTop: spacing['space-8'] }}>
-          {VARIANTS.map(({ variant, label, caption }) => (
-            <View key={variant} style={{ gap: spacing['space-2'] }}>
-              <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-                {caption.toUpperCase()}
-              </Text>
-              <PushButton
-                variant={variant}
-                label={label}
-                testID={`button-${variant}`}
-                onPress={() => setLastPressed(label)}
-              />
-            </View>
-          ))}
-
-          <View style={{ gap: spacing['space-2'] }}>
-            <Text style={[typography.label, { color: colors['ink-muted'] }]}>DISABLED</Text>
-            <PushButton label="Log breakfast" disabled testID="button-disabled" onPress={() => setLastPressed('nope')} />
+      <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-4'] }]}>
+        <View style={styles.header}>
+          <View>
+            <Text style={[typography.label, { color: colors['ink-muted'] }]}>TODAY</Text>
+            <Text style={[typography['display-l'], { color: colors.ink }]}>{data.participantName}</Text>
           </View>
-
-          <View style={{ gap: spacing['space-2'] }}>
-            <Text style={[typography.label, { color: colors['ink-muted'] }]}>FULL WIDTH</Text>
-            <PushButton
-              label="Finish today"
-              fullWidth
-              testID="button-full"
-              onPress={() => setLastPressed('Finish today')}
-            />
-          </View>
+          <StreakChip days={streak} lit={loggedToday(data.activeDates, date)} testID="streak" />
         </View>
 
+        <View style={{ marginTop: spacing['space-6'] }}>
+          <DayTypeSwitch value={summary.dayType} onChange={state.changeDayType} testID="day-type" />
+        </View>
+
+        <View style={{ marginTop: spacing['space-8'], alignItems: 'center' }}>
+          <FuelRing
+            eaten={summary.carbsEaten}
+            band={summary.band}
+            itemsWithoutFigures={summary.itemsWithoutFigures}
+            testID="fuel-ring"
+          />
+        </View>
+
+        {nudge && (
+          <View style={{ marginTop: spacing['space-8'] }}>
+            <NudgeCard nudge={nudge} testID="nudge" />
+          </View>
+        )}
+
+        <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>
+          <Text style={[typography['heading-l'], { color: colors.ink }]}>Meals</Text>
+          <MealTimeline slots={summary.slots} testID="timeline" />
+        </View>
+
+        {/* The sheet names a DQ Score /12 and states no formula, so the app
+            shows the slot and leaves the number to the dietitian. */}
         <View
           style={[
-            styles.readout,
+            styles.dq,
             {
-              backgroundColor: colors['surface-raised'],
+              backgroundColor: colors['kecap-tint'],
               borderRadius: 16,
               padding: spacing['space-4'],
               marginTop: spacing['space-8'],
             },
           ]}
         >
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>LAST PRESSED</Text>
-          <Text testID="readout" style={[typography['heading-m'], { color: colors.ink }]}>
-            {lastPressed ?? 'nothing yet'}
+          <Text style={[typography.label, { color: colors['ink-muted'] }]}>DIET QUALITY SCORE</Text>
+          <Text testID="dq-score" style={[typography['heading-m'], { color: colors['kecap-deep'] }]}>
+            {summary.dqScore === null ? 'Not scored yet' : `${summary.dqScore} / 12`}
           </Text>
+        </View>
+
+        <View style={{ marginTop: spacing['space-12'] }}>
+          <PushButton label="Log a meal" fullWidth testID="log-meal" />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -78,6 +116,8 @@ export default function ButtonShowcase() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
+  centre: { alignItems: 'center', justifyContent: 'center' },
   content: { paddingBottom: 48 },
-  readout: { gap: 4 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  dq: { gap: 4 },
 });
