@@ -83,7 +83,13 @@ argument and refuses without it, so the gate is enforced in the database and
 not only in the UI. `consent_ack_at` is app tier — it is deliberately NOT
 `participants.consent_signed`, which means the paper form.
 
-**182 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
+**Step 4** — Food logger. Tap a meal slot (or Log a meal) → search the food
+database in Indonesian or English → portion → how many → the carbohydrate for
+that choice. Writing an item ticks the slot on `daily_logs`, because the CSV
+export reads the tick; removing the last item in a slot unticks it. A food the
+deck gives no figure for says so and is still logged.
+
+**228 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests.
 
 ## The one thing blocking live data
@@ -96,9 +102,6 @@ from a fixture meanwhile, skipping the gate.
 
 ## What's next
 
-4. Food logger (search + portion) — **this one lets us re-run their 15 existing
-   recall-days through the food database, replacing hand-typed calorie guesses
-   with real macro grams for Theo's pitch**
 5. Evening check-in — every field, which fills the two biggest holes in their data
 6. Streak and advice cards
 7. Learn — Week 1 from the PDF

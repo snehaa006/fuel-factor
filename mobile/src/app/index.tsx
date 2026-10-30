@@ -1,4 +1,5 @@
-import { Redirect } from 'expo-router';
+import { Redirect, useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useRef } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -14,8 +15,20 @@ import { useToday } from '@/lib/use-today';
 import { useTheme } from '@/theme';
 
 export default function Today() {
+  const router = useRouter();
   const state = useToday();
   const { colors, spacing, typography } = useTheme();
+
+  // Coming back from the logger, the day has changed underneath this screen.
+  // The first focus is the mount, which has just loaded, so it is skipped.
+  const mounted = useRef(false);
+  const { reload } = state;
+  useFocusEffect(
+    useCallback(() => {
+      if (mounted.current) reload();
+      mounted.current = true;
+    }, [reload])
+  );
 
   const message = (title: string, detail: string) => (
     <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
@@ -83,7 +96,11 @@ export default function Today() {
 
         <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>
           <Text style={[typography['heading-l'], { color: colors.ink }]}>Meals</Text>
-          <MealTimeline slots={summary.slots} testID="timeline" />
+          <MealTimeline
+            slots={summary.slots}
+            onPressSlot={(s) => router.push(`/log/${s.slot}`)}
+            testID="timeline"
+          />
         </View>
 
         {/* The sheet names a DQ Score /12 and states no formula, so the app
@@ -106,7 +123,14 @@ export default function Today() {
         </View>
 
         <View style={{ marginTop: spacing['space-12'] }}>
-          <PushButton label="Log a meal" fullWidth testID="log-meal" />
+          <PushButton
+            label="Log a meal"
+            fullWidth
+            testID="log-meal"
+            onPress={() =>
+              router.push(`/log/${(summary.slots.find((s) => !s.logged) ?? summary.slots[0]).slot}`)
+            }
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
