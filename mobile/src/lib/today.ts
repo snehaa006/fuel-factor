@@ -1,3 +1,4 @@
+import { asError } from './errors';
 import { carbsFor } from './food';
 import { supabase } from './supabase';
 import { carbBand, type CarbBand, type DayType } from './targets';
@@ -127,7 +128,7 @@ export async function fetchToday(date = todayIso()): Promise<TodayData | null> {
     .limit(1)
     .maybeSingle();
 
-  if (participantError) throw participantError;
+  if (participantError) throw asError(participantError);
   if (!participant) return null;
 
   const [logResult, datesResult] = await Promise.all([
@@ -147,8 +148,8 @@ export async function fetchToday(date = todayIso()): Promise<TodayData | null> {
       .limit(120),
   ]);
 
-  if (logResult.error) throw logResult.error;
-  if (datesResult.error) throw datesResult.error;
+  if (logResult.error) throw asError(logResult.error);
+  if (datesResult.error) throw asError(datesResult.error);
 
   let items: LoggedItem[] = [];
   if (logResult.data) {
@@ -158,7 +159,7 @@ export async function fetchToday(date = todayIso()): Promise<TodayData | null> {
       .eq('daily_log_id', logResult.data.id)
       .returns<LogItemRow[]>();
 
-    if (error) throw error;
+    if (error) throw asError(error);
     items = (data ?? []).map((row) => ({
       slot: row.slot,
       quantity: Number(row.quantity),
@@ -195,5 +196,5 @@ export async function setDayType(
       onConflict: 'participant_id,log_date',
     });
 
-  if (error) throw error;
+  if (error) throw asError(error);
 }

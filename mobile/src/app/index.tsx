@@ -1,3 +1,4 @@
+import { Redirect } from 'expo-router';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -35,12 +36,10 @@ export default function Today() {
     );
   }
 
-  if (state.status === 'signed-out') {
-    return message('Not signed in', 'Sign-in arrives with the onboarding gate. Until then the day cannot be read.');
-  }
-
-  if (state.status === 'empty') {
-    return message('No athlete yet', 'This account is not linked to a participant row.');
+  // No session, or a session with no athlete claimed: both start at the gate,
+  // which is also where consent is taken.
+  if (state.status === 'needs-onboarding') {
+    return <Redirect href="/welcome" />;
   }
 
   if (state.status === 'error') {

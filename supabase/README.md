@@ -66,17 +66,49 @@ when the tracker export does.
 delete from public.daily_logs where log_date = current_date;
 ```
 
-## Reading any of it from the app
+## Onboarding: how a device becomes an athlete
 
-Every policy is `to authenticated`, so an unauthenticated client sees nothing —
-correctly. The app has no sign-in yet, which means the Today screen reads zero
-rows until one exists. Two things unblock it, in this order:
+No per-athlete passwords. The squad is 14 to 16 years old, so identity is a
+team code plus the athlete you pick, which is the brief's own fallback.
 
-1. **Enable anonymous sign-ins** in the Supabase dashboard, under
-   Authentication → Sign In / Providers. Only the project owner can do this.
-2. **Claim a participant** — point `participant_profiles.user_id` at the signed-in
-   user. This is the team-code onboarding step the brief describes, and it is
-   the first thing the consent gate will do.
+1. The app signs in **anonymously**. The session exists only so row level
+   security has a user to answer about; no credential is ever collected.
+2. `team_roster(join_code)` returns who is in that team and who is still free.
+   It is `security definer` because a device that has claimed nobody can see no
+   participant row at all. It returns a code and a first name and nothing else.
+3. `claim_participant(join_code, participant_code, consent_ack)` links the user
+   to one athlete. **Consent is an argument, not a later update**, so there is
+   no ordering in which a device is linked to an athlete before the screen was
+   accepted — decision 8 of the brief is enforced here, not only in the UI.
 
-Until then, `EXPO_PUBLIC_DEMO_DATA=1` draws the Today screen from a fixture that
-mirrors these seeds, for layout work without a session.
+It refuses: no session, consent not given, unknown team code, unknown athlete,
+and an athlete already held by another device. Re-claiming the athlete this
+device already holds is a no-op, so a retry after a dropped connection does not
+read as theft. Claiming a second athlete releases the first.
+
+`participant_profiles.user_id` has no insert or update policy, so claiming goes
+through that function and nowhere else — nobody can point a profile at
+themselves with a direct PATCH.
+
+### consent_ack_at is not consent_signed
+
+`participant_profiles.consent_ack_at` records that the in-app screen was
+accepted. `participants.consent_signed` mirrors their sheet, where it means a
+parental consent form was signed on paper. A checkbox is not that form, and the
+app never writes one into the other.
+
+### Two security advisor warnings are expected
+
+`team_roster` and `claim_participant` are flagged as
+`authenticated_security_definer_function_executable`. That is the point of
+them: unlike the RLS helpers in `private`, these two are meant to be called by
+a signed-in user. Do not "fix" them by revoking execute.
+
+## Still needed before any of it runs
+
+**Anonymous sign-ins are disabled on the project.** Turn them on in the
+Supabase dashboard under Authentication → Sign In / Providers. Only the project
+owner can. Until then the gate says so on screen rather than failing silently.
+
+`EXPO_PUBLIC_DEMO_DATA=1` draws the Today screen from a fixture, skipping the
+gate entirely, for layout work without a session.

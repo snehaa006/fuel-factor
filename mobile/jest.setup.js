@@ -17,3 +17,8 @@ jest.mock('expo-haptics', () => ({
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
+
+// React 19 only treats updates as act-wrapped when this is set. Without it,
+// every state change that lands after a test body finishes logs a warning that
+// drowns out the ones worth reading.
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;

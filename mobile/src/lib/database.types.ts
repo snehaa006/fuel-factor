@@ -58,9 +58,9 @@ export type Database = {
         ];
       };
       participant_profiles: {
-        Row: { created_at: string; participant_id: string; team_id: string | null; user_id: string | null };
-        Insert: { created_at?: string; participant_id: string; team_id?: string | null; user_id?: string | null };
-        Update: { created_at?: string; participant_id?: string; team_id?: string | null; user_id?: string | null };
+        Row: { consent_ack_at: string | null; created_at: string; participant_id: string; team_id: string | null; user_id: string | null };
+        Insert: { consent_ack_at?: string | null; created_at?: string; participant_id: string; team_id?: string | null; user_id?: string | null };
+        Update: { consent_ack_at?: string | null; created_at?: string; participant_id?: string; team_id?: string | null; user_id?: string | null };
         Relationships: [
           { foreignKeyName: 'participant_profiles_participant_id_fkey'; columns: ['participant_id']; isOneToOne: true; referencedRelation: 'participants'; referencedColumns: ['id'] },
           { foreignKeyName: 'participant_profiles_team_id_fkey'; columns: ['team_id']; isOneToOne: false; referencedRelation: 'teams'; referencedColumns: ['id'] },
@@ -98,7 +98,16 @@ export type Database = {
       };
     };
     Views: { [_ in never]: never };
-    Functions: { [_ in never]: never };
+    Functions: {
+      claim_participant: {
+        Args: { p_consent_ack: boolean; p_join_code: string; p_participant_code: string };
+        Returns: string;
+      };
+      team_roster: {
+        Args: { p_join_code: string };
+        Returns: { claimed: boolean; name: string; participant_code: string }[];
+      };
+    };
     Enums: {
       day_type: 'training' | 'rest';
       meal_slot: 'breakfast' | 'pre_training' | 'lunch' | 'post_training' | 'dinner' | 'evening_snack';

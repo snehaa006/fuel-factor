@@ -77,16 +77,22 @@ yet". Seeds 0003-0005 added the three footballers, their nine baseline urine
 readings, two Cooper runs, the team, and a demo day for Theo. Verified on the
 iOS simulator in both themes.
 
-**148 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
+**Step 3.5** — Auth and the consent gate. A device signs in anonymously, enters
+a team code, and claims one athlete; `claim_participant` takes consent as an
+argument and refuses without it, so the gate is enforced in the database and
+not only in the UI. `consent_ack_at` is app tier — it is deliberately NOT
+`participants.consent_signed`, which means the paper form.
+
+**182 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests.
 
 ## The one thing blocking live data
 
-Every RLS policy is `to authenticated` and the app has no sign-in, so the Today
-screen reads zero rows. **Anonymous sign-ins are disabled on the project** —
-turn them on in the Supabase dashboard under Authentication → Sign In /
-Providers, then point `participant_profiles.user_id` at the signed-in user.
-Until then `EXPO_PUBLIC_DEMO_DATA=1` draws the screen from a fixture.
+**Anonymous sign-ins are disabled on the project.** Turn them on in the
+Supabase dashboard under Authentication → Sign In / Providers. Only the project
+owner can, and nothing else is needed — the claim flow is built and the gate
+says so on screen until then. `EXPO_PUBLIC_DEMO_DATA=1` draws the Today screen
+from a fixture meanwhile, skipping the gate.
 
 ## What's next
 

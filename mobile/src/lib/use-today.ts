@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { demoToday, DEMO_RULES } from './__fixtures__/today';
+import { messageOf } from './errors';
 import { carbBand, type DayType } from './targets';
 import { fetchToday, setDayType, todayIso, type TodayData } from './today';
 import { supabase } from './supabase';
@@ -16,8 +17,8 @@ const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
 export type TodayState =
   | { status: 'loading' }
   | { status: 'ready'; data: TodayData; rules: AdviceRule[]; date: string }
-  | { status: 'signed-out' }
-  | { status: 'empty' }
+  /** No session, or a session that has not claimed an athlete. Both mean the gate. */
+  | { status: 'needs-onboarding' }
   | { status: 'error'; message: string };
 
 export type TodayController = TodayState & {
@@ -91,16 +92,18 @@ export function useToday(): TodayController {
       try {
         const { data: session } = await supabase.auth.getSession();
         if (!session.session) {
-          if (active) setState({ status: 'signed-out' });
+          if (active) setState({ status: 'needs-onboarding' });
           return;
         }
 
+        // fetchToday reads whichever participant row RLS lets this session see,
+        // so no row means no athlete has been claimed on this device yet.
         const [data, rules] = await Promise.all([fetchToday(date), loadRules()]);
         if (!active) return;
-        setState(data ? { status: 'ready', data, rules, date } : { status: 'empty' });
+        setState(data ? { status: 'ready', data, rules, date } : { status: 'needs-onboarding' });
       } catch (error) {
         if (active) {
-          setState({ status: 'error', message: error instanceof Error ? error.message : String(error) });
+          setState({ status: 'error', message: messageOf(error) });
         }
       }
     }
