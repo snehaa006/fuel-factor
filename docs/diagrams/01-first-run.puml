@@ -1,0 +1,40 @@
+@startuml first-run
+!include _style.puml
+title Fuel Factor — 1. First run
+
+start
+:Splash;
+:Age check;
+
+note right
+  Nothing is captured before
+  consent. The athletes are
+  14-16; the dietitian made
+  this blocking.
+end note
+
+if (Under 18?) then (yes)
+  :Parental consent screen; <<fuel>>
+  if (Consent given?) then (yes)
+  else (no)
+    :No account created.\nStop here.; <<alert>>
+    stop
+  endif
+else (no)
+  :Standard consent;
+endif
+
+:Profile\nname · team code · height · weight;
+:Pick today's day type\ntraining / rest;
+:Compute targets\ntarget = body_weight x g/kg x day_type;
+
+note right
+  Targets are computed, never
+  stored. Correcting a weight
+  recomputes every number in
+  the app.
+end note
+
+:Today screen; <<go>>
+stop
+@enduml

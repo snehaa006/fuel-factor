@@ -1,0 +1,49 @@
+@startuml advice-engine
+!include _style.puml
+title Fuel Factor — 3. The advice engine (the deck's own sentences, on plain events)
+
+start
+:Food + portion from the picker;
+:Look up food_items\n-> per-portion macros;
+:Sum the day's total\ncarbs · protein · fat · kcal;
+
+:Compute the band\nbody_weight x g/kg\nshown as a range, not a midpoint; <<fuel>>
+note right
+  training  5-7 g/kg
+  rest      3-4 g/kg
+  From the Week 1 material.
+  No threshold is invented.
+end note
+
+:Evaluate advice_rules (rows, not code);
+
+split
+  if (A meal slot has no carbs?) then (yes)
+    :"Nasi, ubi jalar or roti all count.";
+  endif
+split again
+  if (No breakfast on a training day?) then (yes)
+    :The Week 1 breakfast message;
+  endif
+split again
+  if (Trained, nothing logged in 30 min?) then (yes)
+    :Refuel window — 3:1 carbs to protein;
+  endif
+split again
+  if (Urine colour >= 5?) then (yes)
+    :Hydration — 2% body weight lost\n-> about 10% slower sprints;
+  endif
+end split
+
+:Rank by severity, keep the top three;
+
+note right
+  Every seed string is a sentence
+  from the Week 1 material. The app
+  invents no nutrition guidance and
+  no thresholds to fire it.
+end note
+
+:Render the advice cards; <<go>>
+stop
+@enduml

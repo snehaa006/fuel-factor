@@ -1,0 +1,43 @@
+@startuml daily-loop
+!include _style.puml
+title Fuel Factor — 2. The daily loop
+
+start
+:Open app -> Today\nfuel ring · streak · six meal slots;
+
+repeat
+  :Tap a meal slot\nbreakfast · pre-training · lunch\npost-training · dinner · evening snack;
+  :Search the Indonesian food DB\nnasi · pisang · mie ayam · ubi jalar;
+  :Pick a portion\n1 bowl / 200 g / 1 medium;
+  :Macros added\n(see 03-advice-engine); <<fuel>>
+  :Fuel ring animates to the new value;
+repeat while (More slots left today?) is (yes) not (no)
+
+:Evening check-in\nsleep hrs · fruit/veg/protein/carbs counts\nfluid mL · urine 1-8 · five 1-10 scales\nsupplements · notes;
+
+note right
+  Every field here is a column of
+  the DAILY LOG or RECALL sheet.
+  Fluid and the five scales are the
+  two the current dataset is missing
+  entirely.
+end note
+
+:Score the day — DQ score /12\n6 slots + 4 counters + fluid + urine;
+
+if (Check-in submitted?) then (yes)
+  :Streak +1\nhaptic + flame pop; <<go>>
+else (no)
+  :Streak at risk\nbroken at midnight; <<alert>>
+endif
+
+note left
+  The streak increments on the
+  CHECK-IN, not on a logged meal.
+  Otherwise it rewards opening
+  the app, not finishing the day.
+end note
+
+:Show up to three advice cards;
+stop
+@enduml

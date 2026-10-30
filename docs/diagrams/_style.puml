@@ -1,0 +1,45 @@
+' Fuel Factor — shared diagram style
+' Palette is the brand board: santan #FDE2CF, pisang #F8A720, cabai #B8420D,
+' gula #89472E, kecap #642714. daun #7AA840 is the functional success colour.
+skinparam backgroundColor        #FDE2CF
+skinparam shadowing              false
+skinparam defaultFontName        "Helvetica"
+skinparam defaultFontSize        13
+skinparam titleFontSize          18
+skinparam titleFontColor         #642714
+skinparam ArrowColor             #89472E
+skinparam ArrowFontColor         #642714
+skinparam ArrowFontSize          11
+
+skinparam activity {
+  BackgroundColor        #FFF3E7
+  BorderColor            #642714
+  BorderThickness        1.2
+  FontColor              #642714
+  DiamondBackgroundColor #FCEBCD
+  DiamondBorderColor     #642714
+  DiamondFontColor       #642714
+  StartColor             #642714
+  EndColor               #B8420D
+  BarColor               #89472E
+
+  ' Named node roles. Dark text on the two light fills, cream on the dark one —
+  ' the same rule the app's own buttons follow.
+  BackgroundColor<<fuel>>  #F8A720
+  FontColor<<fuel>>        #642714
+  BackgroundColor<<go>>    #7AA840
+  FontColor<<go>>          #642714
+  BackgroundColor<<alert>> #B8420D
+  FontColor<<alert>>       #FDE2CF
+}
+skinparam note {
+  BackgroundColor #FCEBCD
+  BorderColor     #89472E
+  FontColor       #642714
+  FontSize        11
+}
+skinparam swimlane {
+  BorderColor     #89472E
+  TitleFontColor  #642714
+  TitleFontSize   14
+}

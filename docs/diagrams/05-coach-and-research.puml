@@ -1,0 +1,30 @@
+@startuml coach-and-research
+!include _style.puml
+title Fuel Factor — 5. The coach dashboard and the research export
+
+|Coach (web)|
+start
+:Open the dashboard;
+:Scan the roster\nwho logged today;
+:Team carb adherence · breakfast rate;
+
+if (Any flags?) then (yes)
+  :Under-fuelled three days,\nor dehydrated; <<alert>>
+  :Nudge the athlete or the whole team;
+else (no)
+endif
+
+|Research|
+:Export every log to CSV\ncolumns match the tracker sheet;
+:Dietitian runs the pre/post analysis;
+
+note right
+  Re-running the existing 15
+  recall-days through the food DB
+  replaces hand-typed calorie
+  guesses with real macro grams.
+end note
+
+:December — Theo pitches\ndefensible numbers; <<fuel>>
+stop
+@enduml
