@@ -122,7 +122,7 @@ export default function Today() {
           </Text>
         </View>
 
-        <View style={{ marginTop: spacing['space-12'] }}>
+        <View style={{ marginTop: spacing['space-12'], gap: spacing['space-3'] }}>
           <PushButton
             label="Log a meal"
             fullWidth
@@ -130,6 +130,13 @@ export default function Today() {
             onPress={() =>
               router.push(`/log/${(summary.slots.find((s) => !s.logged) ?? summary.slots[0]).slot}`)
             }
+          />
+          <PushButton
+            label="Evening check-in"
+            variant="success"
+            fullWidth
+            testID="check-in"
+            onPress={() => router.push('/check-in')}
           />
         </View>
       </ScrollView>

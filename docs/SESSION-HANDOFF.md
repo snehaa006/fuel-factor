@@ -89,7 +89,12 @@ that choice. Writing an item ticks the slot on `daily_logs`, because the CSV
 export reads the tick; removing the last item in a slot unticks it. A food the
 deck gives no figure for says so and is still logged.
 
-**228 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
+**Step 5** — Evening check-in. Every DAILY LOG column the athlete fills: four
+serving counters with no target beside them, fluid in mL, the 1-8 hydration
+reading, the five 1-10 self-ratings, and notes. Blank stays null, never zero.
+`dq_score` is never written.
+
+**265 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests.
 
 ## The one thing blocking live data
@@ -100,9 +105,24 @@ owner can, and nothing else is needed — the claim flow is built and the gate
 says so on screen until then. `EXPO_PUBLIC_DEMO_DATA=1` draws the Today screen
 from a fixture meanwhile, skipping the gate.
 
+## Two things the check-in could not do honestly
+
+**Sleep hours and supplements are not on it.** The brief lists them with this
+screen, but they are RECALL columns, not DAILY LOG ones, and recalls are
+filled by the research team rather than through the app. Putting them here
+means adding columns to a research table, which goes into the programme's
+workbook first and here second. Ask Sofia whether they belong on the daily log.
+
+**The hydration scale has numbers, not swatches.** The eight chart colours are
+not in this repository and an approximated swatch does not make the reading
+vaguer, it makes it wrong — and this is the measurement Theo's three days at 6
+rest on. The athlete matches against the workbook's printed chart and taps the
+number. The tracker's own wording shows for the levels it has worded (3 to 6);
+the rest show none rather than a guess. When Sofia gives the eight values they
+become colour tokens and each cell gets its fill.
+
 ## What's next
 
-5. Evening check-in — every field, which fills the two biggest holes in their data
 6. Streak and advice cards
 7. Learn — Week 1 from the PDF
 8. Team and leaderboard
