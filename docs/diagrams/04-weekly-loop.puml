@@ -1,0 +1,35 @@
+@startuml weekly-loop
+!include _style.puml
+title Fuel Factor — 4. The weekly loop (four themed weeks)
+
+start
+
+repeat
+  :Monday — the week unlocks; <<fuel>>
+  note right
+    Unlocks on the date, not on
+    finishing the week before. A
+    missed week must never lock an
+    athlete out of the next one.
+  end note
+
+  :Read the lesson cards\nmyth vs fact · timing · Jakarta food table;
+  :Accept this week's challenge\ne.g. "breakfast every day";
+
+  repeat
+    :Daily challenge check-in\n+ optional photo;
+  repeat while (Still inside this week?) is (yes) not (no)
+
+  :Sunday — weekly recap\nadherence · breakfast days · best day;
+  :Team MVP awarded; <<go>>
+  note left
+    Ranked on logging consistency
+    and diet quality. Never on body
+    weight or composition.
+  end note
+
+repeat while (Weeks 1-4 remaining?) is (yes) not (no)
+
+:Programme complete\n-> post-programme 3-day recall;
+stop
+@enduml
