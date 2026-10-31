@@ -389,7 +389,24 @@ and will eat taps meant for a Cancel control. It is not in the app.
 
 ## What's next
 
-Every feature in the brief's v1 list is built. What is left is not code:
+Every item in the brief's numbered v1 list (0 to 8) is built. **Two requirements
+elsewhere in the brief are not**, and both are easy to miss for exactly that
+reason — they are not in the numbered list. Sneha's call on 31 October: remember
+them, build them later. Don't start either without asking.
+
+**The CSV export does not exist.** Not a line of it. Seven comments in this
+codebase and `supabase/README.md` justify the entire two-tier schema with "the
+CSV export reads only these four research tables", and nothing writes a CSV.
+The brief's research journey ends there: every log row out with columns matching
+the ASSESSMENTS and COMPARISON tabs, for Sofia's analysis, and from there Theo's
+deck. It is the step that turns the study into the pitch.
+
+**Offline logging does not exist.** The stack table specifies `expo-sqlite` plus
+background sync, with the reason attached: athletes log at the training ground on
+patchy signal, and logging cannot require a connection. `expo-sqlite` is not a
+dependency; every write needs a live connection or it errors.
+
+Then, and none of it is code:
 
 - Turn anonymous sign-ins on, then exercise the whole thing on a device.
 - Replace the seeds as Sofia's and Theo's real content arrives.
@@ -397,9 +414,24 @@ Every feature in the brief's v1 list is built. What is left is not code:
 
 ## Still waiting on Theo
 
-The four logo lockups as files — the brand board came through as an image, so
-`design-system/brand/` holds the spec and the README but no artwork. The app icon
-is still Expo's placeholder.
+The four logo lockups **as their own files** — ideally SVG, PNG at 3x otherwise.
+The board itself is now in the repository at `design-system/brand/brand-board.jpg`
+and **the app icon, the Android adaptive icon, the splash and the favicon are all
+cut from it**, so this is no longer blocking: what is missing is resolution. The
+icon is a 335 px tile upscaled to 1024, which is fine at the 60 to 180 px an icon
+is drawn at and soft in an App Store listing. `design-system/brand/README.md` has
+the exact crop and the one-line command to recut it.
+
+**The board's navy is not in the colour tokens.** The icon tile's sky is
+`#132936`, a sixth colour beside the five the design system knows, and it is
+written into `app.json` as a literal rather than a token. Ask Theo whether the
+navy is part of the brand — in which case it belongs in `tokens.json` — or
+whether the icon should be recoloured onto `kecap`. An earlier README assumed
+`kecap`; the board says navy.
+
+The app was also still called **"mobile"** — the Expo template's name, and what
+would have sat under the icon on Theo's home screen. It is `Fuel Factor` now,
+with the slug and scheme to match.
 
 The 15 recall-days' meal text, so they can be re-run through the food database.
 The roster seed has everything else the tracker holds.
