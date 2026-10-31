@@ -7,10 +7,17 @@ import {
   completeChallenge,
   fetchWeek,
   fetchWeeks,
+  setChallengePhoto,
   undoChallenge,
   type Week,
   type WeekDetail,
 } from './learn';
+import {
+  removeChallengePhoto,
+  signedPhotoUrl,
+  uploadChallengePhoto,
+  type PickedPhoto,
+} from './photos';
 import { todayIso } from './today';
 
 /**
@@ -58,6 +65,18 @@ export type WeekState =
 export type WeekController = WeekState & {
   /** Mark today done, or undo it. A no-op without a claimed athlete. */
   toggleChallenge: () => void;
+  /** Upload a picked photo for today and mark the day done. */
+  attachPhoto: (photo: PickedPhoto) => void;
+  /** Take the photo back. The completion stays. */
+  clearPhoto: () => void;
+  /** A short-lived URL for today's photo, or null while there is none. */
+  photoUrl: string | null;
+  /** Set while a photo is uploading, so the screen can say so. */
+  uploading: boolean;
+  /** The last photo error, in words the athlete can read. */
+  photoError: string | null;
+  /** For the picker to report a failure of its own. */
+  reportPhotoError: (message: string) => void;
 };
 
 /** The fixture's answer for a week, known without a round trip. */
@@ -66,7 +85,12 @@ function fixtureWeek(weekNumber: number): WeekState {
   if (!week) return { status: 'error', message: 'That week is not part of the programme.' };
   return {
     status: 'ready',
-    detail: { week, cards: week.unlocked ? DEMO_LESSON_CARDS : [], completedOn: null },
+    detail: {
+      week,
+      cards: week.unlocked ? DEMO_LESSON_CARDS : [],
+      completedOn: null,
+      photoPath: null,
+    },
     foods: DEMO_FOODS,
   };
 }
@@ -80,7 +104,32 @@ export function useWeek(weekNumber: number, participantId: string | null): WeekC
     USE_FIXTURE && valid ? fixtureWeek(weekNumber) : { status: 'loading' }
   );
   const [saving, setSaving] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const today = todayIso();
+
+  const currentPath =
+    state.status === 'ready' && state.detail.completedOn === today
+      ? state.detail.photoPath
+      : null;
+
+  // The bucket is private, so drawing the image means asking for a signed URL
+  // that expires in minutes. Re-signed whenever the stored path changes, and
+  // never kept in the database.
+  useEffect(() => {
+    let active = true;
+    // In fixture mode the path is already a local URI and needs no signing.
+    if (currentPath === null || USE_FIXTURE) return;
+
+    signedPhotoUrl(currentPath)
+      .then((url) => active && setPhotoUrl(url))
+      .catch(() => active && setPhotoUrl(null));
+
+    return () => {
+      active = false;
+    };
+  }, [currentPath]);
 
   useEffect(() => {
     let active = true;
@@ -138,5 +187,101 @@ export function useWeek(weekNumber: number, participantId: string | null): WeekC
     });
   }, [participantId, saving, today]);
 
-  return { ...state, toggleChallenge };
+  /**
+   * Upload a photo for today and mark the day done with it.
+   *
+   * The upload happens before the row is touched: a completion pointing at a
+   * path that does not exist would draw a broken image, and the athlete would
+   * have no way to tell the upload had failed.
+   */
+  const attachPhoto = useCallback(
+    (photo: PickedPhoto) => {
+      if (state.status !== 'ready' || uploading) return;
+      const { challengeId } = state.detail.week;
+      if (!challengeId) return;
+
+      // In fixture mode there is nothing to upload to, so the picked file is
+      // previewed from its own local URI. The picker, the preview and
+      // removing it all behave as they will against the real bucket; only
+      // the round trip is absent.
+      if (USE_FIXTURE) {
+        setPhotoUrl(photo.uri);
+        setState((latest) =>
+          latest.status === 'ready'
+            ? {
+                ...latest,
+                detail: { ...latest.detail, completedOn: today, photoPath: photo.uri },
+              }
+            : latest
+        );
+        return;
+      }
+
+      if (!participantId) return;
+      setUploading(true);
+      setPhotoError(null);
+
+      uploadChallengePhoto(participantId, challengeId, today, photo)
+        .then(async (path) => {
+          await setChallengePhoto(challengeId, participantId, today, path);
+          setState((latest) =>
+            latest.status === 'ready'
+              ? { ...latest, detail: { ...latest.detail, completedOn: today, photoPath: path } }
+              : latest
+          );
+        })
+        .catch((error) => setPhotoError(messageOf(error)))
+        .finally(() => setUploading(false));
+    },
+    [participantId, state, today, uploading]
+  );
+
+  /** Take the photo back, leaving the day marked done. */
+  const clearPhoto = useCallback(() => {
+    if (state.status !== 'ready' || uploading) return;
+    const { challengeId } = state.detail.week;
+    const path = state.detail.photoPath;
+    if (!challengeId || !path) return;
+
+    if (USE_FIXTURE) {
+      setPhotoUrl(null);
+      setState((latest) =>
+        latest.status === 'ready'
+          ? { ...latest, detail: { ...latest.detail, photoPath: null } }
+          : latest
+      );
+      return;
+    }
+
+    if (!participantId) return;
+    setUploading(true);
+    setPhotoError(null);
+
+    // The row first, then the object: a row pointing at a deleted file draws
+    // a broken image, while an orphaned file draws nothing at all.
+    setChallengePhoto(challengeId, participantId, today, null)
+      .then(() => removeChallengePhoto(path))
+      .then(() =>
+        setState((latest) =>
+          latest.status === 'ready'
+            ? { ...latest, detail: { ...latest.detail, photoPath: null } }
+            : latest
+        )
+      )
+      .catch((error) => setPhotoError(messageOf(error)))
+      .finally(() => setUploading(false));
+  }, [participantId, state, today, uploading]);
+
+  return {
+    ...state,
+    toggleChallenge,
+    attachPhoto,
+    clearPhoto,
+    // Gated on the path rather than cleared in the effect, so a URL signed
+    // for a photo that has since been removed can never be drawn.
+    photoUrl: currentPath === null ? null : photoUrl,
+    uploading,
+    photoError,
+    reportPhotoError: setPhotoError,
+  };
 }

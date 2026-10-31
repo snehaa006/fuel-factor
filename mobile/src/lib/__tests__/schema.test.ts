@@ -126,6 +126,42 @@ describe('nutrition values are never invented', () => {
   });
 });
 
+describe('the challenge photo stays private', () => {
+  const photoSql = read('supabase/migrations/20261031000008_challenge_photos.sql');
+
+  it('creates the bucket private', () => {
+    // These are photos of 14 to 16 year olds. A public bucket would make
+    // every one of them readable by URL to anyone who guessed the path.
+    const row = /insert into storage\.buckets[\s\S]*?;/.exec(photoSql)?.[0] ?? '';
+    expect(row).toMatch(/\bfalse\b/);
+    expect(row).not.toMatch(/\btrue\b/);
+  });
+
+  it('limits what can be uploaded to images', () => {
+    expect(photoSql).toContain("'image/jpeg'");
+    expect(photoSql).not.toMatch(/application\//);
+  });
+
+  it('scopes every policy to the athlete’s own folder', () => {
+    const policies = [...photoSql.matchAll(/create policy "([^"]+)"[\s\S]*?;/g)];
+    expect(policies.length).toBeGreaterThanOrEqual(4);
+    for (const [body, name] of policies) {
+      expect(`${name}: scoped`).toBe(
+        body.includes('current_participant_id') ? `${name}: scoped` : `${name}: UNSCOPED`
+      );
+      expect(body).toContain("bucket_id = 'challenge-photos'");
+    }
+  });
+
+  it('grants a coach no access to the images', () => {
+    // A coach can read the completion tick, which is a log entry. The
+    // picture is not one, nobody asked for it, and a photo of a minor cannot
+    // be un-shared once it has been.
+    expect(photoSql).not.toContain('coaches_participant');
+    expect(photoSql).not.toContain('can_see_participant');
+  });
+});
+
 describe('the Learn section carries the deck and nothing else', () => {
   const lessonSeed = read('supabase/seed/0006_week1_lessons.sql');
 
