@@ -1,4 +1,5 @@
-import type { DaySummary } from './today';
+import type { Minutes } from './session';
+import type { DaySummary, MealSlot } from './today';
 import type { Tables } from './database.types';
 
 export type AdviceRule = Pick<
@@ -23,6 +24,17 @@ export type Nudge = {
 const URINE_ACT_NOW = 5;
 
 /**
+ * The two windows the timing rules measure, in minutes.
+ *
+ * Both are the programme's. The refuel rule's own trigger says "nothing has
+ * been logged in the 30 minutes since" and its sentence says "refuel within 30
+ * minutes"; the pre-training rule's says "still unlogged two hours before the
+ * session". The app supplies the clock, never the number.
+ */
+const REFUEL_WINDOW_MIN = 30;
+const PRE_TRAINING_WINDOW_MIN = 120;
+
+/**
  * How many cards the screen will carry at once.
  *
  * The brief caps advice at two or three. Two is the app-side call: a third
@@ -40,12 +52,16 @@ export const MAX_NUDGES = 2;
  * unedited. No threshold is computed here and no message is composed here;
  * both belong to the programme.
  *
- * The two timing rules stay dormant. They fire relative to a training session,
- * and the app records no session time -- neither does the tracker, which has no
- * column for one. Firing them off a guessed clock would put the deck's
- * 30-minute window against a time nobody supplied.
+ * The two timing rules need a clock, so they fire only once the athlete has
+ * said when the session is. An unrecorded session fires nothing: the deck's
+ * windows are measured against a time the athlete supplied or against nothing
+ * at all, never against a guess.
+ *
+ * `now` is passed in rather than read here. This module stays pure -- it is
+ * the one place a nutrition rule is turned into a card, and it should be
+ * answerable at any time of day in a test without mocking a clock.
  */
-export function evaluate(summary: DaySummary, rules: AdviceRule[]): Nudge[] {
+export function evaluate(summary: DaySummary, rules: AdviceRule[], now: Minutes): Nudge[] {
   const byCode = new Map(rules.map((r) => [r.code, r]));
   const fired: string[] = [];
 
@@ -63,6 +79,30 @@ export function evaluate(summary: DaySummary, rules: AdviceRule[]): Nudge[] {
   // Null is "the check-in has not been filled", which fires nothing.
   if (summary.urineColour !== null && summary.urineColour >= URINE_ACT_NOW) {
     fired.push('urine_five_or_worse');
+  }
+
+  const { startsAt, endsAt } = summary.session;
+  const slotLogged = (slot: MealSlot) =>
+    summary.slots.find((s) => s.slot === slot)?.logged ?? false;
+
+  // The last two hours before the session, and not after it has begun: once
+  // training has started, telling the athlete to eat two hours beforehand is
+  // advice about a moment that has gone.
+  if (
+    summary.dayType === 'training' &&
+    startsAt !== null &&
+    !slotLogged('pre_training') &&
+    now >= startsAt - PRE_TRAINING_WINDOW_MIN &&
+    now < startsAt
+  ) {
+    fired.push('pre_training_meal');
+  }
+
+  // The window has opened and nothing has gone into the post-training slot.
+  // It stays up after the 30 minutes have run out, because the athlete who
+  // has not eaten is exactly the one the card is for.
+  if (endsAt !== null && !slotLogged('post_training') && now >= endsAt + REFUEL_WINDOW_MIN) {
+    fired.push('refuel_window_open');
   }
 
   return fired
@@ -85,7 +125,8 @@ export function evaluate(summary: DaySummary, rules: AdviceRule[]): Nudge[] {
 export function topNudges(
   summary: DaySummary,
   rules: AdviceRule[],
+  now: Minutes,
   limit = MAX_NUDGES
 ): Nudge[] {
-  return evaluate(summary, rules).slice(0, Math.max(limit, 0));
+  return evaluate(summary, rules, now).slice(0, Math.max(limit, 0));
 }

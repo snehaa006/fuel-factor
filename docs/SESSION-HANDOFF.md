@@ -101,7 +101,15 @@ hydration rule now fires: step 5 gave `daily_logs.urine_colour` a value, so
 `urine_five_or_worse` came off the bench and the Today screen carries up to two
 cards, tinted by domain.
 
-**297 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
+**Step 6b** — Training session time, so the last two advice rules can fire.
+`training_sessions` is a tier-2 table keyed on the daily log, holding a start
+and an end as local wall clocks. On a training day the Today screen offers a
+quarter-hour stepper for each. With it, `pre_training_meal` fires in the two
+hours before the session and `refuel_window_open` thirty minutes after it
+ends. **All five seeded rules now fire.** The windows are the deck's; the app
+supplies only the clock.
+
+**343 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
 
 ### Where things are
@@ -116,8 +124,10 @@ lint and tests. Run it before saying anything is done.
 | `mobile/src/lib/today.ts` | Day summary, slot roll-up, day type |
 | `mobile/src/lib/logger.ts` | Food search, portions, writes and slot ticks |
 | `mobile/src/lib/check-in.ts` | The DAILY LOG fields, limits, urine wording |
-| `mobile/src/lib/advice.ts` | Rule evaluation. Three rules fire; two stay dormant |
+| `mobile/src/lib/advice.ts` | Rule evaluation. All five seeded rules fire |
 | `mobile/src/lib/streak.ts` | Streak length, the seven-day strip, best run |
+| `mobile/src/lib/session.ts` | Training session times, as minutes since midnight |
+| `mobile/src/components/session-times.tsx` | The start/end stepper |
 | `mobile/src/components/streak-strip.tsx` | The week strip |
 | `mobile/src/lib/auth.ts` | Anonymous sign-in, roster, claim |
 | `mobile/src/lib/errors.ts` | `messageOf` / `asError` — read this before touching error handling |
@@ -176,6 +186,20 @@ debugging sessions before it was pinned down.
 pointing at a line that is fine. Same cause, different trigger. One render per
 test: to compare two prop values, write two tests.
 
+**A default parameter that calls an imported function is a runtime import,
+and it crashed the app while every test passed.** `evaluate(summary, rules,
+now = nowMinutes())` in `advice.ts` pulled a value out of `session.ts`, which
+imports `supabase.ts`; under Metro that resolved to undefined and the Today
+screen rendered blank with "Property 'nowMinutes' doesn't exist". Jest's
+resolver did not care, so 343 tests passed against a bundle that could not
+boot. `now` is now a required argument and `advice.ts` imports only a type.
+Keep the rule engine pure — and if a screen goes white, read the Metro log
+before anything else.
+
+**Metro serves a stale bundle after a crash like that.** It kept reporting the
+old source line, from a file that no longer contained it, through several
+reloads. Restart with `--clear`; do not spend time doubting the edit.
+
 **Fast refresh does not re-run `useToday`.** Its effect keys on a reload
 nonce, so editing a fixture and waiting changes nothing on screen. Relaunch the
 app — `open_url` with the `exp://…` address — or you will be reading a stale
@@ -202,20 +226,17 @@ the enum so a seventh slot breaks the build instead of writing to nothing.
 **The Expo dev-menu button sits over the top-right of the screen** in the
 simulator and will eat taps meant for a Cancel control. It is not in the app.
 
-## Two things step 6 could not do honestly
+## What step 6 left, and where it landed
 
-**The two timing rules are still dormant, and not for want of trying.**
-`refuel_window_open` and `pre_training_meal` both fire relative to a training
-session — "within 30 minutes", "two hours before". The app records no session
-time and neither does the tracker, which has no column for one. Firing the
-deck's 30-minute window against a clock nobody supplied would be inventing the
-measurement. A session start time would be an app-tier field, so it is mine to
-add rather than Sofia's to approve — but it needs a screen to collect it, and
-it was not in step 6. Worth deciding before the demo: two of the five seeded
-rules cannot fire without it.
+**The timing rules are live.** They were dormant because nothing recorded a
+training session; `training_sessions` now does, as an app-tier table, and both
+fire. One thing to put to Sofia: the refuel rule fires on any day a session was
+recorded, including one marked Rest, because the rule is about having trained
+rather than about the Day Type column. That reading is mine and she may want it
+otherwise.
 
-**The week strip shows one lit day against the real database, and six in the
-fixture.** A day lights because a `daily_logs` row exists for it, and
+**The week strip still shows one lit day against the real database, and six in
+the fixture.** A day lights because a `daily_logs` row exists for it, and
 `daily_logs` is a research table the CSV export reads. Seeding six dated rows
 nobody filled would be fabricating collected data, not demo content, so the
 seed was left alone and the extra days live only in

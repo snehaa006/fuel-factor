@@ -12,9 +12,15 @@ into their workbook first and here second.
 
 **App tables carry what the product needs and the study does not record.**
 `teams`, `team_members`, `participant_profiles`, `food_items`, `food_portions`,
-`log_items`, `weekly_challenges`, `challenge_completions`, `advice_rules`. None
-of it is exported, and the whole tier could be dropped without touching a
-research column.
+`log_items`, `training_sessions`, `weekly_challenges`, `challenge_completions`,
+`advice_rules`. None of it is exported, and the whole tier could be dropped
+without touching a research column.
+
+`training_sessions` is the clearest case of why the split exists. Two advice
+rules are written against a training session — "2 to 3 hours before", "refuel
+within 30 minutes" — so the app has to know when the session was. The tracker
+has no column for it, so it is a table of its own rather than two more columns
+on `daily_logs`, and the export never sees it.
 
 ## What is deliberately empty
 

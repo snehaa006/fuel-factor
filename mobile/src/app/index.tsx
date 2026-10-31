@@ -8,9 +8,11 @@ import { FuelRing } from '@/components/fuel-ring';
 import { MealTimeline } from '@/components/meal-timeline';
 import { NudgeCard } from '@/components/nudge-card';
 import { PushButton } from '@/components/push-button';
+import { SessionTimes } from '@/components/session-times';
 import { StreakChip } from '@/components/streak-chip';
 import { StreakStrip } from '@/components/streak-strip';
 import { topNudges } from '@/lib/advice';
+import { hasSession, nowMinutes } from '@/lib/session';
 import { bestStreak, loggedToday, recentDays, streakLength } from '@/lib/streak';
 import { useToday } from '@/lib/use-today';
 import { useTheme } from '@/theme';
@@ -65,7 +67,8 @@ export default function Today() {
   const streak = streakLength(data.activeDates, date);
   const best = bestStreak(data.activeDates, date);
   const week = recentDays(data.activeDates, date);
-  const nudges = topNudges(summary, rules);
+  const now = nowMinutes();
+  const nudges = topNudges(summary, rules, now);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
@@ -106,6 +109,20 @@ export default function Today() {
         <View style={{ marginTop: spacing['space-6'] }}>
           <DayTypeSwitch value={summary.dayType} onChange={state.changeDayType} testID="day-type" />
         </View>
+
+        {/* A training day, or any day that already has a session recorded.
+            The second half matters: switching to Rest must not strand a
+            session on the row with no way left to clear it. */}
+        {(summary.dayType === 'training' || hasSession(summary.session)) && (
+          <View style={{ marginTop: spacing['space-4'] }}>
+            <SessionTimes
+              value={summary.session}
+              onChange={state.changeSession}
+              now={now}
+              testID="session"
+            />
+          </View>
+        )}
 
         <View style={{ marginTop: spacing['space-8'], alignItems: 'center' }}>
           <FuelRing

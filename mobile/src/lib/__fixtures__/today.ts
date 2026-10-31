@@ -1,4 +1,5 @@
 import { summariseDay, type LoggedItem, type TodayData } from '../today';
+import type { TrainingSession } from '../session';
 import type { AdviceRule } from '../advice';
 import type { FoodWithPortions } from '../food';
 
@@ -39,7 +40,33 @@ export const DEMO_RULES: AdviceRule[] = [
     severity: 2,
     reviewed_by: null,
   },
+  {
+    code: 'refuel_window_open',
+    domain: 'timing',
+    message_en:
+      'Refuel within 30 minutes. Aim for roughly 3 parts carbohydrate to 1 part protein.',
+    severity: 2,
+    reviewed_by: null,
+  },
+  {
+    code: 'pre_training_meal',
+    domain: 'timing',
+    message_en:
+      'Eat a proper meal 2 to 3 hours before training. Rice, pasta, nasi campur, anything carb-heavy.',
+    severity: 1,
+    reviewed_by: null,
+  },
 ];
+
+/**
+ * An afternoon session, which is when a Jakarta school side trains.
+ *
+ * Fixed rather than derived from the current time: a session that always sat
+ * two hours ahead of whenever you looked would make the timing cards appear
+ * on cue and tell you nothing about whether the windows are right. These fire
+ * when the clock actually reaches them, as they will for an athlete.
+ */
+const DEMO_SESSION: TrainingSession = { startsAt: 16 * 60 + 30, endsAt: 18 * 60 };
 
 /** A date `back` days before `today`, as YYYY-MM-DD. */
 function daysBefore(today: string, back: number): string {
@@ -70,6 +97,7 @@ function demoActiveDates(today: string): string[] {
 export function demoToday(today: string): TodayData {
   return {
     participantId: 'demo-theo',
+    dailyLogId: 'demo-log',
     participantName: 'Theo',
     weightKg: 68,
     summary: summariseDay(
@@ -89,7 +117,8 @@ export function demoToday(today: string): TodayData {
         evening_snack: false,
       },
       DEMO_ITEMS,
-      68
+      68,
+      DEMO_SESSION
     ),
     activeDates: demoActiveDates(today),
   };

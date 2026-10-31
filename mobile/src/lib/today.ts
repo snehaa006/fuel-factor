@@ -1,5 +1,6 @@
 import { asError } from './errors';
 import { carbsFor } from './food';
+import { NO_SESSION, parseTime, type TrainingSession } from './session';
 import { supabase } from './supabase';
 import { carbBand, type CarbBand, type DayType } from './targets';
 import type { Enums, Tables } from './database.types';
@@ -54,6 +55,8 @@ export type DaySummary = {
   dqScore: number | null;
   /** The evening check-in's 1-8 reading, or null before it is filled. */
   urineColour: number | null;
+  /** When training is, for the two timing rules. Nulls until the athlete says. */
+  session: TrainingSession;
 };
 
 type DailyLogRow = Pick<
@@ -72,7 +75,8 @@ type DailyLogRow = Pick<
 export function summariseDay(
   log: DailyLogRow | null,
   items: LoggedItem[],
-  weightKg: number | null
+  weightKg: number | null,
+  session: TrainingSession = NO_SESSION
 ): DaySummary {
   const slots = MEAL_SLOTS.map<SlotState>((slot) => {
     const slotItems = items.filter((i) => i.slot === slot);
@@ -94,11 +98,14 @@ export function summariseDay(
     band: carbBand(weightKg, log?.day_type ?? null),
     dqScore: log?.dq_score ?? null,
     urineColour: log?.urine_colour ?? null,
+    session,
   };
 }
 
 export type TodayData = {
   participantId: string;
+  /** Today's row, or null when nothing has been logged or set yet. */
+  dailyLogId: string | null;
   participantName: string;
   weightKg: number | null;
   summary: DaySummary;
@@ -155,12 +162,29 @@ export async function fetchToday(date = todayIso()): Promise<TodayData | null> {
   if (datesResult.error) throw asError(datesResult.error);
 
   let items: LoggedItem[] = [];
+  let session = NO_SESSION;
   if (logResult.data) {
-    const { data, error } = await supabase
-      .from('log_items')
-      .select('slot, quantity, free_text, food_portions(*, food_items(name_id))')
-      .eq('daily_log_id', logResult.data.id)
-      .returns<LogItemRow[]>();
+    const [itemsResult, sessionResult] = await Promise.all([
+      supabase
+        .from('log_items')
+        .select('slot, quantity, free_text, food_portions(*, food_items(name_id))')
+        .eq('daily_log_id', logResult.data.id)
+        .returns<LogItemRow[]>(),
+      supabase
+        .from('training_sessions')
+        .select('starts_at, ends_at')
+        .eq('daily_log_id', logResult.data.id)
+        .maybeSingle(),
+    ]);
+
+    const { data, error } = itemsResult;
+    if (sessionResult.error) throw asError(sessionResult.error);
+    if (sessionResult.data) {
+      session = {
+        startsAt: parseTime(sessionResult.data.starts_at),
+        endsAt: parseTime(sessionResult.data.ends_at),
+      };
+    }
 
     if (error) throw asError(error);
     items = (data ?? []).map((row) => ({
@@ -171,11 +195,14 @@ export async function fetchToday(date = todayIso()): Promise<TodayData | null> {
     }));
   }
 
+  const weightKg = participant.weight_kg === null ? null : Number(participant.weight_kg);
+
   return {
     participantId: participant.id,
+    dailyLogId: logResult.data?.id ?? null,
     participantName: participant.name,
-    weightKg: participant.weight_kg === null ? null : Number(participant.weight_kg),
-    summary: summariseDay(logResult.data, items, participant.weight_kg === null ? null : Number(participant.weight_kg)),
+    weightKg,
+    summary: summariseDay(logResult.data, items, weightKg, session),
     activeDates: (datesResult.data ?? []).map((r) => r.log_date),
   };
 }

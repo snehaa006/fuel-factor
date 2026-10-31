@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { demoToday, DEMO_RULES } from './__fixtures__/today';
 import { messageOf } from './errors';
 import { carbBand, type DayType } from './targets';
+import { ensureDailyLog } from './logger';
+import { saveSession, type TrainingSession } from './session';
 import { fetchToday, setDayType, todayIso, type TodayData } from './today';
 import { supabase } from './supabase';
 import type { AdviceRule } from './advice';
@@ -24,6 +26,7 @@ export type TodayState =
 export type TodayController = TodayState & {
   reload: () => void;
   changeDayType: (next: DayType) => void;
+  changeSession: (next: TrainingSession) => void;
 };
 
 async function loadRules(): Promise<AdviceRule[]> {
@@ -42,6 +45,10 @@ function withDayType(data: TodayData, dayType: DayType): TodayData {
     ...data,
     summary: { ...data.summary, dayType, band: carbBand(data.weightKg, dayType) },
   };
+}
+
+function withSession(data: TodayData, session: TrainingSession): TodayData {
+  return { ...data, summary: { ...data.summary, session } };
 }
 
 export function useToday(): TodayController {
@@ -74,6 +81,38 @@ export function useToday(): TodayController {
         });
       }
       return { ...current, data: withDayType(current.data, next) };
+    });
+  }, []);
+
+  /**
+   * Same shape as the day type: the screen moves first and the write follows,
+   * and a refused write puts the old times back. The daily log row may not
+   * exist yet -- setting a session time can be the first thing an athlete does
+   * today -- so it is created first, exactly as logging a meal does.
+   */
+  const changeSession = useCallback((next: TrainingSession) => {
+    setState((current) => {
+      if (current.status !== 'ready') return current;
+
+      const previous = current.data.summary.session;
+      if (!USE_FIXTURE) {
+        const { participantId, dailyLogId } = current.data;
+        const write = dailyLogId
+          ? saveSession(dailyLogId, next)
+          : ensureDailyLog(participantId, current.date).then((id) => {
+              setState((latest) =>
+                latest.status === 'ready' ? { ...latest, data: { ...latest.data, dailyLogId: id } } : latest
+              );
+              return saveSession(id, next);
+            });
+
+        write.catch(() => {
+          setState((latest) =>
+            latest.status === 'ready' ? { ...latest, data: withSession(latest.data, previous) } : latest
+          );
+        });
+      }
+      return { ...current, data: withSession(current.data, next) };
     });
   }, []);
 
@@ -114,5 +153,5 @@ export function useToday(): TodayController {
     };
   }, [nonce]);
 
-  return { ...state, reload, changeDayType };
+  return { ...state, reload, changeDayType, changeSession };
 }

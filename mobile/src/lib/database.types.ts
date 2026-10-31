@@ -90,6 +90,14 @@ export type Database = {
         Update: { created_at?: string; id?: string; join_code?: string; name?: string };
         Relationships: [];
       };
+      training_sessions: {
+        Row: { created_at: string; daily_log_id: string; ends_at: string | null; starts_at: string | null; updated_at: string };
+        Insert: { created_at?: string; daily_log_id: string; ends_at?: string | null; starts_at?: string | null; updated_at?: string };
+        Update: { created_at?: string; daily_log_id?: string; ends_at?: string | null; starts_at?: string | null; updated_at?: string };
+        Relationships: [
+          { foreignKeyName: 'training_sessions_daily_log_id_fkey'; columns: ['daily_log_id']; isOneToOne: true; referencedRelation: 'daily_logs'; referencedColumns: ['id'] },
+        ];
+      };
       weekly_challenges: {
         Row: { challenge: string; created_at: string; id: string; starts_on: string | null; theme: string; week_number: number };
         Insert: { challenge: string; created_at?: string; id?: string; starts_on?: string | null; theme: string; week_number: number };
