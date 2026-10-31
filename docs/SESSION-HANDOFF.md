@@ -171,12 +171,12 @@ To look at the app without a session:
 
 Branch **`sneha`** = `origin/sneha`, everything pushed, nothing uncommitted.
 
-**You merged PR #1 into `main` on GitHub**, so `origin/main` carries everything
-through step 7. **Step 7b (the challenge photo) is on `sneha` only** and is not in
-`main` yet.
+**PR #1 is merged**, so `main` carries everything through step 7. Local `main`
+has been fast-forwarded and sits level with `origin/main`.
 
-Local `main` is stale at step 4 and is now *behind* `origin/main` by six. A
-`git checkout main && git pull` fast-forwards it; I have not touched it.
+**Step 7b (the challenge photo) and this handoff are on `sneha` only**, two
+commits ahead of `main`. They want a second PR when you are ready; nothing has
+been merged locally.
 
 ## The one thing blocking live data
 
