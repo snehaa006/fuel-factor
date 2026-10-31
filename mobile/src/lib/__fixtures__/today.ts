@@ -31,7 +31,40 @@ export const DEMO_RULES: AdviceRule[] = [
     severity: 1,
     reviewed_by: null,
   },
+  {
+    code: 'urine_five_or_worse',
+    domain: 'hydration',
+    message_en:
+      'Losing 2% of your body weight to dehydration cuts sprint speed by about 10%.',
+    severity: 2,
+    reviewed_by: null,
+  },
 ];
+
+/** A date `back` days before `today`, as YYYY-MM-DD. */
+function daysBefore(today: string, back: number): string {
+  return new Date(Date.parse(`${today}T00:00:00Z`) - back * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+}
+
+/**
+ * Days Theo was active, for the streak strip.
+ *
+ * FIXTURE ONLY, and deliberately not mirrored into supabase/seed. A day is on
+ * the strip because a `daily_logs` row exists for it, and `daily_logs` is a
+ * research table the CSV export reads -- so seeding six dated rows nobody
+ * filled would be fabricating collected data, not demo content. This array
+ * lives behind EXPO_PUBLIC_DEMO_DATA and never reaches the database.
+ *
+ * Against the real project the strip shows the days Theo has actually logged,
+ * which on a fresh database is one.
+ */
+function demoActiveDates(today: string): string[] {
+  // A three-day run up to today, a missed day, then a four-day run before it:
+  // enough shape to show a gap, and a best that beats the current streak.
+  return [0, 1, 2, 4, 5, 6, 7].map((back) => daysBefore(today, back));
+}
 
 /** Theo: 68 kg, the one weight both tabs of the tracker agree on. */
 export function demoToday(today: string): TodayData {
@@ -43,6 +76,11 @@ export function demoToday(today: string): TodayData {
       {
         day_type: 'training',
         dq_score: null,
+        // Theo's own baseline reading, which sat at 6 for three straight days
+        // -- "dehydrated, drink immediately" in the workbook's own wording.
+        // It is here so the hydration card demonstrates; the figure is his, not
+        // one the app made up.
+        urine_colour: 6,
         breakfast: true,
         pre_training: false,
         lunch: true,
@@ -53,7 +91,7 @@ export function demoToday(today: string): TodayData {
       DEMO_ITEMS,
       68
     ),
-    activeDates: [today],
+    activeDates: demoActiveDates(today),
   };
 }
 

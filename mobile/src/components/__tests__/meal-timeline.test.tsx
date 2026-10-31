@@ -7,6 +7,7 @@ import { DEMO_ITEMS } from '@/lib/__fixtures__/today';
 const log = {
   day_type: 'training' as const,
   dq_score: null,
+  urine_colour: null,
   breakfast: true,
   pre_training: false,
   lunch: true,

@@ -52,11 +52,13 @@ export type DaySummary = {
   band: CarbBand | null;
   /** The DQ Score /12. Null until the dietitian states the formula. */
   dqScore: number | null;
+  /** The evening check-in's 1-8 reading, or null before it is filled. */
+  urineColour: number | null;
 };
 
 type DailyLogRow = Pick<
   Tables<'daily_logs'>,
-  'day_type' | 'dq_score' | MealSlot
+  'day_type' | 'dq_score' | 'urine_colour' | MealSlot
 >;
 
 /**
@@ -91,6 +93,7 @@ export function summariseDay(
     itemsWithoutFigures: items.filter((i) => i.carbs_g === null).length,
     band: carbBand(weightKg, log?.day_type ?? null),
     dqScore: log?.dq_score ?? null,
+    urineColour: log?.urine_colour ?? null,
   };
 }
 
@@ -135,7 +138,7 @@ export async function fetchToday(date = todayIso()): Promise<TodayData | null> {
     supabase
       .from('daily_logs')
       .select(
-        'id, day_type, dq_score, breakfast, pre_training, lunch, post_training, dinner, evening_snack'
+        'id, day_type, dq_score, urine_colour, breakfast, pre_training, lunch, post_training, dinner, evening_snack'
       )
       .eq('participant_id', participant.id)
       .eq('log_date', date)

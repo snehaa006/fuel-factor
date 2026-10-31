@@ -94,7 +94,14 @@ serving counters with no target beside them, fluid in mL, the 1-8 hydration
 reading, the five 1-10 self-ratings, and notes. Blank stays null, never zero.
 `dq_score` is never written.
 
-**265 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
+**Step 6** — Streak and advice cards. The streak grew a seven-day strip under
+the chip, so a gap two days back is visible rather than hidden inside a count,
+plus a "best so far" line when the best run beats the current one. The
+hydration rule now fires: step 5 gave `daily_logs.urine_colour` a value, so
+`urine_five_or_worse` came off the bench and the Today screen carries up to two
+cards, tinted by domain.
+
+**297 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
 
 ### Where things are
@@ -109,27 +116,21 @@ lint and tests. Run it before saying anything is done.
 | `mobile/src/lib/today.ts` | Day summary, slot roll-up, day type |
 | `mobile/src/lib/logger.ts` | Food search, portions, writes and slot ticks |
 | `mobile/src/lib/check-in.ts` | The DAILY LOG fields, limits, urine wording |
-| `mobile/src/lib/advice.ts` | Rule evaluation. Two rules fire so far |
+| `mobile/src/lib/advice.ts` | Rule evaluation. Three rules fire; two stay dormant |
+| `mobile/src/lib/streak.ts` | Streak length, the seven-day strip, best run |
+| `mobile/src/components/streak-strip.tsx` | The week strip |
 | `mobile/src/lib/auth.ts` | Anonymous sign-in, roster, claim |
 | `mobile/src/lib/errors.ts` | `messageOf` / `asError` — read this before touching error handling |
 | `mobile/src/lib/__fixtures__/today.ts` | The demo day and demo foods |
 
 ## Where the code is right now
 
-On branch **`sneha`**, nine commits, **not pushed**. The remote
-(`github.com/snehaa006/fuel-factor`) still has only "first commit".
+On branch **`sneha`**, pushed. `origin/sneha` is up to date — the push the last
+session's sandbox kept refusing went through on the first try this time, so
+that whole workaround note is gone.
 
-```bash
-git push -u origin sneha
-```
-
-The last session could not run that: its sandbox refused every `git push`
-("Out-of-Place Publication") and also refused to write a `.claude/settings.json`
-granting the permission ("Self-Modification"). Try the push early — if it is
-refused again, say so rather than working around it, and I will run it.
-
-Local `main` is also eight commits ahead of `origin/main` and carries
-everything except step 5.
+Local `main` is still eight commits ahead of `origin/main` and carries
+everything except steps 5 and 6. Nothing has been merged into it.
 
 ## The one thing blocking live data
 
@@ -170,9 +171,27 @@ test then renders an empty tree with a baffling "Unable to find element". Let
 each event land — `await waitFor(...)` between them. This cost two separate
 debugging sessions before it was pinned down.
 
+**`screen.unmount()` followed by a second `render` in one test breaks the
+*next* test** in exactly the same way, with the same "Unable to find element"
+pointing at a line that is fine. Same cause, different trigger. One render per
+test: to compare two prop values, write two tests.
+
+**Fast refresh does not re-run `useToday`.** Its effect keys on a reload
+nonce, so editing a fixture and waiting changes nothing on screen. Relaunch the
+app — `open_url` with the `exp://…` address — or you will be reading a stale
+render and believing it.
+
 **`toHaveTextContent` matches exactly here**, not as a substring. Use a regex.
 
 **RN 0.88 has no `StyleSheet.absoluteFillObject`.** Write the four offsets.
+
+**A ring has to contrast with whatever is inside it, and the fill changes
+with the theme.** The week strip first marked today with a `pisang-deep`
+outline, which is a dark brown on orange in light and a *light* orange on
+orange in dark, where it all but vanished. Caught by looking at the simulator
+in dark mode, not by a test. Today is now marked by a larger dot and a darker
+initial — size and text colour mean the same thing in both themes. Check both
+themes on anything that draws a border.
 
 **A computed key in a Supabase `.update()` widens to a string index** and loses
 the column types. `logger.ts` spells the six slot ticks out as a `Record` over
@@ -183,9 +202,30 @@ the enum so a seventh slot breaks the build instead of writing to nothing.
 **The Expo dev-menu button sits over the top-right of the screen** in the
 simulator and will eat taps meant for a Cancel control. It is not in the app.
 
+## Two things step 6 could not do honestly
+
+**The two timing rules are still dormant, and not for want of trying.**
+`refuel_window_open` and `pre_training_meal` both fire relative to a training
+session — "within 30 minutes", "two hours before". The app records no session
+time and neither does the tracker, which has no column for one. Firing the
+deck's 30-minute window against a clock nobody supplied would be inventing the
+measurement. A session start time would be an app-tier field, so it is mine to
+add rather than Sofia's to approve — but it needs a screen to collect it, and
+it was not in step 6. Worth deciding before the demo: two of the five seeded
+rules cannot fire without it.
+
+**The week strip shows one lit day against the real database, and six in the
+fixture.** A day lights because a `daily_logs` row exists for it, and
+`daily_logs` is a research table the CSV export reads. Seeding six dated rows
+nobody filled would be fabricating collected data, not demo content, so the
+seed was left alone and the extra days live only in
+`mobile/src/lib/__fixtures__/today.ts` behind `EXPO_PUBLIC_DEMO_DATA=1`. The
+honest fix is Theo actually logging through November, which the programme runs
+anyway. If the strip has to look full on stage against live data, that is a
+decision to take deliberately and not a seed to slip in.
+
 ## What's next
 
-6. Streak and advice cards
 7. Learn — Week 1 from the PDF
 8. Team and leaderboard
 9. Coach dashboard (web, after the demo)

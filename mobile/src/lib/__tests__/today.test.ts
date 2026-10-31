@@ -3,6 +3,7 @@ import { MEAL_SLOTS, summariseDay, todayIso, type LoggedItem } from '@/lib/today
 const emptyLog = {
   day_type: 'training' as const,
   dq_score: null,
+  urine_colour: null,
   breakfast: false,
   pre_training: false,
   lunch: false,

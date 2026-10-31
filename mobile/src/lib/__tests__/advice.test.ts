@@ -1,10 +1,11 @@
-import { evaluate, topNudge, type AdviceRule } from '@/lib/advice';
+import { evaluate, MAX_NUDGES, topNudges, type AdviceRule } from '@/lib/advice';
 import { summariseDay, type LoggedItem } from '@/lib/today';
 import { DEMO_RULES } from '@/lib/__fixtures__/today';
 
 const log = {
   day_type: 'training' as const,
   dq_score: null,
+  urine_colour: null,
   breakfast: false,
   pre_training: false,
   lunch: false,
@@ -71,10 +72,72 @@ describe('the advice engine', () => {
   it('shows the most severe rule first', () => {
     const summary = summariseDay(log, [carbless], 68);
     expect(evaluate(summary, DEMO_RULES).map((n) => n.severity)).toEqual([2, 1]);
-    expect(topNudge(summary, DEMO_RULES)?.code).toBe('no_breakfast_training_day');
+    expect(topNudges(summary, DEMO_RULES)[0].code).toBe('no_breakfast_training_day');
   });
 
   it('has no card for a quiet day', () => {
-    expect(topNudge(summariseDay({ ...log, day_type: 'rest' }, [], 68), DEMO_RULES)).toBeNull();
+    expect(topNudges(summariseDay({ ...log, day_type: 'rest' }, [], 68), DEMO_RULES)).toEqual([]);
+  });
+
+  describe('the hydration rule', () => {
+    // The threshold is the seeded rule's own: the tracker's scale reads 5 as
+    // "drink more today" and 6 as "dehydrated -- drink immediately".
+    it('fires at 5, where the programme\u2019s scale says act', () => {
+      const summary = summariseDay({ ...log, day_type: 'rest', urine_colour: 5 }, [], 68);
+      expect(evaluate(summary, DEMO_RULES).map((n) => n.code)).toEqual(['urine_five_or_worse']);
+    });
+
+    it('fires at 6, Theo\u2019s own baseline reading', () => {
+      const summary = summariseDay({ ...log, day_type: 'rest', urine_colour: 6 }, [], 68);
+      expect(evaluate(summary, DEMO_RULES).map((n) => n.code)).toEqual(['urine_five_or_worse']);
+    });
+
+    it('stays quiet at 4', () => {
+      const summary = summariseDay({ ...log, day_type: 'rest', urine_colour: 4 }, [], 68);
+      expect(evaluate(summary, DEMO_RULES)).toEqual([]);
+    });
+
+    it('stays quiet before the check-in is filled', () => {
+      // Null is "not answered", which is not a reading of 1 and not a reading
+      // of 8. An unfilled check-in fires nothing.
+      const summary = summariseDay({ ...log, day_type: 'rest', urine_colour: null }, [], 68);
+      expect(evaluate(summary, DEMO_RULES)).toEqual([]);
+    });
+
+    it('carries the deck\u2019s sentence through unedited', () => {
+      const summary = summariseDay({ ...log, day_type: 'rest', urine_colour: 6 }, [], 68);
+      expect(evaluate(summary, DEMO_RULES)[0].message).toBe(
+        'Losing 2% of your body weight to dehydration cuts sprint speed by about 10%.'
+      );
+    });
+  });
+
+  describe('the card stack', () => {
+    it('carries at most two cards', () => {
+      // A training day with breakfast unlogged, a carbless slot and a bad
+      // reading fires three rules. The screen shows two.
+      const summary = summariseDay({ ...log, urine_colour: 6 }, [carbless], 68);
+      expect(evaluate(summary, DEMO_RULES)).toHaveLength(3);
+      expect(topNudges(summary, DEMO_RULES)).toHaveLength(MAX_NUDGES);
+    });
+
+    it('drops the least severe rule when it has to drop one', () => {
+      const summary = summariseDay({ ...log, urine_colour: 6 }, [carbless], 68);
+      expect(topNudges(summary, DEMO_RULES).map((n) => n.code)).not.toContain('no_carbs_in_slot');
+    });
+
+    it('keeps evaluation order for rules of equal severity', () => {
+      // Breakfast and hydration are both severity 2. Neither domain is ranked
+      // above the other here, so the order the engine evaluated them in stands.
+      const summary = summariseDay({ ...log, urine_colour: 6 }, [], 68);
+      expect(topNudges(summary, DEMO_RULES).map((n) => n.code)).toEqual([
+        'no_breakfast_training_day',
+        'urine_five_or_worse',
+      ]);
+    });
+
+    it('does not pad the stack when only one rule fires', () => {
+      expect(topNudges(summariseDay(log, [], 68), DEMO_RULES)).toHaveLength(1);
+    });
   });
 });

@@ -9,8 +9,9 @@ import { MealTimeline } from '@/components/meal-timeline';
 import { NudgeCard } from '@/components/nudge-card';
 import { PushButton } from '@/components/push-button';
 import { StreakChip } from '@/components/streak-chip';
-import { topNudge } from '@/lib/advice';
-import { streakLength, loggedToday } from '@/lib/streak';
+import { StreakStrip } from '@/components/streak-strip';
+import { topNudges } from '@/lib/advice';
+import { bestStreak, loggedToday, recentDays, streakLength } from '@/lib/streak';
 import { useToday } from '@/lib/use-today';
 import { useTheme } from '@/theme';
 
@@ -62,7 +63,9 @@ export default function Today() {
   const { data, rules, date } = state;
   const { summary } = data;
   const streak = streakLength(data.activeDates, date);
-  const nudge = topNudge(summary, rules);
+  const best = bestStreak(data.activeDates, date);
+  const week = recentDays(data.activeDates, date);
+  const nudges = topNudges(summary, rules);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
@@ -73,6 +76,31 @@ export default function Today() {
             <Text style={[typography['display-l'], { color: colors.ink }]}>{data.participantName}</Text>
           </View>
           <StreakChip days={streak} lit={loggedToday(data.activeDates, date)} testID="streak" />
+        </View>
+
+        {/* The chip gives the number, the strip gives its shape: a gap two
+            days back is visible here and invisible in a count. */}
+        <View
+          style={[
+            styles.streak,
+            {
+              backgroundColor: colors['surface-raised'],
+              borderRadius: 16,
+              padding: spacing['space-4'],
+              marginTop: spacing['space-4'],
+              gap: spacing['space-3'],
+            },
+          ]}
+        >
+          <StreakStrip days={week} testID="streak-strip" />
+          {best > streak && (
+            <Text
+              testID="streak-best"
+              style={[typography['body-s'], { color: colors['ink-muted'], textAlign: 'center' }]}
+            >
+              Best so far: {best} days
+            </Text>
+          )}
         </View>
 
         <View style={{ marginTop: spacing['space-6'] }}>
@@ -88,9 +116,11 @@ export default function Today() {
           />
         </View>
 
-        {nudge && (
-          <View style={{ marginTop: spacing['space-8'] }}>
-            <NudgeCard nudge={nudge} testID="nudge" />
+        {nudges.length > 0 && (
+          <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>
+            {nudges.map((nudge, i) => (
+              <NudgeCard key={nudge.code} nudge={nudge} testID={i === 0 ? 'nudge' : `nudge-${i}`} />
+            ))}
           </View>
         )}
 
@@ -149,5 +179,6 @@ const styles = StyleSheet.create({
   centre: { alignItems: 'center', justifyContent: 'center' },
   content: { paddingBottom: 48 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  streak: { width: '100%' },
   dq: { gap: 4 },
 });

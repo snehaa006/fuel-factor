@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { useTheme } from '@/theme';
+import { useTheme, type ColorToken } from '@/theme';
 import type { Nudge } from '@/lib/advice';
 
 export type NudgeCardProps = {
@@ -15,6 +15,19 @@ const DOMAIN_LABEL: Record<string, string> = {
 };
 
 /**
+ * A tint per domain, so a stack of two cards reads as two things.
+ *
+ * Categorical and not ordinal: it says which pillar the card is about, never
+ * how bad it is. Severity is the rule row's own and is carried by the order
+ * the cards appear in, not by colour.
+ */
+const DOMAIN_TINT: Record<string, { fill: ColorToken; label: ColorToken }> = {
+  carbohydrate: { fill: 'pisang-tint', label: 'pisang-deep' },
+  hydration: { fill: 'air-tint', label: 'air-deep' },
+  timing: { fill: 'daun-tint', label: 'daun-deep' },
+};
+
+/**
  * One advice card, carrying a sentence the programme wrote.
  *
  * The app never composes advice copy, so this renders the rule's message
@@ -24,6 +37,7 @@ const DOMAIN_LABEL: Record<string, string> = {
  */
 export function NudgeCard({ nudge, testID }: NudgeCardProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const tint = DOMAIN_TINT[nudge.domain] ?? DOMAIN_TINT.carbohydrate;
 
   return (
     <View
@@ -32,14 +46,14 @@ export function NudgeCard({ nudge, testID }: NudgeCardProps) {
       style={[
         styles.card,
         {
-          backgroundColor: colors['pisang-tint'],
+          backgroundColor: colors[tint.fill],
           borderRadius: radius['radius-xl'],
           padding: spacing['space-4'],
           gap: spacing['space-2'],
         },
       ]}
     >
-      <Text style={[typography.label, { color: colors['pisang-deep'] }]}>
+      <Text style={[typography.label, { color: colors[tint.label] }]}>
         {DOMAIN_LABEL[nudge.domain] ?? nudge.domain.toUpperCase()}
       </Text>
       <Text testID={testID ? `${testID}-message` : undefined} style={[typography['body-l'], { color: colors.ink }]}>
