@@ -71,9 +71,15 @@ The bundle is published to Expo's servers, so it keeps working whether or not
 anyone's laptop is on.
 
 1. Install **Expo Go** from the App Store.
-2. Open the link below on the phone, or point the **Camera** app at the QR code
-   on the project's updates page. (The Camera app, not Expo Go's scanner —
-   that one is Android.)
+2. Open this on the phone:
+
+```
+exp://u.expo.dev/32b11a9f-9dfa-4ca6-9bae-2950fae749bd?channel-name=preview&runtime-version=exposdk:58.0.0
+```
+
+Send it by message and tap it, or point the **Camera** app at a QR of it. (The
+Camera app, not Expo Go's scanner — that one is Android.) The same link works
+on Android in Expo Go.
 
 Published updates live at
 <https://expo.dev/accounts/snehaa006/projects/fuel-factor/updates>.
