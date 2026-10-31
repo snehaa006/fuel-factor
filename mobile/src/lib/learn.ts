@@ -130,6 +130,8 @@ export type WeekDetail = {
   cards: LessonCard[];
   /** The date this athlete last marked the challenge done, if ever. */
   completedOn: string | null;
+  /** The storage path of today's photo, never a URL. Null when there is none. */
+  photoPath: string | null;
 };
 
 export async function fetchWeek(weekNumber: number): Promise<WeekDetail | null> {
@@ -148,12 +150,13 @@ export async function fetchWeek(weekNumber: number): Promise<WeekDetail | null> 
   if (!week) return null;
 
   let completedOn: string | null = null;
+  let photoPath: string | null = null;
   if (week.challengeId) {
     // Row level security answers "whose completion": a caller cannot ask for
     // somebody else's.
     const { data, error } = await supabase
       .from('challenge_completions')
-      .select('completed_on')
+      .select('completed_on, photo_path')
       .eq('challenge_id', week.challengeId)
       .order('completed_on', { ascending: false })
       .limit(1)
@@ -161,9 +164,10 @@ export async function fetchWeek(weekNumber: number): Promise<WeekDetail | null> 
 
     if (error) throw asError(error);
     completedOn = data?.completed_on ?? null;
+    photoPath = data?.photo_path ?? null;
   }
 
-  return { week, cards: toCards(cardRows.data ?? []), completedOn };
+  return { week, cards: toCards(cardRows.data ?? []), completedOn, photoPath };
 }
 
 /**
@@ -177,16 +181,38 @@ export async function fetchWeek(weekNumber: number): Promise<WeekDetail | null> 
 export async function completeChallenge(
   challengeId: string,
   participantId: string,
-  on: string
+  on: string,
+  photoPath: string | null = null
 ): Promise<void> {
   const { error } = await supabase
     .from('challenge_completions')
     .upsert(
-      { challenge_id: challengeId, participant_id: participantId, completed_on: on },
+      {
+        challenge_id: challengeId,
+        participant_id: participantId,
+        completed_on: on,
+        photo_path: photoPath,
+      },
       { onConflict: 'challenge_id,participant_id,completed_on' }
     );
 
   if (error) throw asError(error);
+}
+
+/**
+ * Attach a photo to today's completion, or clear it.
+ *
+ * Adding a photo also marks the day done: an athlete who photographed their
+ * breakfast did the challenge, and making them tap twice to say so is
+ * bookkeeping the app can do for them.
+ */
+export async function setChallengePhoto(
+  challengeId: string,
+  participantId: string,
+  on: string,
+  photoPath: string | null
+): Promise<void> {
+  await completeChallenge(challengeId, participantId, on, photoPath);
 }
 
 /** Undo today's completion, because a mis-tap should not be permanent. */

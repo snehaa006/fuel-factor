@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ChallengePhoto } from '@/components/challenge-photo';
 import { LessonCard } from '@/components/lesson-card';
 import { PushButton } from '@/components/push-button';
 import { todayIso } from '@/lib/today';
@@ -109,6 +110,18 @@ export default function Week() {
                 Last done {detail.completedOn}
               </Text>
             )}
+
+            {/* The photo is optional and comes after the tick, because the
+                challenge is adding a carbohydrate and not proving it. */}
+            <ChallengePhoto
+              url={state.photoUrl}
+              uploading={state.uploading}
+              error={state.photoError}
+              onPick={state.attachPhoto}
+              onClear={state.clearPhoto}
+              onPickError={state.reportPhotoError}
+              testID="challenge-photo"
+            />
           </View>
         )}
       </ScrollView>

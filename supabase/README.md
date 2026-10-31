@@ -31,8 +31,23 @@ on `daily_logs`, and the export never sees it.
 | `food_portions.kcal`/`carbs_g` on 7 of 15 foods | The deck lists them with guidance but no figures. |
 | `advice_rules.reviewed_by` | Null means a seed rule. The dietitian's name here is what clears a rule for the real programme. |
 | `day_type` has no `game` | Their Day Type column only ever holds `training` or `rest`. The deck gives a game-day carb band, and the Learn page shows it because that page is their material — but showing the deck is not adding a value to their schema. |
-| `challenge_completions.photo_path` | The challenge records that it was done; the photo needs a storage bucket and a picker, which is its own piece of work. |
+| `challenge_completions.photo_path` | Null until the athlete adds a photo. It holds a storage path, never a URL — a URL in the database would outlive the policy meant to guard it. |
 | Lessons for weeks 2 to 4 | Only week 1 has been written. A week with no `lesson_cards` rows shows locked, so seeding a week is all it takes to unlock it. |
+
+## The challenge photo
+
+`challenge-photos` is a **private** bucket: 5 MB, image MIME types only,
+nothing served from a public URL. The app holds an object path and asks for a
+signed URL that expires in five minutes.
+
+The path is `<participant_id>/<challenge_id>/<date>.<ext>`, so the first
+folder is the owner and the policy checks it against the caller's own
+participant — not against anything the client claimed.
+
+**A coach can read the completion row and not the image.** A tick on a log is
+what the coach dashboard is for; a photo of a 14-year-old is not, nobody
+asked for it, and it cannot be un-shared afterwards. Four tests assert this,
+including that no storage policy mentions a coach.
 
 ## Row level security
 

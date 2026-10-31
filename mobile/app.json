@@ -32,6 +32,13 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Fuel Factor asks for a photo only when you choose to add one to a weekly challenge. Photos stay private to your account.",
+          "cameraPermission": "Fuel Factor uses the camera only when you take a photo for a weekly challenge. Photos stay private to your account."
+        }
       ]
     ],
     "experiments": {

@@ -119,7 +119,14 @@ seeding week 2 unlocks week 2 with nothing else to remember. The food table
 reads `food_items` rather than carrying a second copy of those figures. The
 week's challenge can be marked done, which writes `challenge_completions`.
 
-**374 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
+**Step 7b** — The challenge photo. `expo-image-picker` for camera or
+library, `expo-image-manipulator` to cap the long edge at 1280 and re-encode
+before upload, into a **private** `challenge-photos` bucket. The row stores a
+path, never a URL; drawing the image asks for a signed URL that expires in
+five minutes. Adding a photo also marks the day done; removing it leaves the
+day done.
+
+**398 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
 
 ### Where things are
@@ -138,6 +145,8 @@ lint and tests. Run it before saying anything is done.
 | `mobile/src/lib/streak.ts` | Streak length, the seven-day strip, best run |
 | `mobile/src/lib/session.ts` | Training session times, as minutes since midnight |
 | `mobile/src/lib/learn.ts` | The four weeks, the cards, challenge completion |
+| `mobile/src/lib/photos.ts` | Challenge photo paths, upload, signed URLs |
+| `mobile/src/components/challenge-photo.tsx` | Pick, downscale, preview, remove |
 | `mobile/src/app/learn/index.tsx` | The week list |
 | `mobile/src/app/learn/[week].tsx` | One week's cards |
 | `mobile/src/components/lesson-card.tsx` | A card per shape the deck uses |
@@ -214,6 +223,18 @@ before anything else.
 old source line, from a file that no longer contained it, through several
 reloads. Restart with `--clear`; do not spend time doubting the edit.
 
+**A second Expo dev server from an older session will serve your app and you
+will not notice.** Port 8081 had a server running from a previous session;
+every `expo start` here took 8082 and logged no bundle, while the simulator
+was being served by 8081 the whole time. Symptom: edits appear, but a newly
+installed native module does not resolve. Check for an `iOS Bundled` line in
+*your* log before believing what is on screen, and force-quit Expo Go from
+the app switcher to make it reconnect.
+
+**An async `onPress` swallows its own rejection.** The photo picker threw and
+the button simply did nothing — no error, no log. Every async handler needs a
+`.catch` that puts the message somewhere the athlete can see it.
+
 **Fast refresh does not re-run `useToday`.** Its effect keys on a reload
 nonce, so editing a fixture and waiting changes nothing on screen. Relaunch the
 app — `open_url` with the `exp://…` address — or you will be reading a stale
@@ -236,6 +257,11 @@ the column types. `logger.ts` spells the six slot ticks out as a `Record` over
 the enum so a seventh slot breaks the build instead of writing to nothing.
 
 **`sed -i '' 's/\b.../'` does not work on macOS** — BSD sed has no `\b`. Use perl.
+
+**A jest mock factory can only reach variables named `mock*`.** Renaming them
+with a blanket regex also renames the factory's keys, so the module exports
+the wrong names and every call becomes "is not a function". Rename the
+variables, not the keys.
 
 **The Expo dev-menu button sits over the top-right of the screen** in the
 simulator and will eat taps meant for a Cancel control. It is not in the app.
@@ -261,12 +287,24 @@ decision to take deliberately and not a seed to slip in.
 
 ## What step 7 left
 
-**The challenge has a check-in but no photo.** The brief pairs them, and the
-WhatsApp message asks for breakfast photos. `challenge_completions.photo_path`
-is already in the schema and stays null. The photo needs `expo-image-picker`,
-a Supabase storage bucket and RLS on that bucket — self-contained, but a
-piece of work of its own rather than a corner of Learn, so it was not slipped
-in half-done.
+**The photo is built, and one privacy call in it is mine.** A coach can read
+the completion row, because a tick on a log is what the coach dashboard is
+for. A coach **cannot** read the image. Nobody asked for that, the dashboard
+is specified as roster, compliance and flags with no photos in it, and a
+photo of a minor cannot be un-shared once it has been. Granting it later is
+one policy; four tests assert the current state, including that the bucket is
+private and that no policy mentions a coach. Worth putting to Sofia and Theo
+rather than leaving as my decision by default.
+
+**The upload itself is unverified against the server.** The picker,
+downscale, preview, replace and remove were all exercised on the simulator,
+but that runs on `EXPO_PUBLIC_DEMO_DATA` with a local preview, because
+anonymous sign-ins are still off and storage needs a session. What *was*
+checked against the live project: the bucket is private with a 5 MB limit and
+image-only MIME types, and all four policies are deployed, scoped to the
+athlete's own folder and granted to `authenticated` only — `storage.objects`
+has no other policy, so anon has no access at all. The first real upload
+should still be watched.
 
 **The deck's game-day band is now on screen.** Week 1 prints 6–8 g/kg for a
 game day and the Learn page shows it, because the page is their material.
