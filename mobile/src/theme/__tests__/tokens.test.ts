@@ -32,15 +32,34 @@ describe('generated theme', () => {
     // ink aliases kecap in light and santan in dark.
     expect(palette.light.ink).toBe(palette.light.kecap);
     expect(palette.dark.ink).toBe(palette.dark.santan);
-    expect(palette.light['ink-muted']).toBe(palette.light.gula);
+    expect(palette.light.surface).toBe(palette.light.santan);
+    expect(palette.dark.surface).toBe(palette.dark.langit);
   });
 
-  it('keeps the five brand hexes exactly as the brand board gives them', () => {
-    expect(palette.light.santan).toBe('#fde2cf');
-    expect(palette.light.pisang).toBe('#f8a720');
-    expect(palette.light.cabai).toBe('#b8420d');
-    expect(palette.light.gula).toBe('#89472e');
-    expect(palette.light.kecap).toBe('#642714');
+  it('does not make ink-muted an alias of gula', () => {
+    // It was one, when gula was #89472e. The brand board's own mid-brown is
+    // lighter and reaches 3.8:1 on the board's cream, under the 4.5:1 the
+    // design system promises for text, so gula stays a graphic colour.
+    expect(palette.light['ink-muted']).not.toBe(palette.light.gula);
+  });
+
+  it('keeps the brand hexes exactly as the brand boards give them', () => {
+    // Sampled from design-system/brand/brand-board.jpg and mascot-board.jpg.
+    // langit is the icon lockup's sky and the dark theme's ground.
+    expect(palette.light.santan).toBe('#f6eed3');
+    expect(palette.light.pisang).toBe('#f6aa32');
+    expect(palette.light.cabai).toBe('#fc5b27');
+    expect(palette.light.gula).toBe('#8c7359');
+    expect(palette.light.kecap).toBe('#523123');
+    expect(palette.light.langit).toBe('#0a2639');
+  });
+
+  it('takes daun and air from the boards rather than inventing them', () => {
+    // Both were marked FUNCTIONAL, not from the brand board. The mascot
+    // sheet's nutrient planets supply a green and a teal, so they are
+    // board colours now.
+    expect(palette.light.daun).toBe('#a6b385');
+    expect(palette.light.air).toBe('#406c79');
   });
 
   it('converts spacing and radius to numbers React Native can use', () => {

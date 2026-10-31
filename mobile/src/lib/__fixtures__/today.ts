@@ -3,6 +3,38 @@ import type { TrainingSession } from '../session';
 import type { LessonCard, Week } from '../learn';
 import type { AdviceRule } from '../advice';
 import type { FoodWithPortions } from '../food';
+import type { Leaderboard } from '../team';
+import type { EarnedBadge } from '../badges';
+import type { Progress } from '../progress';
+import type { CoachView } from '../coach';
+
+/**
+ * The squad's names, or stand-ins for them.
+ *
+ * The three athletes are real, named 14 to 16 year olds, and the figures
+ * beside them -- hydration readings, Cooper run distances -- are transcribed
+ * from the programme's own tracker. That is fine inside a demo on a laptop and
+ * is not fine in a build handed to people, so any build meant to be passed
+ * around sets EXPO_PUBLIC_ANON_DEMO=1 and gets stand-ins instead.
+ *
+ * Only the names change. Every figure, every finding and every shape of the
+ * demo stays exactly as it is, because those are the programme's results and
+ * they are the point.
+ *
+ * The stand-ins have to sort the same way the real names do -- Jacob,
+ * Jeongho, Theo -- because the coach's roster is alphabetical and the fixture
+ * is written in that order. A test holds the two in step.
+ */
+const ANON = process.env.EXPO_PUBLIC_ANON_DEMO === '1';
+
+export const DEMO_NAMES = {
+  /** The athlete this device holds. Sorts last, as Theo does. */
+  me: ANON ? 'Candra' : 'Theo',
+  /** The squad's most consistent logger. Sorts second, as Jeongho does. */
+  first: ANON ? 'Bima' : 'Jeongho',
+  /** Sorts first, as Jacob does. */
+  third: ANON ? 'Arya' : 'Jacob',
+} as const;
 
 /**
  * Theo's day, as the seeds in supabase/seed/0005_demo_today.sql describe it.
@@ -99,7 +131,7 @@ export function demoToday(today: string): TodayData {
   return {
     participantId: 'demo-theo',
     dailyLogId: 'demo-log',
-    participantName: 'Theo',
+    participantName: DEMO_NAMES.me,
     weightKg: 68,
     summary: summariseDay(
       {
@@ -266,3 +298,180 @@ export const DEMO_LESSON_CARDS: LessonCard[] = [
     [null, null, 'Thomas DT, Erdman KA, Burke LM (2016). Academy of Nutrition and Dietetics position paper on nutrition and athletic performance. Journal of the Academy of Nutrition and Dietetics, 116(3), 501–528.'],
   ]),
 ];
+
+/**
+ * The team leaderboard, for the development flag.
+ *
+ * FIXTURE ONLY, and for the same reason the week strip's lit days are: a day
+ * counts because a `daily_logs` row exists, and seeding dated rows nobody
+ * filled would be fabricating collected data in a research table. Against the
+ * real project the board shows the three athletes with the days they have
+ * actually logged, which today is one between them.
+ *
+ * Theo's six matches `demoActiveDates` -- six of its seven days fall inside a
+ * seven-day window -- so the board and his own streak strip cannot disagree.
+ * He is deliberately not the MVP: a board where the demo athlete always wins
+ * shows nothing about how it reads when somebody is ahead of you, which is the
+ * half of the mechanic that makes an athlete log tomorrow.
+ *
+ * The positions and the MVP are written out rather than computed by calling
+ * `rank` here. Importing team.ts would make this module run one of its
+ * functions at module-init time, across a module that reaches supabase.ts --
+ * the exact shape that once bundled cleanly and crashed on boot. A test
+ * asserts this matches what `rank` and `mvp` actually return, so it cannot
+ * drift unnoticed.
+ */
+export const DEMO_LEADERBOARD: Leaderboard = {
+  teamName: 'Jakarta U16',
+  rows: [
+    { participantCode: 'J-01', name: DEMO_NAMES.first, daysLogged: 7, loggedToday: true, isMe: false, position: 1 },
+    { participantCode: 'T-01', name: DEMO_NAMES.me, daysLogged: 6, loggedToday: true, isMe: true, position: 2 },
+    { participantCode: 'JA-01', name: DEMO_NAMES.third, daysLogged: 4, loggedToday: false, isMe: false, position: 3 },
+  ],
+  mvp: [DEMO_NAMES.first],
+  windowDays: 7,
+};
+
+/**
+ * The month's MVP, for the development flag.
+ *
+ * Jeongho again: a fixture where the week and the month disagree would be
+ * showing off the mechanic rather than showing what the squad's data says,
+ * and the squad has one athlete who logs more than the others.
+ */
+export const DEMO_MONTH_MVP: string[] = [DEMO_NAMES.first];
+
+/**
+ * Theo's figures, as the rest of this fixture describes them.
+ *
+ * Every one is read off something already here rather than chosen: seven
+ * dates in `demoActiveDates`, whose longest consecutive run is four, and no
+ * challenge completion, because `fixtureWeek` hands the Learn screen a null
+ * `completedOn`. A badge count that disagreed with the Learn screen would be
+ * the demo contradicting itself on two taps.
+ */
+export const DEMO_STATS = { daysLogged: 7, bestStreak: 4, challengesDone: 0 };
+
+/**
+ * Theo's badges, matching supabase/seed/0007_badges.sql row for row.
+ *
+ * Earned follows from DEMO_STATS and nothing else, so one badge is lit and
+ * the rest read as targets -- which is what a squad sees in week one. Written
+ * out rather than computed with `award` here, for the same reason the board's
+ * positions are: a test checks them instead.
+ */
+export const DEMO_BADGES: EarnedBadge[] = [
+  { id: 'b1', code: 'first_log', name: 'First Touch', description: 'Log anything, once.',
+    criterion: 'days_logged', threshold: 1, position: 1, progress: 7, earned: true },
+  { id: 'b2', code: 'ten_days', name: 'Ten Days', description: 'Log on ten different days.',
+    criterion: 'days_logged', threshold: 10, position: 2, progress: 7, earned: false },
+  { id: 'b3', code: 'thirty_days', name: 'Full Month', description: 'Log on thirty different days.',
+    criterion: 'days_logged', threshold: 30, position: 3, progress: 7, earned: false },
+  { id: 'b4', code: 'week_streak', name: 'Seven Straight', description: 'Log seven days in a row.',
+    criterion: 'streak', threshold: 7, position: 4, progress: 4, earned: false },
+  { id: 'b5', code: 'fortnight', name: 'Fourteen Straight', description: 'Log fourteen days in a row.',
+    criterion: 'streak', threshold: 14, position: 5, progress: 4, earned: false },
+  { id: 'b6', code: 'first_challenge', name: 'Challenger', description: 'Finish one weekly challenge.',
+    criterion: 'challenges_done', threshold: 1, position: 6, progress: 0, earned: false },
+  { id: 'b7', code: 'all_challenges', name: 'Four for Four', description: 'Finish a challenge in all four weeks.',
+    criterion: 'challenges_done', threshold: 4, position: 7, progress: 0, earned: false },
+];
+
+/**
+ * Theo's progress, for the development flag.
+ *
+ * Built from the seeds rather than invented, which is why three of the four
+ * measures have no baseline: `0003_baseline_roster.sql` seeds urine colour for
+ * all nine recall-days and leaves fluid, energy and the meal text null,
+ * because the tracker's free text is not in this repository. Theo's three days
+ * at 6 are his own reading.
+ *
+ * It is a thin screen on purpose. The gaps are the programme's findings, and a
+ * fixture that filled them in would be the one place in this app where
+ * invented nutrition data reached a demo.
+ */
+export const DEMO_PROGRESS: Progress = {
+  metrics: [
+    {
+      key: 'urine', label: 'Hydration', unit: 'on the 1–8 scale',
+      baseline: { value: 6, days: 3 },
+      current: { value: 5.2, days: 5 },
+      note: 'Drink more today',
+      missingNote: 'No urine readings recorded yet.',
+    },
+    {
+      key: 'fluid', label: 'Fluid', unit: 'mL a day',
+      baseline: { value: null, days: 0 },
+      current: { value: 1850, days: 4 },
+      note: null,
+      missingNote: 'Fluid has never been collected by the programme.',
+    },
+    {
+      key: 'breakfast', label: 'Breakfast', unit: '% of days',
+      baseline: { value: null, days: 0 },
+      current: { value: 80, days: 5 },
+      note: null,
+      missingNote:
+        'The three-day recall holds this as free text, which has not been exported yet.',
+    },
+    {
+      key: 'energy', label: 'Morning energy', unit: 'out of 10',
+      baseline: { value: null, days: 0 },
+      current: { value: 6.4, days: 5 },
+      note: null,
+      missingNote:
+        'The three-day recall holds this as free text, which has not been exported yet.',
+    },
+  ],
+  assessments: [
+    // Theo's own Cooper run. post_value is null for everyone: the re-test is
+    // the 30 Nov to 2 Dec recall and has not happened.
+    { measure: 'Cooper 12-min run', unit: 'm', pre: 2680, post: null },
+  ],
+};
+
+/**
+ * The coach's view of the squad, for the development flag.
+ *
+ * The three real athletes, alphabetical as the dashboard keeps them. The
+ * figures are shaped to show each state the screen can be in -- a flagged
+ * athlete, a clean one, and one whose weight is unconfirmed so no day of his
+ * can be measured against the band at all. That last case is not invented:
+ * two of the three have heights and weights that disagree between the
+ * tracker's tabs, which is in the roster seed's own notes.
+ *
+ * Theo's hydration flag is his real baseline finding -- three days at 6, which
+ * the workbook calls drink immediately.
+ */
+export const DEMO_COACH_VIEW: CoachView = {
+  teamName: 'Jakarta U16',
+  windowDays: 14,
+  loggedToday: 2,
+  athletes: [
+    {
+      participantId: 'p-jacob', name: DEMO_NAMES.third, weightKg: 67,
+      days: [], loggedToday: false, daysLogged: 9, breakfastDays: 7,
+      insideBand: 4, daysWithBand: 6, flags: [],
+    },
+    {
+      participantId: 'p-jeongho', name: DEMO_NAMES.first, weightKg: null,
+      days: [], loggedToday: true, daysLogged: 12, breakfastDays: 11,
+      insideBand: 0, daysWithBand: 0, flags: [],
+    },
+    {
+      participantId: 'p-theo', name: DEMO_NAMES.me, weightKg: 68,
+      days: [], loggedToday: true, daysLogged: 11, breakfastDays: 6,
+      insideBand: 2, daysWithBand: 8,
+      flags: [
+        {
+          code: 'under_fuelling',
+          detail: "3 recorded days running below the programme's band.",
+        },
+        {
+          code: 'dehydrated',
+          detail: "Last urine reading was 6. The tracker's scale calls 5 or worse act now.",
+        },
+      ],
+    },
+  ],
+};

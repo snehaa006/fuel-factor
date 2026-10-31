@@ -137,7 +137,114 @@ before upload, into a **private** `challenge-photos` bucket. The row stores a
 path, never a URL; drawing the image asks for a signed URL that expires in five
 minutes. Adding a photo marks the day done; removing it leaves the day done.
 
-**398 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
+**Step 8** — Team and leaderboard. The squad ranked on days logged over the last
+seven, the week's MVP, and a dot per athlete for whether they logged today, which
+is the nudge-your-mate half of what Theo asked for. It is a `security definer`
+RPC rather than a query, because RLS lets an athlete read their own `daily_logs`
+and nobody else's — correct, and it makes a client-side board impossible. **The
+function returns a code, a first name, a day count and two booleans and nothing
+else**, so there is no column a body metric could travel in; six tests fail if
+that list grows. Equal day counts share a position and a shared week names both.
+The screen says out loud, at the bottom, that nobody is ranked on their weight
+or their size.
+
+**Step 8b** — Badges and player of the month, which step 8 should have carried
+and did not. The badge ladder is seven rows in `badges`; awards are *derived on
+read* like the streak, so there is no awards table to drift and no midnight job.
+Every criterion is behavioural — days logged, best streak, challenges done — and
+the enum is the whole list, because a badge for eating well would need a
+definition of eating well. Player of the month is `team_leaderboard` over thirty
+days: the window was already an argument.
+
+**Step 9** — Progress. Baseline against now on hydration, fluid, breakfast and
+morning energy, plus the Cooper run. Three of the four have **no baseline in this
+database** — the three-day recall holds them as free text that has not been
+exported, and fluid has never been collected at all — so the screen says which
+and why. It passes no judgement: both figures and the signed arithmetic between
+them, no colour, no arrow, no "improved", because nobody has said which direction
+is better. The one piece of meaning on the screen is the tracker's own printed
+wording for a urine level.
+
+**Step 10** — Coach dashboard. Roster, who logged today, breakfast days, days
+inside the deck's band, and the brief's two flags. It is a route in this same
+codebase and runs on web with `npm run web`, which is where a coach opens it.
+`teams.coach_code` is a **second** code: handing the squad their join code must
+not hand them the team's logs. `claim_coach` refuses a device already holding an
+athlete and never writes `participant_profiles`, so a coach has no
+`current_participant_id()` — which is what keeps the leaderboard and badges silent
+for them rather than wrong. Both flags quote the programme's own threshold.
+
+**Step 11** — The palette, re-derived. Theo's call on 31 October: the app uses
+the boards' colours and no others. Every token is now sampled from
+`design-system/brand/brand-board.jpg` and `mascot-board.jpg`. Three findings came
+out of it: **`langit` `#0a2639` did not exist** — the five-colour set had no name
+for the navy the icon sits on, and it is now the dark theme's surface, so the
+splash continues straight into the app instead of cutting from navy to brown.
+**`daun` and `air` were invented** and are board colours now, from the mascot
+sheet's nutrient planets. **`ink-muted` can no longer alias `gula`**: the board's
+mid-brown reaches 3.8:1 on the board's cream, under the 4.5:1 the system
+promises, so it stays a graphic colour. All thirteen contrast pairs pass in both
+themes; the worst is 5.5:1.
+
+**Step 12** — The mascot. Theo's astronaut, seven poses plus the balloon bunch,
+cut from the mascot sheet and animated with Reanimated. Six motions:
+
+| Motion | What it does | Where |
+|---|---|---|
+| `idle` | One slow bob, forever | A day part-logged, a ladder part-earned |
+| `enter` | Drops in and lands, stretching | Learn, Welcome, Progress |
+| `celebrate` | Crouch, launch, land, wiggle, burst, one haptic | A day fully logged, every badge earned |
+| `nudge` | One hop every 4.2s | Nothing logged yet, no badges yet |
+| `shake` | Wobble, four cycles | Something refused |
+| `none` | Still | Reduced motion, and tests |
+
+The movement is **squash and stretch**, not a sprite slid up the screen: the
+character compresses before it leaves the ground and stretches on the way up,
+which is what makes a jump read as weight. The frame scales from its bottom
+edge, so the feet stay put while the body squashes.
+
+`SparkleBurst` throws eight marks outward on a celebration — amber and orange
+ticks, which is what the boards already draw around the astronaut, so the
+flourish is the board's own punctuation rather than borrowed confetti. One
+shared value drives all eight; a burst costs no render.
+
+**Every motion has a still version** and the whole thing falls back to it under
+reduced motion. The haptic deliberately still fires: reduced motion is about
+what moves on screen, and somebody who turned it on still deserves to be told
+they finished the day.
+
+`cancelAnimation` runs on unmount. `idle` and `nudge` repeat forever, and
+without it they keep ticking after the screen is gone — which showed up as a
+jest worker that would not exit.
+
+**The mascot never says anything about food.** Every line it can utter lives in
+`mobile/src/lib/mascot-copy.ts` and is about logging, streaks, badges or
+challenges. The programme's sentences stay in `NudgeCard`, which carries a rule
+code and a source and can be reviewed. A cartoon astronaut is the most persuasive
+voice on the screen and the least qualified one, and a test holds its whole
+vocabulary to that. The balloons are labelled B, C, Mg and Ca; **the app tracks
+none of those** and the Week 1 deck gives no micronutrient figures at all, so they
+appear once, as brand art, with no number near them.
+
+**Step 13** — Builds. The app is an EAS project under `snehaa006`, with
+`android.package` and `ios.bundleIdentifier` both `dev.snehaa006.fuelfactor` —
+Android installs and updates against that string, so it must not move.
+`eas.json` has three profiles: `share` (an APK anybody can install, demo data,
+anonymised names), `live` (the same APK against Supabase, blocked at the gate
+until sign-ins are on) and `production`. **`docs/RUNNING-IT.md` is the page to
+hand someone.**
+
+**The demo's three athletes are real minors.** `EXPO_PUBLIC_ANON_DEMO=1` swaps
+their names for stand-ins and changes nothing else; the `share` profile sets it.
+The stand-ins sort the same way the real names do, because the coach's roster is
+alphabetical and the fixture is written in that order — a test holds the two in
+step, and the whole suite passes with the flag on and off.
+
+The app also exports as a single-page web build (`web.output: "single"`), which
+is what the coach dashboard is eventually for. It runs, and it is **not deployed
+anywhere**.
+
+**627 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
 
 To look at the app without a session:
@@ -151,6 +258,9 @@ To look at the app without a session:
 | `mobile/src/app/welcome.tsx` | Consent gate, team code, claim an athlete |
 | `mobile/src/app/log/[slot].tsx` | Food logger |
 | `mobile/src/app/check-in.tsx` | Evening check-in |
+| `mobile/src/app/team.tsx` | The leaderboard, the MVPs and the badges |
+| `mobile/src/app/progress.tsx` | Baseline against now |
+| `mobile/src/app/coach.tsx` | The coach dashboard. Web via `npm run web` |
 | `mobile/src/app/learn/index.tsx` | The week list |
 | `mobile/src/app/learn/[week].tsx` | One week's cards |
 | `mobile/src/lib/targets.ts` | The carbohydrate bands. The deck's numbers, nothing else |
@@ -160,23 +270,52 @@ To look at the app without a session:
 | `mobile/src/lib/advice.ts` | Rule evaluation. Pure — `now` is passed in, never read |
 | `mobile/src/lib/streak.ts` | Streak length, the seven-day strip, best run |
 | `mobile/src/lib/session.ts` | Training session times, as minutes since midnight |
+| `mobile/src/lib/team.ts` | Ranking, the MVP, the board query. Pure — `today` is passed in |
+| `mobile/src/lib/badges.ts` | The ladder. Awards derived on read, never stored |
+| `mobile/src/lib/progress.ts` | Baseline vs now. Verdict-free by design |
+| `mobile/src/lib/coach.ts` | The squad roll-up and the two flags |
 | `mobile/src/lib/learn.ts` | The four weeks, the cards, challenge completion |
 | `mobile/src/lib/photos.ts` | Challenge photo paths, upload, signed URLs |
 | `mobile/src/lib/auth.ts` | Anonymous sign-in, roster, claim |
 | `mobile/src/lib/errors.ts` | `messageOf` / `asError` — read before touching error handling |
 | `mobile/src/lib/__fixtures__/today.ts` | The demo day, demo foods and the week 1 cards |
-| `mobile/src/components/` | `lesson-card`, `challenge-photo`, `session-times`, `streak-strip`, `nudge-card`, `fuel-ring`, `meal-timeline` |
+| `mobile/src/components/mascot.tsx` | The astronaut. Poses, motions, reduced-motion fallback |
+| `mobile/src/lib/mascot-copy.ts` | Every line the mascot can say. Read the note at the top |
+| `mobile/src/components/` | `mascot-banner`, `lesson-card`, `challenge-photo`, `session-times`, `streak-strip`, `leaderboard-row`, `badge-grid`, `metric-compare`, `nudge-card`, `fuel-ring`, `meal-timeline` |
 
 ## Where the code is right now
 
 Branch **`sneha`** = `origin/sneha`, everything pushed, nothing uncommitted.
 
-**PR #1 is merged**, so `main` carries everything through step 7. Local `main`
-has been fast-forwarded and sits level with `origin/main`.
+PRs #1 and #2 are merged, so `main` carries everything through step 7.
 
-**Step 7b (the challenge photo) and this handoff are on `sneha` only**, two
-commits ahead of `main`. They want a second PR when you are ready; nothing has
-been merged locally.
+**`sneha` is eleven commits ahead of `main`**, covering steps 7b to 13 — the
+challenge photo, the leaderboard, badges, Progress, the coach dashboard, the
+icon, the boards' palette, the mascot and its animations, and the build setup.
+
+**[PR #3](https://github.com/snehaa006/fuel-factor/pull/3) is open** for all of
+it and has not been merged. The repository has no CI, so it has no checks to
+wait on; `npm run check` is the gate and it is run by hand.
+
+## The build, and how anybody runs it
+
+**`docs/RUNNING-IT.md` is the page to hand someone.** In short: the project is
+an EAS project under `snehaa006`, and
+
+```bash
+cd mobile && npx eas build --platform android --profile share
+```
+
+produces an **APK that installs from a link** — no store, no account, no cable,
+no Expo Go. That is the one that matters; Jakarta is Android-dominant.
+
+**iPhone is a real gap.** Apple does not allow installing from a link, so an
+iOS build needs a paid Apple Developer account and TestFlight. Until then iOS
+is the simulator or Expo Go.
+
+`android.package` and `ios.bundleIdentifier` are both
+`dev.snehaa006.fuelfactor`. Android installs and updates against that string,
+so changing it later makes a different app rather than an update.
 
 ## The one thing blocking live data
 
@@ -204,6 +343,37 @@ makes it wrong. This is the measurement Theo's three days at 6 rest on. The athl
 matches the workbook's printed chart and taps the number; the tracker's own wording
 shows for levels 3–6 and the rest show none.
 
+**The Progress screen passes no judgement on a change.** It shows the baseline,
+the current figure and the arithmetic between them, with no colour, no arrow and
+no word like "improved". Which direction is better is a nutrition call, and the
+programme has given a direction for none of these four measures. Ask Sofia
+whether the app may say that a urine reading moving from 6 to 3 is an
+improvement — it plainly is, and it is still not mine to assert.
+
+**The coach's two flags fire on the programme's thresholds**, not on mine:
+three recorded days below the deck's own band, and a urine reading of 5 or worse,
+which is what the seeded `urine_five_or_worse` rule already uses. What *is* mine
+is counting consecutive days in **recorded** days rather than calendar days — a
+day with nothing logged is evidence of not logging, not of under-fuelling, and
+conflating them would put a clinical-sounding flag on a child who went on
+holiday.
+
+**A day holding a food with no carbohydrate figure is left unjudged.** Seven of
+the fifteen seeded foods have no number, and treating unknown as zero would
+manufacture an under-fuelling flag out of a gap in the food database.
+
+**The leaderboard ranks on logging consistency alone.** The brief allows two axes
+— logging consistency *and* diet quality — and only one of them exists. `dq_score`
+has no formula, so the second axis would have to be invented, and inventing a
+nutrition scale to sort 14-year-olds against each other is the worst place to do
+it. The board ranks on days logged and says so on screen. When Sofia supplies the
+DQ formula, ask her whether it should become a second sort key or stay off the
+board entirely.
+
+**Ties share a position and a shared MVP names everyone on the top count.** The
+alternative is a tiebreak, and the only figures available to break a tie with are
+the body metrics the whole feature exists to keep out of a ranking.
+
 **The refuel rule fires on any day a session was recorded, including a Rest day**,
 because the rule is about having trained rather than about the Day Type column.
 That reading is mine.
@@ -223,7 +393,22 @@ only, and all four policies are deployed, scoped to the athlete's own folder and
 granted to `authenticated` only — `storage.objects` has no other policy, so anon
 has no access at all. Watch the first real upload.
 
-**Anything behind the consent gate on a real device**, for the same reason.
+**Anything behind the consent gate on a real device**, for the same reason. That
+now covers a good deal more than it did: `team_leaderboard` under a real
+`auth.uid()`, `claim_coach` and every query the coach dashboard makes, and the
+badge and progress reads. All of them have only ever drawn from the fixture.
+
+**The coach dashboard is the widest of those gaps.** Its flag logic is tested
+hard and pure, but the queries feeding it have never run against the database.
+
+**The APK itself.** It built on EAS and nobody has installed it. Watch the first
+install: an APK outside the Play Store makes Android ask permission once, which
+is normal and worth saying to whoever you hand it to.
+
+**How the animations feel.** Screenshots cannot show timing. The poses, the
+burst and the copy are all verified; the *cadence* — how a jump lands, whether a
+hop every 4.2 seconds reads as a nudge or as a twitch — is not, and wants a
+human looking at it.
 
 ## Two places the fixture carries a second copy
 
@@ -233,6 +418,13 @@ Both exist only because the app cannot be looked at on a device without a sessio
 `daily_logs` is a research table the export reads — seeding six dated rows nobody
 filled would be fabricating collected data. Against the real database the strip
 shows one lit day. The honest fix is Theo logging through November.
+
+**The leaderboard's day counts**, in `DEMO_LEADERBOARD`. Same reason as the strip:
+a day counts because a `daily_logs` row exists, and seeding dated rows nobody
+filled would be fabricating collected data. Theo's six is pinned to the strip's
+own six by a test, so the two screens cannot contradict each other in the demo.
+Against the real database the board shows the three athletes with the days they
+have actually logged, which today is one between them.
 
 **The week 1 lesson text**, in `mobile/src/lib/__fixtures__/today.ts`. A test
 asserts the card kinds and their order match `supabase/seed/0006_week1_lessons.sql`,
@@ -294,6 +486,44 @@ and every call becomes "is not a function". Rename the variables, not the keys.
 
 **`toHaveTextContent` matches exactly here**, not as a substring. Use a regex.
 
+**A query will not find an element hidden from the accessibility tree.** The
+mascot is `accessibilityElementsHidden` when it carries no words, which is
+right, and `getByTestId` then skips it. Tests have to pass
+`{ includeHiddenElements: true }` — which is itself the proof that it is hidden.
+
+**`jest.restoreAllMocks()` does not clear a module mock's call history.**
+`expo-haptics` is mocked for the whole suite in `jest.setup.js`, so one test's
+celebration counted as the next test's until `jest.clearAllMocks()` went in
+beside it. The symptom is a test that passes alone and fails in the suite.
+
+**An infinite Reanimated repeat keeps ticking after its screen is gone.** The
+mascot's `idle` and `nudge` loop forever, and jest reported *"a worker process
+has failed to exit gracefully"* — consistently in the full suite, never in the
+file alone. `cancelAnimation` on unmount fixed it and is the right thing for a
+device regardless.
+
+**A flat JPEG defeats `-trim`.** Cutting the icon and the mascots out of the
+brand boards, ImageMagick's trim found nothing to remove, because JPEG ringing
+around the artwork is not uniform enough to read as a border. Flood-filling
+inward from the four corners is the reliable way, and it leaves cream *inside*
+the artwork alone because that cream is not connected to the surround.
+
+**Expo Go never shows your app icon**, or your splash, or your app name — they
+are its own. Only a native build does, which is why the icon was verified by
+generating the iOS project and reading the asset catalogue rather than by
+looking at the simulator.
+
+**Expo Router restores the last route on reload.** After deep-linking to
+`/welcome` to look at it, every later reload came back to `/welcome`, and a deep
+link to the root did not reset it. The back gesture did.
+
+**`eas.json` rejects `//` keys**, so build profiles cannot carry comments. The
+explanation lives in `docs/RUNNING-IT.md` instead.
+
+**`git checkout -- <file>` restores from the index, not from HEAD.** Staged with
+`git add -A` first, it is a no-op and the change you meant to drop gets
+committed anyway.
+
 **RN 0.88 has no `StyleSheet.absoluteFillObject`.** Write the four offsets.
 
 **A computed key in a Supabase `.update()` widens to a string index** and loses the
@@ -307,15 +537,63 @@ and will eat taps meant for a Cancel control. It is not in the app.
 
 ## What's next
 
-8. Team and leaderboard — rank on logging consistency, never on body metrics.
-   These are minors and a leaderboard sorted by weight is a safeguarding failure.
-9. Coach dashboard (web, after the demo)
+Every item in the brief's numbered v1 list (0 to 8) is built. **Two requirements
+elsewhere in the brief are not**, and both are easy to miss for exactly that
+reason — they are not in the numbered list. Sneha's call on 31 October: remember
+them, build them later. Don't start either without asking.
+
+**The CSV export does not exist.** Not a line of it. Seven comments in this
+codebase and `supabase/README.md` justify the entire two-tier schema with "the
+CSV export reads only these four research tables", and nothing writes a CSV.
+The brief's research journey ends there: every log row out with columns matching
+the ASSESSMENTS and COMPARISON tabs, for Sofia's analysis, and from there Theo's
+deck. It is the step that turns the study into the pitch.
+
+**Offline logging does not exist.** The stack table specifies `expo-sqlite` plus
+background sync, with the reason attached: athletes log at the training ground on
+patchy signal, and logging cannot require a connection. `expo-sqlite` is not a
+dependency; every write needs a live connection or it errors.
+
+Then, and none of it is code:
+
+- **Turn anonymous sign-ins on**, then exercise the whole thing on a device.
+  This is the one that unblocks the most: the leaderboard RPC, `claim_coach` and
+  every coach query, the badge and progress reads, and the first real photo
+  upload have all only ever drawn from the fixture.
+- Install the APK and look at it on a real Android phone, including how the
+  animations actually feel.
+- Replace the seeds as Sofia's and Theo's real content arrives. Every one of
+  them is rows, so each is an INSERT or an UPDATE rather than a change here.
+- An Apple Developer account, if the demo needs to run on an iPhone.
+- The four logo lockups as files, which would replace an upscaled 335px crop
+  with something sharp.
 
 ## Still waiting on Theo
 
-The four logo lockups as files — the brand board came through as an image, so
-`design-system/brand/` holds the spec and the README but no artwork. The app icon
-is still Expo's placeholder.
+**Both brand boards are now in the repository** and the app is built from them:
+`design-system/brand/brand-board.jpg` and `mascot-board.jpg`. The icon, the
+Android adaptive icon, the splash, the favicon, every colour token and all
+eight mascot assets are cut or sampled from those two files.
+
+What is still wanted is the four logo lockups **as their own files** — ideally
+SVG, PNG at 3x otherwise.
+The board itself is now in the repository at `design-system/brand/brand-board.jpg`
+and **the app icon, the Android adaptive icon, the splash and the favicon are all
+cut from it**, so this is no longer blocking: what is missing is resolution. The
+icon is a 335 px tile upscaled to 1024, which is fine at the 60 to 180 px an icon
+is drawn at and soft in an App Store listing. `design-system/brand/README.md` has
+the exact crop and the one-line command to recut it.
+
+**The board's navy is not in the colour tokens.** The icon tile's sky is
+`#132936`, a sixth colour beside the five the design system knows, and it is
+written into `app.json` as a literal rather than a token. Ask Theo whether the
+navy is part of the brand — in which case it belongs in `tokens.json` — or
+whether the icon should be recoloured onto `kecap`. An earlier README assumed
+`kecap`; the board says navy.
+
+The app was also still called **"mobile"** — the Expo template's name, and what
+would have sat under the icon on Theo's home screen. It is `Fuel Factor` now,
+with the slug and scheme to match.
 
 The 15 recall-days' meal text, so they can be re-run through the food database.
 The roster seed has everything else the tracker holds.
@@ -326,7 +604,9 @@ The DQ Score /12 formula · **the eight urine swatch colours** · serving and fl
 targets · the anchor text for the five 1–10 scales (they ship with no adjectives) ·
 weeks 2–4 themes, challenges and lesson content · whether `game` becomes a third
 day type · whether sleep hours and supplements belong on the daily log · whether the
-refuel rule should fire on a Rest day · whether a coach should see challenge photos.
+refuel rule should fire on a Rest day · whether a coach should see challenge photos ·
+whether diet quality should become a second axis on the leaderboard once the DQ
+formula exists.
 
 ## How I work
 

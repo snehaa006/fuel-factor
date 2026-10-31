@@ -2,6 +2,8 @@ import { useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { MascotBanner } from '@/components/mascot-banner';
+import { LEARN_CUE } from '@/lib/mascot-copy';
 import { useWeeks } from '@/lib/use-learn';
 import { useTheme } from '@/theme';
 
@@ -56,9 +58,15 @@ export default function Learn() {
         <Text style={[typography['display-l'], { color: colors.ink, marginTop: spacing['space-2'] }]}>
           Learn
         </Text>
-        <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-          Four weeks, one theme each.
-        </Text>
+        <View style={{ marginTop: spacing['space-4'] }}>
+          <MascotBanner
+            pose={LEARN_CUE.pose}
+            message={LEARN_CUE.message}
+            eyebrow={LEARN_CUE.eyebrow}
+            motion={LEARN_CUE.motion}
+            testID="learn-mascot"
+          />
+        </View>
 
         <View style={{ marginTop: spacing['space-6'], gap: spacing['space-3'] }}>
           {state.weeks.map((week) => (

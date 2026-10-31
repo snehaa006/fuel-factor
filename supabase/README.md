@@ -13,8 +13,9 @@ into their workbook first and here second.
 **App tables carry what the product needs and the study does not record.**
 `teams`, `team_members`, `participant_profiles`, `food_items`, `food_portions`,
 `log_items`, `training_sessions`, `weekly_challenges`, `challenge_completions`,
-`advice_rules`, `lesson_cards`, `lesson_points`. None of it is exported, and the
-whole tier could be dropped without touching a research column.
+`advice_rules`, `lesson_cards`, `lesson_points`, `badges`. None of it is
+exported, and the whole tier could be dropped without touching a research
+column.
 
 `training_sessions` is the clearest case of why the split exists. Two advice
 rules are written against a training session — "2 to 3 hours before", "refuel
@@ -49,6 +50,75 @@ what the coach dashboard is for; a photo of a 14-year-old is not, nobody
 asked for it, and it cannot be un-shared afterwards. Four tests assert this,
 including that no storage policy mentions a coach.
 
+## The leaderboard
+
+`team_leaderboard(p_today, p_days)` is the squad's standings. It exists as a
+function rather than a query because row level security lets an athlete read
+their own `daily_logs` and nobody else's -- which is correct, and makes a
+leaderboard impossible to assemble on the client.
+
+**It ranks on logging consistency and on nothing else.** The athletes are 14 to
+16 years old, so a board sorted by weight, waist or calf circumference is a
+safeguarding failure; the return type is where that is enforced, because it
+carries a participant code, a first name, a day count and two booleans and has
+no column a measurement could travel in. Six tests in
+`mobile/src/lib/__tests__/schema.test.ts` fail if that list grows.
+
+Diet quality is the brief's other permitted axis and is deliberately absent:
+`dq_score` has no formula, and ranking minors on a scale the app invented would
+be worse than ranking them on nothing. When the dietitian supplies one it is a
+second column here and a second sort key.
+
+`p_today` is the caller's date, not `current_date`, because the app's day is a
+Jakarta wall clock and the server's is UTC -- at one in the morning in Jakarta
+those are different days and the athlete who just logged would not be lit. A
+caller who passes a date of their own moves the window for everybody in it
+equally, so there is nothing to win by it.
+
+It takes no join code, unlike `team_roster`: it answers only about the team the
+caller's own claimed athlete belongs to, so a device cannot ask about a squad
+it has not joined. A device that has claimed nobody gets no rows.
+
+A coach has no `participant_profiles` row, so they get no rows either. The
+coach's view of the squad is the dashboard, which is still to be built.
+
+## Badges
+
+`badges` holds the definitions; nothing holds the awards. A badge is earned
+when the athlete's own rows satisfy its criterion, worked out on read exactly
+as the streak is, so there is no awards table to drift out of step with the
+logs and no job that has to run at midnight.
+
+**Every criterion is behavioural** -- `days_logged`, `streak`,
+`challenges_done` -- and the enum is the whole list. That is not only because
+the athletes are minors: a badge for eating well would need a definition of
+eating well, and the programme has not written one. A badge for logging ten
+days needs nothing from anybody.
+
+The names and thresholds are Theo's. Changing one is an UPDATE.
+
+## Coach access
+
+The policies have said "a coach sees their team's rows" since the first
+migration, but until `20261031000011` nothing could make a coach:
+`claim_participant` only ever writes role `athlete`.
+
+`teams.coach_code` is a second code, deliberately not `join_code`. Handing the
+squad their join code must not hand them the whole team's logs, so an athlete
+who knows `FUEL01` learns nothing about the coach's reach.
+
+`claim_coach(coach_code)` adds the membership row and returns the team name. It
+refuses a device that already holds an athlete, rather than releasing the
+athlete: a shared phone must not quietly gain a coach's reach. It never touches
+`participant_profiles`, so a coach has no `current_participant_id()` -- which is
+what keeps the leaderboard and the badges silent for them rather than wrong.
+
+The dashboard itself needs no function. Everything it reads -- the team's
+participants, their daily logs, their log items -- a coach may already read
+under the existing policies. **Challenge photos are the one exception and stay
+that way**: the storage policies grant a coach nothing, and the tests assert no
+policy mentions one.
+
 ## Row level security
 
 Every table has RLS on. An athlete sees their own rows; a coach sees their
@@ -75,6 +145,9 @@ schema, and ran after them.
 | `0003_baseline_roster.sql` | The three footballers, their nine baseline urine readings, two Cooper runs |
 | `0004_team.sql` | The team they belong to. App tier |
 | `0005_demo_today.sql` | **Demo only.** A part-finished day for Theo, so the Today screen has something to draw |
+| `0006_week1_lessons.sql` | Week 1's lesson cards, built from the deck |
+| `0007_badges.sql` | The badge ladder. Names and thresholds are Theo's to change |
+| `0008_coach_code.sql` | The demo team's coach code. Separate from the join code on purpose |
 
 `0003` is transcribed from the programme's tracker by way of
 `docs/PRODUCT-BRIEF.md` section 2. The meals eaten on those nine recall days are
@@ -120,12 +193,12 @@ accepted. `participants.consent_signed` mirrors their sheet, where it means a
 parental consent form was signed on paper. A checkbox is not that form, and the
 app never writes one into the other.
 
-### Two security advisor warnings are expected
+### Four security advisor warnings are expected
 
-`team_roster` and `claim_participant` are flagged as
-`authenticated_security_definer_function_executable`. That is the point of
-them: unlike the RLS helpers in `private`, these two are meant to be called by
-a signed-in user. Do not "fix" them by revoking execute.
+`team_roster`, `claim_participant`, `team_leaderboard` and `claim_coach` are
+flagged as `authenticated_security_definer_function_executable`. That is the
+point of them: unlike the RLS helpers in `private`, these four are meant to be
+called by a signed-in user. Do not "fix" them by revoking execute.
 
 ## Still needed before any of it runs
 

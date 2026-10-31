@@ -21,6 +21,12 @@ export type Database = {
         Update: { created_at?: string; domain?: string; id?: string; measure?: string; participant_id?: string; post_value?: number | null; pre_value?: number | null; unit?: string | null; updated_at?: string };
         Relationships: [{ foreignKeyName: 'assessments_participant_id_fkey'; columns: ['participant_id']; isOneToOne: false; referencedRelation: 'participants'; referencedColumns: ['id'] }];
       };
+      badges: {
+        Row: { code: string; created_at: string; criterion: Database['public']['Enums']['badge_criterion']; description: string; id: string; name: string; position: number; threshold: number };
+        Insert: { code: string; created_at?: string; criterion: Database['public']['Enums']['badge_criterion']; description: string; id?: string; name: string; position: number; threshold: number };
+        Update: { code?: string; created_at?: string; criterion?: Database['public']['Enums']['badge_criterion']; description?: string; id?: string; name?: string; position?: number; threshold?: number };
+        Relationships: [];
+      };
       challenge_completions: {
         Row: { challenge_id: string; completed_on: string; created_at: string; id: string; participant_id: string; photo_path: string | null };
         Insert: { challenge_id: string; completed_on: string; created_at?: string; id?: string; participant_id: string; photo_path?: string | null };
@@ -99,9 +105,9 @@ export type Database = {
         Relationships: [{ foreignKeyName: 'team_members_team_id_fkey'; columns: ['team_id']; isOneToOne: false; referencedRelation: 'teams'; referencedColumns: ['id'] }];
       };
       teams: {
-        Row: { created_at: string; id: string; join_code: string; name: string };
-        Insert: { created_at?: string; id?: string; join_code: string; name: string };
-        Update: { created_at?: string; id?: string; join_code?: string; name?: string };
+        Row: { created_at: string; id: string; coach_code: string | null; join_code: string; name: string };
+        Insert: { created_at?: string; id?: string; coach_code?: string | null; join_code: string; name: string };
+        Update: { created_at?: string; id?: string; coach_code?: string | null; join_code?: string; name?: string };
         Relationships: [];
       };
       training_sessions: {
@@ -121,6 +127,10 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      claim_coach: {
+        Args: { p_coach_code: string };
+        Returns: string;
+      };
       claim_participant: {
         Args: { p_consent_ack: boolean; p_join_code: string; p_participant_code: string };
         Returns: string;
@@ -129,8 +139,22 @@ export type Database = {
         Args: { p_join_code: string };
         Returns: { claimed: boolean; name: string; participant_code: string }[];
       };
+      team_leaderboard: {
+        Args: { p_today?: string; p_days?: number };
+        // A first name, a day count and two booleans. No body metric and no
+        // nutrition figure, because the athletes are minors -- see the
+        // migration's own note.
+        Returns: {
+          participant_code: string;
+          name: string;
+          days_logged: number;
+          logged_today: boolean;
+          is_me: boolean;
+        }[];
+      };
     };
     Enums: {
+      badge_criterion: 'days_logged' | 'streak' | 'challenges_done';
       day_type: 'training' | 'rest';
       meal_slot: 'breakfast' | 'pre_training' | 'lunch' | 'post_training' | 'dinner' | 'evening_snack';
       team_role: 'athlete' | 'coach';
@@ -149,6 +173,7 @@ export type Enums<T extends keyof DefaultSchema['Enums']> = DefaultSchema['Enums
 export const Constants = {
   public: {
     Enums: {
+      badge_criterion: ['days_logged', 'streak', 'challenges_done'],
       day_type: ['training', 'rest'],
       meal_slot: ['breakfast', 'pre_training', 'lunch', 'post_training', 'dinner', 'evening_snack'],
       team_role: ['athlete', 'coach'],

@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DayTypeSwitch } from '@/components/day-type-switch';
 import { FuelRing } from '@/components/fuel-ring';
+import { MascotBanner } from '@/components/mascot-banner';
 import { MealTimeline } from '@/components/meal-timeline';
 import { NudgeCard } from '@/components/nudge-card';
 import { PushButton } from '@/components/push-button';
@@ -12,6 +13,7 @@ import { SessionTimes } from '@/components/session-times';
 import { StreakChip } from '@/components/streak-chip';
 import { StreakStrip } from '@/components/streak-strip';
 import { topNudges } from '@/lib/advice';
+import { dayCue } from '@/lib/mascot-copy';
 import { hasSession, nowMinutes } from '@/lib/session';
 import { bestStreak, loggedToday, recentDays, streakLength } from '@/lib/streak';
 import { useToday } from '@/lib/use-today';
@@ -69,6 +71,8 @@ export default function Today() {
   const week = recentDays(data.activeDates, date);
   const now = nowMinutes();
   const nudges = topNudges(summary, rules, now);
+  // Counts slots filled, never what filled them.
+  const cue = dayCue(summary.slots.filter((slot) => slot.logged).length, summary.slots.length);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
@@ -104,6 +108,16 @@ export default function Today() {
               Best so far: {best} days
             </Text>
           )}
+        </View>
+
+        <View style={{ marginTop: spacing['space-6'] }}>
+          <MascotBanner
+            pose={cue.pose}
+            message={cue.message}
+            eyebrow={cue.eyebrow}
+            motion={cue.motion}
+            testID="day-mascot"
+          />
         </View>
 
         <View style={{ marginTop: spacing['space-6'] }}>
@@ -191,6 +205,30 @@ export default function Today() {
             fullWidth
             testID="learn"
             onPress={() => router.push('/learn')}
+          />
+          <PushButton
+            label="Team"
+            variant="ghost"
+            fullWidth
+            testID="team"
+            onPress={() => router.push('/team')}
+          />
+          <PushButton
+            label="Progress"
+            variant="ghost"
+            fullWidth
+            testID="progress"
+            onPress={() => router.push('/progress')}
+          />
+          {/* The dashboard is the coach's, and it asks for a coach code of its
+              own. It sits here so a coach on a shared device can reach it;
+              an athlete who taps it gets the code gate and nothing else. */}
+          <PushButton
+            label="Coach dashboard"
+            variant="ghost"
+            fullWidth
+            testID="coach"
+            onPress={() => router.push('/coach')}
           />
         </View>
       </ScrollView>
