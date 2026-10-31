@@ -129,6 +129,19 @@ export type Database = {
         Args: { p_join_code: string };
         Returns: { claimed: boolean; name: string; participant_code: string }[];
       };
+      team_leaderboard: {
+        Args: { p_today?: string; p_days?: number };
+        // A first name, a day count and two booleans. No body metric and no
+        // nutrition figure, because the athletes are minors -- see the
+        // migration's own note.
+        Returns: {
+          participant_code: string;
+          name: string;
+          days_logged: number;
+          logged_today: boolean;
+          is_me: boolean;
+        }[];
+      };
     };
     Enums: {
       day_type: 'training' | 'rest';

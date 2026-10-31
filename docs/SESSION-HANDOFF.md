@@ -137,7 +137,18 @@ before upload, into a **private** `challenge-photos` bucket. The row stores a
 path, never a URL; drawing the image asks for a signed URL that expires in five
 minutes. Adding a photo marks the day done; removing it leaves the day done.
 
-**398 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
+**Step 8** — Team and leaderboard. The squad ranked on days logged over the last
+seven, the week's MVP, and a dot per athlete for whether they logged today, which
+is the nudge-your-mate half of what Theo asked for. It is a `security definer`
+RPC rather than a query, because RLS lets an athlete read their own `daily_logs`
+and nobody else's — correct, and it makes a client-side board impossible. **The
+function returns a code, a first name, a day count and two booleans and nothing
+else**, so there is no column a body metric could travel in; six tests fail if
+that list grows. Equal day counts share a position and a shared week names both.
+The screen says out loud, at the bottom, that nobody is ranked on their weight
+or their size.
+
+**450 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
 
 To look at the app without a session:
@@ -151,6 +162,7 @@ To look at the app without a session:
 | `mobile/src/app/welcome.tsx` | Consent gate, team code, claim an athlete |
 | `mobile/src/app/log/[slot].tsx` | Food logger |
 | `mobile/src/app/check-in.tsx` | Evening check-in |
+| `mobile/src/app/team.tsx` | The leaderboard |
 | `mobile/src/app/learn/index.tsx` | The week list |
 | `mobile/src/app/learn/[week].tsx` | One week's cards |
 | `mobile/src/lib/targets.ts` | The carbohydrate bands. The deck's numbers, nothing else |
@@ -160,12 +172,13 @@ To look at the app without a session:
 | `mobile/src/lib/advice.ts` | Rule evaluation. Pure — `now` is passed in, never read |
 | `mobile/src/lib/streak.ts` | Streak length, the seven-day strip, best run |
 | `mobile/src/lib/session.ts` | Training session times, as minutes since midnight |
+| `mobile/src/lib/team.ts` | Ranking, the MVP, the board query. Pure — `today` is passed in |
 | `mobile/src/lib/learn.ts` | The four weeks, the cards, challenge completion |
 | `mobile/src/lib/photos.ts` | Challenge photo paths, upload, signed URLs |
 | `mobile/src/lib/auth.ts` | Anonymous sign-in, roster, claim |
 | `mobile/src/lib/errors.ts` | `messageOf` / `asError` — read before touching error handling |
 | `mobile/src/lib/__fixtures__/today.ts` | The demo day, demo foods and the week 1 cards |
-| `mobile/src/components/` | `lesson-card`, `challenge-photo`, `session-times`, `streak-strip`, `nudge-card`, `fuel-ring`, `meal-timeline` |
+| `mobile/src/components/` | `lesson-card`, `challenge-photo`, `session-times`, `streak-strip`, `leaderboard-row`, `nudge-card`, `fuel-ring`, `meal-timeline` |
 
 ## Where the code is right now
 
@@ -204,6 +217,18 @@ makes it wrong. This is the measurement Theo's three days at 6 rest on. The athl
 matches the workbook's printed chart and taps the number; the tracker's own wording
 shows for levels 3–6 and the rest show none.
 
+**The leaderboard ranks on logging consistency alone.** The brief allows two axes
+— logging consistency *and* diet quality — and only one of them exists. `dq_score`
+has no formula, so the second axis would have to be invented, and inventing a
+nutrition scale to sort 14-year-olds against each other is the worst place to do
+it. The board ranks on days logged and says so on screen. When Sofia supplies the
+DQ formula, ask her whether it should become a second sort key or stay off the
+board entirely.
+
+**Ties share a position and a shared MVP names everyone on the top count.** The
+alternative is a tiebreak, and the only figures available to break a tie with are
+the body metrics the whole feature exists to keep out of a ranking.
+
 **The refuel rule fires on any day a session was recorded, including a Rest day**,
 because the rule is about having trained rather than about the Day Type column.
 That reading is mine.
@@ -233,6 +258,13 @@ Both exist only because the app cannot be looked at on a device without a sessio
 `daily_logs` is a research table the export reads — seeding six dated rows nobody
 filled would be fabricating collected data. Against the real database the strip
 shows one lit day. The honest fix is Theo logging through November.
+
+**The leaderboard's day counts**, in `DEMO_LEADERBOARD`. Same reason as the strip:
+a day counts because a `daily_logs` row exists, and seeding dated rows nobody
+filled would be fabricating collected data. Theo's six is pinned to the strip's
+own six by a test, so the two screens cannot contradict each other in the demo.
+Against the real database the board shows the three athletes with the days they
+have actually logged, which today is one between them.
 
 **The week 1 lesson text**, in `mobile/src/lib/__fixtures__/today.ts`. A test
 asserts the card kinds and their order match `supabase/seed/0006_week1_lessons.sql`,
@@ -307,8 +339,6 @@ and will eat taps meant for a Cancel control. It is not in the app.
 
 ## What's next
 
-8. Team and leaderboard — rank on logging consistency, never on body metrics.
-   These are minors and a leaderboard sorted by weight is a safeguarding failure.
 9. Coach dashboard (web, after the demo)
 
 ## Still waiting on Theo
@@ -326,7 +356,9 @@ The DQ Score /12 formula · **the eight urine swatch colours** · serving and fl
 targets · the anchor text for the five 1–10 scales (they ship with no adjectives) ·
 weeks 2–4 themes, challenges and lesson content · whether `game` becomes a third
 day type · whether sleep hours and supplements belong on the daily log · whether the
-refuel rule should fire on a Rest day · whether a coach should see challenge photos.
+refuel rule should fire on a Rest day · whether a coach should see challenge photos ·
+whether diet quality should become a second axis on the leaderboard once the DQ
+formula exists.
 
 ## How I work
 

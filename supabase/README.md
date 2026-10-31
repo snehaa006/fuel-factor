@@ -49,6 +49,38 @@ what the coach dashboard is for; a photo of a 14-year-old is not, nobody
 asked for it, and it cannot be un-shared afterwards. Four tests assert this,
 including that no storage policy mentions a coach.
 
+## The leaderboard
+
+`team_leaderboard(p_today, p_days)` is the squad's standings. It exists as a
+function rather than a query because row level security lets an athlete read
+their own `daily_logs` and nobody else's -- which is correct, and makes a
+leaderboard impossible to assemble on the client.
+
+**It ranks on logging consistency and on nothing else.** The athletes are 14 to
+16 years old, so a board sorted by weight, waist or calf circumference is a
+safeguarding failure; the return type is where that is enforced, because it
+carries a participant code, a first name, a day count and two booleans and has
+no column a measurement could travel in. Six tests in
+`mobile/src/lib/__tests__/schema.test.ts` fail if that list grows.
+
+Diet quality is the brief's other permitted axis and is deliberately absent:
+`dq_score` has no formula, and ranking minors on a scale the app invented would
+be worse than ranking them on nothing. When the dietitian supplies one it is a
+second column here and a second sort key.
+
+`p_today` is the caller's date, not `current_date`, because the app's day is a
+Jakarta wall clock and the server's is UTC -- at one in the morning in Jakarta
+those are different days and the athlete who just logged would not be lit. A
+caller who passes a date of their own moves the window for everybody in it
+equally, so there is nothing to win by it.
+
+It takes no join code, unlike `team_roster`: it answers only about the team the
+caller's own claimed athlete belongs to, so a device cannot ask about a squad
+it has not joined. A device that has claimed nobody gets no rows.
+
+A coach has no `participant_profiles` row, so they get no rows either. The
+coach's view of the squad is the dashboard, which is still to be built.
+
 ## Row level security
 
 Every table has RLS on. An athlete sees their own rows; a coach sees their
@@ -120,12 +152,12 @@ accepted. `participants.consent_signed` mirrors their sheet, where it means a
 parental consent form was signed on paper. A checkbox is not that form, and the
 app never writes one into the other.
 
-### Two security advisor warnings are expected
+### Three security advisor warnings are expected
 
-`team_roster` and `claim_participant` are flagged as
+`team_roster`, `claim_participant` and `team_leaderboard` are flagged as
 `authenticated_security_definer_function_executable`. That is the point of
-them: unlike the RLS helpers in `private`, these two are meant to be called by
-a signed-in user. Do not "fix" them by revoking execute.
+them: unlike the RLS helpers in `private`, these three are meant to be called
+by a signed-in user. Do not "fix" them by revoking execute.
 
 ## Still needed before any of it runs
 

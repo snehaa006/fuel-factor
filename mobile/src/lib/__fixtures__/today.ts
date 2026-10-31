@@ -3,6 +3,7 @@ import type { TrainingSession } from '../session';
 import type { LessonCard, Week } from '../learn';
 import type { AdviceRule } from '../advice';
 import type { FoodWithPortions } from '../food';
+import type { Leaderboard } from '../team';
 
 /**
  * Theo's day, as the seeds in supabase/seed/0005_demo_today.sql describe it.
@@ -266,3 +267,36 @@ export const DEMO_LESSON_CARDS: LessonCard[] = [
     [null, null, 'Thomas DT, Erdman KA, Burke LM (2016). Academy of Nutrition and Dietetics position paper on nutrition and athletic performance. Journal of the Academy of Nutrition and Dietetics, 116(3), 501–528.'],
   ]),
 ];
+
+/**
+ * The team leaderboard, for the development flag.
+ *
+ * FIXTURE ONLY, and for the same reason the week strip's lit days are: a day
+ * counts because a `daily_logs` row exists, and seeding dated rows nobody
+ * filled would be fabricating collected data in a research table. Against the
+ * real project the board shows the three athletes with the days they have
+ * actually logged, which today is one between them.
+ *
+ * Theo's six matches `demoActiveDates` -- six of its seven days fall inside a
+ * seven-day window -- so the board and his own streak strip cannot disagree.
+ * He is deliberately not the MVP: a board where the demo athlete always wins
+ * shows nothing about how it reads when somebody is ahead of you, which is the
+ * half of the mechanic that makes an athlete log tomorrow.
+ *
+ * The positions and the MVP are written out rather than computed by calling
+ * `rank` here. Importing team.ts would make this module run one of its
+ * functions at module-init time, across a module that reaches supabase.ts --
+ * the exact shape that once bundled cleanly and crashed on boot. A test
+ * asserts this matches what `rank` and `mvp` actually return, so it cannot
+ * drift unnoticed.
+ */
+export const DEMO_LEADERBOARD: Leaderboard = {
+  teamName: 'Jakarta U16',
+  rows: [
+    { participantCode: 'J-01', name: 'Jeongho', daysLogged: 7, loggedToday: true, isMe: false, position: 1 },
+    { participantCode: 'T-01', name: 'Theo', daysLogged: 6, loggedToday: true, isMe: true, position: 2 },
+    { participantCode: 'JA-01', name: 'Jacob', daysLogged: 4, loggedToday: false, isMe: false, position: 3 },
+  ],
+  mvp: ['Jeongho'],
+  windowDays: 7,
+};

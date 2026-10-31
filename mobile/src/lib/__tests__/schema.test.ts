@@ -162,6 +162,84 @@ describe('the challenge photo stays private', () => {
   });
 });
 
+describe('the leaderboard ranks nobody on their body', () => {
+  const boardSql = read('supabase/migrations/20261031000009_team_leaderboard.sql');
+
+  /**
+   * The migration with its comment lines dropped.
+   *
+   * The comments explain at length which columns are deliberately absent and
+   * why, so a check for an absent column has to read the SQL rather than the
+   * prose about it.
+   */
+  const boardCode = boardSql
+    .split('\n')
+    .filter((line) => !line.trimStart().startsWith('--'))
+    .join('\n');
+
+  /** The columns the function declares it returns. */
+  function returnedColumns(): string[] {
+    const body = /returns table \(([\s\S]*?)\n\)/.exec(boardSql)?.[1] ?? '';
+    return body
+      .split('\n')
+      .map((line) => line.trim().split(/\s/)[0])
+      .filter((name) => /^[a-z_]+$/.test(name));
+  }
+
+  it('returns a name, a day count and two booleans, and nothing else', () => {
+    // The return type is where the brief's rule is enforced. A body metric
+    // cannot be ranked on if it never leaves the database, and widening this
+    // list is the only way it could.
+    expect(returnedColumns()).toEqual([
+      'participant_code',
+      'name',
+      'days_logged',
+      'logged_today',
+      'is_me',
+    ]);
+  });
+
+  it('never reads a measurement of an athlete', () => {
+    // These are 14 to 16 year olds. A board sorted by weight or waist is a
+    // safeguarding failure and would sink the pitch with any school.
+    for (const column of ['weight_kg', 'height_cm', 'waist_cm', 'muac_cm', 'calf_cm']) {
+      expect(`${column}: absent`).toBe(
+        boardCode.includes(column) ? `${column}: PRESENT` : `${column}: absent`
+      );
+    }
+  });
+
+  it('ranks on nothing the programme has not defined', () => {
+    // dq_score is the brief's other permitted axis and has no formula yet.
+    // Ranking minors against each other on a scale the app invented would be
+    // worse than ranking them on nothing.
+    expect(boardCode).not.toContain('dq_score');
+  });
+
+  it('is scoped to the caller’s own team', () => {
+    // Security definer bypasses row level security, so the scoping is this
+    // function's own job. It answers about the caller's participant row and
+    // the team that row belongs to, never about a team the client named.
+    expect(boardCode).toContain('private.current_participant_id()');
+    expect(boardCode).toMatch(/my_team/);
+    // No join code argument: a device cannot ask for a squad it has not
+    // claimed into, the way team_roster deliberately can.
+    expect(boardCode).not.toContain('p_join_code');
+  });
+
+  it('gives anon no access to it', () => {
+    expect(boardSql).toMatch(/revoke all on function public\.team_leaderboard[^\n]*from public, anon/);
+    expect(boardSql).toMatch(/grant execute on function public\.team_leaderboard[^\n]*to authenticated/);
+  });
+
+  it('adds nothing to the research tier', () => {
+    // The leaderboard is app tier. It reads daily_logs and writes nothing,
+    // and introduces no column the CSV export could pick up.
+    expect(boardCode).not.toMatch(/alter table public\.(participants|daily_logs|recalls|assessments)/);
+    expect(boardCode).not.toMatch(/\binsert into\b|\bupdate\b|\bdelete from\b/i);
+  });
+});
+
 describe('the Learn section carries the deck and nothing else', () => {
   const lessonSeed = read('supabase/seed/0006_week1_lessons.sql');
 

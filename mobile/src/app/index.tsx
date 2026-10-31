@@ -192,6 +192,13 @@ export default function Today() {
             testID="learn"
             onPress={() => router.push('/learn')}
           />
+          <PushButton
+            label="Team"
+            variant="ghost"
+            fullWidth
+            testID="team"
+            onPress={() => router.push('/team')}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
