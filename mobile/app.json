@@ -14,6 +14,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
+        "android.permission.RECORD_AUDIO",
         "android.permission.RECORD_AUDIO"
       ],
       "package": "dev.snehaa006.fuelfactor"
@@ -57,6 +58,12 @@
         "projectId": "32b11a9f-9dfa-4ca6-9bae-2950fae749bd"
       }
     },
-    "owner": "snehaa006"
+    "owner": "snehaa006",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/32b11a9f-9dfa-4ca6-9bae-2950fae749bd"
+    }
   }
 }

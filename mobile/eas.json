@@ -1,22 +1,36 @@
 {
-  "cli": { "version": ">= 27.0.0", "appVersionSource": "remote" },
+  "cli": {
+    "version": ">= 27.0.0",
+    "appVersionSource": "remote"
+  },
   "build": {
     "share": {
-      "android": { "buildType": "apk" },
+      "android": {
+        "buildType": "apk"
+      },
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_DEMO_DATA": "1",
         "EXPO_PUBLIC_ANON_DEMO": "1"
-      }
+      },
+      "channel": "share"
     },
     "live": {
-      "android": { "buildType": "apk" },
-      "distribution": "internal"
+      "android": {
+        "buildType": "apk"
+      },
+      "distribution": "internal",
+      "channel": "live"
     },
     "production": {
-      "android": { "buildType": "app-bundle" },
-      "autoIncrement": true
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "autoIncrement": true,
+      "channel": "production"
     }
   },
-  "submit": { "production": {} }
+  "submit": {
+    "production": {}
+  }
 }

@@ -62,15 +62,52 @@ until anonymous sign-ins are switched on** (Supabase dashboard → Authenticatio
 
 ## 2. On an iPhone
 
-Apple does not allow an app to be installed from a link. An iOS build needs a
-paid Apple Developer account and goes out through TestFlight:
+**Apple does not allow an app to be installed from a link.** There is no iOS
+equivalent of the APK above, and no free way to make one. The two real options:
+
+### Expo Go, free, nothing running on your machine
+
+The bundle is published to Expo's servers, so it keeps working whether or not
+anyone's laptop is on.
+
+1. Install **Expo Go** from the App Store.
+2. Open the link below on the phone, or point the **Camera** app at the QR code
+   on the project's updates page. (The Camera app, not Expo Go's scanner —
+   that one is Android.)
+
+Published updates live at
+<https://expo.dev/accounts/snehaa006/projects/fuel-factor/updates>.
+
+Two things to expect, so they do not look like faults:
+
+- **Expo Go shows its own icon, name and splash**, never Fuel Factor's. It is a
+  container; it cannot show your icon. That is exactly what the Android APK is
+  for.
+- The first open takes a few seconds while it fetches the bundle.
+
+Publishing a new one, after any change:
+
+```bash
+cd mobile && EXPO_PUBLIC_DEMO_DATA=1 EXPO_PUBLIC_ANON_DEMO=1 \
+  npx eas update --branch preview --environment preview --message "what changed"
+```
+
+`runtimeVersion` is on the `sdkVersion` policy, which is what makes an update
+openable in Expo Go rather than only in a custom build. Changing that policy
+breaks this route.
+
+### TestFlight, $99 a year, a real app
+
+A paid Apple Developer account, and then:
 
 ```bash
 cd mobile && npx eas build --platform ios --profile share
+npx eas submit --platform ios
 ```
 
-Without that account, the iOS options are the simulator on a Mac (below) or
-Expo Go.
+Testers install from TestFlight and get the real icon, the real name and the
+real splash — the iOS equivalent of the APK. Up to 10,000 of them. This is the
+only way an iPhone runs this as an actual app rather than inside Expo Go.
 
 ## 3. On a machine, for development
 
