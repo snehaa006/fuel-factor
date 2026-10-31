@@ -27,12 +27,17 @@ The `share` profile builds with `EXPO_PUBLIC_DEMO_DATA=1` and
 Builds for this project live at
 <https://expo.dev/accounts/snehaa006/projects/fuel-factor/builds>.
 
-### Which build to hand out
+### The one to hand out
 
-Take the newest **finished** build from that page. **Do not use the one from
-31 October (versionCode 1)** — its bundle shipped with no Supabase
-configuration and it dies on launch. The cause is in the commit history, and
-`eas.json` now carries the configuration in every profile so it cannot recur.
+<https://expo.dev/artifacts/eas/m9WbHnG3XIIkiklCHKe6FK0yG51ogzg6l56Z2em6N7g.apk>
+
+Verified by unpacking it: the bundle carries the Supabase configuration, the
+stand-in names are in it and none of the real ones are.
+
+**The earlier build, versionCode 1, is dead** — its bundle shipped with no
+Supabase configuration and it crashes on launch. `eas.json` now carries the
+configuration in every profile, so that cannot recur. If you handed that link
+to anyone, send them this one.
 
 ### It is 106 MB, and it does not have to be
 
