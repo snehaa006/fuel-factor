@@ -95,7 +95,41 @@ reading, the five 1-10 self-ratings, and notes. Blank stays null, never zero.
 `dq_score` is never written.
 
 **265 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
-lint and tests.
+lint and tests. Run it before saying anything is done.
+
+### Where things are
+
+| Path | What |
+|---|---|
+| `mobile/src/app/index.tsx` | Today |
+| `mobile/src/app/welcome.tsx` | Consent gate, team code, claim an athlete |
+| `mobile/src/app/log/[slot].tsx` | Food logger |
+| `mobile/src/app/check-in.tsx` | Evening check-in |
+| `mobile/src/lib/targets.ts` | The carbohydrate bands. The deck's numbers, nothing else |
+| `mobile/src/lib/today.ts` | Day summary, slot roll-up, day type |
+| `mobile/src/lib/logger.ts` | Food search, portions, writes and slot ticks |
+| `mobile/src/lib/check-in.ts` | The DAILY LOG fields, limits, urine wording |
+| `mobile/src/lib/advice.ts` | Rule evaluation. Two rules fire so far |
+| `mobile/src/lib/auth.ts` | Anonymous sign-in, roster, claim |
+| `mobile/src/lib/errors.ts` | `messageOf` / `asError` — read this before touching error handling |
+| `mobile/src/lib/__fixtures__/today.ts` | The demo day and demo foods |
+
+## Where the code is right now
+
+On branch **`sneha`**, nine commits, **not pushed**. The remote
+(`github.com/snehaa006/fuel-factor`) still has only "first commit".
+
+```bash
+git push -u origin sneha
+```
+
+The last session could not run that: its sandbox refused every `git push`
+("Out-of-Place Publication") and also refused to write a `.claude/settings.json`
+granting the permission ("Self-Modification"). Try the push early — if it is
+refused again, say so rather than working around it, and I will run it.
+
+Local `main` is also eight commits ahead of `origin/main` and carries
+everything except step 5.
 
 ## The one thing blocking live data
 
@@ -121,6 +155,34 @@ number. The tracker's own wording shows for the levels it has worded (3 to 6);
 the rest show none rather than a guess. When Sofia gives the eight values they
 become colour tokens and each cell gets its fill.
 
+## Things that will bite, and did
+
+**supabase-js rejects with a plain object, not an Error.** `e instanceof Error`
+is false for it and `String(e)` gives `[object Object]` — which is what reached
+the screen before it was caught by running the app, because the tests had
+rejected with real Errors and hidden it. Everything now goes through
+`messageOf` / `asError` in `mobile/src/lib/errors.ts`. If you write a test that
+rejects, reject the way supabase-js actually does.
+
+**Firing several events in one synchronous block breaks the *next* test.** It
+leaves a state update in flight past the end of the test, and the following
+test then renders an empty tree with a baffling "Unable to find element". Let
+each event land — `await waitFor(...)` between them. This cost two separate
+debugging sessions before it was pinned down.
+
+**`toHaveTextContent` matches exactly here**, not as a substring. Use a regex.
+
+**RN 0.88 has no `StyleSheet.absoluteFillObject`.** Write the four offsets.
+
+**A computed key in a Supabase `.update()` widens to a string index** and loses
+the column types. `logger.ts` spells the six slot ticks out as a `Record` over
+the enum so a seventh slot breaks the build instead of writing to nothing.
+
+**`sed -i '' 's/\b.../'` does not work on macOS** — BSD sed has no `\b`. Use perl.
+
+**The Expo dev-menu button sits over the top-right of the screen** in the
+simulator and will eat taps meant for a Cancel control. It is not in the app.
+
 ## What's next
 
 6. Streak and advice cards
@@ -139,9 +201,13 @@ The roster seed has everything else the tracker holds.
 
 ## Still waiting on Sofia
 
-The DQ Score /12 formula · the eight urine swatch colours (mine are
-approximations, and it's a measuring instrument) · serving and fluid targets ·
-weeks 2–4 themes and challenges · whether to add `game` as a third day type.
+The DQ Score /12 formula · **the eight urine swatch colours** (the check-in
+ships numbers and the workbook's own wording for levels 3-6; no swatch is
+drawn, because an approximated colour makes a reading wrong rather than vague)
+· serving and fluid targets · the anchor text for the five 1-10 scales (they
+ship with no adjectives) · weeks 2-4 themes and challenges · whether `game`
+becomes a third day type · whether sleep hours and supplements belong on the
+daily log or stay on the recall.
 
 ## How I work
 
@@ -149,3 +215,6 @@ weeks 2–4 themes and challenges · whether to add `game` as a third day type.
 - Tests properly done. Run them, and actually run the app to look at it — don't
   just assume it works.
 - Tell me plainly when something's wrong or you got it wrong. Don't pad.
+- Flag the nutrition-side calls rather than making them quietly. The last
+  session left sleep/supplements off the check-in and shipped the hydration
+  scale without swatches; both were the right call and both needed saying.
