@@ -287,12 +287,35 @@ To look at the app without a session:
 
 Branch **`sneha`** = `origin/sneha`, everything pushed, nothing uncommitted.
 
-**PR #1 is merged**, so `main` carries everything through step 7. Local `main`
-has been fast-forwarded and sits level with `origin/main`.
+PRs #1 and #2 are merged, so `main` carries everything through step 7.
 
-**Step 7b (the challenge photo) and this handoff are on `sneha` only**, two
-commits ahead of `main`. They want a second PR when you are ready; nothing has
-been merged locally.
+**`sneha` is eleven commits ahead of `main`**, covering steps 7b to 13 — the
+challenge photo, the leaderboard, badges, Progress, the coach dashboard, the
+icon, the boards' palette, the mascot and its animations, and the build setup.
+
+**[PR #3](https://github.com/snehaa006/fuel-factor/pull/3) is open** for all of
+it and has not been merged. The repository has no CI, so it has no checks to
+wait on; `npm run check` is the gate and it is run by hand.
+
+## The build, and how anybody runs it
+
+**`docs/RUNNING-IT.md` is the page to hand someone.** In short: the project is
+an EAS project under `snehaa006`, and
+
+```bash
+cd mobile && npx eas build --platform android --profile share
+```
+
+produces an **APK that installs from a link** — no store, no account, no cable,
+no Expo Go. That is the one that matters; Jakarta is Android-dominant.
+
+**iPhone is a real gap.** Apple does not allow installing from a link, so an
+iOS build needs a paid Apple Developer account and TestFlight. Until then iOS
+is the simulator or Expo Go.
+
+`android.package` and `ios.bundleIdentifier` are both
+`dev.snehaa006.fuelfactor`. Android installs and updates against that string,
+so changing it later makes a different app rather than an update.
 
 ## The one thing blocking live data
 
@@ -370,7 +393,22 @@ only, and all four policies are deployed, scoped to the athlete's own folder and
 granted to `authenticated` only — `storage.objects` has no other policy, so anon
 has no access at all. Watch the first real upload.
 
-**Anything behind the consent gate on a real device**, for the same reason.
+**Anything behind the consent gate on a real device**, for the same reason. That
+now covers a good deal more than it did: `team_leaderboard` under a real
+`auth.uid()`, `claim_coach` and every query the coach dashboard makes, and the
+badge and progress reads. All of them have only ever drawn from the fixture.
+
+**The coach dashboard is the widest of those gaps.** Its flag logic is tested
+hard and pure, but the queries feeding it have never run against the database.
+
+**The APK itself.** It built on EAS and nobody has installed it. Watch the first
+install: an APK outside the Play Store makes Android ask permission once, which
+is normal and worth saying to whoever you hand it to.
+
+**How the animations feel.** Screenshots cannot show timing. The poses, the
+burst and the copy are all verified; the *cadence* — how a jump lands, whether a
+hop every 4.2 seconds reads as a nudge or as a twitch — is not, and wants a
+human looking at it.
 
 ## Two places the fixture carries a second copy
 
@@ -448,6 +486,44 @@ and every call becomes "is not a function". Rename the variables, not the keys.
 
 **`toHaveTextContent` matches exactly here**, not as a substring. Use a regex.
 
+**A query will not find an element hidden from the accessibility tree.** The
+mascot is `accessibilityElementsHidden` when it carries no words, which is
+right, and `getByTestId` then skips it. Tests have to pass
+`{ includeHiddenElements: true }` — which is itself the proof that it is hidden.
+
+**`jest.restoreAllMocks()` does not clear a module mock's call history.**
+`expo-haptics` is mocked for the whole suite in `jest.setup.js`, so one test's
+celebration counted as the next test's until `jest.clearAllMocks()` went in
+beside it. The symptom is a test that passes alone and fails in the suite.
+
+**An infinite Reanimated repeat keeps ticking after its screen is gone.** The
+mascot's `idle` and `nudge` loop forever, and jest reported *"a worker process
+has failed to exit gracefully"* — consistently in the full suite, never in the
+file alone. `cancelAnimation` on unmount fixed it and is the right thing for a
+device regardless.
+
+**A flat JPEG defeats `-trim`.** Cutting the icon and the mascots out of the
+brand boards, ImageMagick's trim found nothing to remove, because JPEG ringing
+around the artwork is not uniform enough to read as a border. Flood-filling
+inward from the four corners is the reliable way, and it leaves cream *inside*
+the artwork alone because that cream is not connected to the surround.
+
+**Expo Go never shows your app icon**, or your splash, or your app name — they
+are its own. Only a native build does, which is why the icon was verified by
+generating the iOS project and reading the asset catalogue rather than by
+looking at the simulator.
+
+**Expo Router restores the last route on reload.** After deep-linking to
+`/welcome` to look at it, every later reload came back to `/welcome`, and a deep
+link to the root did not reset it. The back gesture did.
+
+**`eas.json` rejects `//` keys**, so build profiles cannot carry comments. The
+explanation lives in `docs/RUNNING-IT.md` instead.
+
+**`git checkout -- <file>` restores from the index, not from HEAD.** Staged with
+`git add -A` first, it is a no-op and the change you meant to drop gets
+committed anyway.
+
 **RN 0.88 has no `StyleSheet.absoluteFillObject`.** Write the four offsets.
 
 **A computed key in a Supabase `.update()` widens to a string index** and loses the
@@ -480,13 +556,27 @@ dependency; every write needs a live connection or it errors.
 
 Then, and none of it is code:
 
-- Turn anonymous sign-ins on, then exercise the whole thing on a device.
-- Replace the seeds as Sofia's and Theo's real content arrives.
-- The app icon and the logo lockups.
+- **Turn anonymous sign-ins on**, then exercise the whole thing on a device.
+  This is the one that unblocks the most: the leaderboard RPC, `claim_coach` and
+  every coach query, the badge and progress reads, and the first real photo
+  upload have all only ever drawn from the fixture.
+- Install the APK and look at it on a real Android phone, including how the
+  animations actually feel.
+- Replace the seeds as Sofia's and Theo's real content arrives. Every one of
+  them is rows, so each is an INSERT or an UPDATE rather than a change here.
+- An Apple Developer account, if the demo needs to run on an iPhone.
+- The four logo lockups as files, which would replace an upscaled 335px crop
+  with something sharp.
 
 ## Still waiting on Theo
 
-The four logo lockups **as their own files** — ideally SVG, PNG at 3x otherwise.
+**Both brand boards are now in the repository** and the app is built from them:
+`design-system/brand/brand-board.jpg` and `mascot-board.jpg`. The icon, the
+Android adaptive icon, the splash, the favicon, every colour token and all
+eight mascot assets are cut or sampled from those two files.
+
+What is still wanted is the four logo lockups **as their own files** — ideally
+SVG, PNG at 3x otherwise.
 The board itself is now in the repository at `design-system/brand/brand-board.jpg`
 and **the app icon, the Android adaptive icon, the splash and the favicon are all
 cut from it**, so this is no longer blocking: what is missing is resolution. The
