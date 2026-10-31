@@ -2,8 +2,10 @@ import { useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BadgeGrid } from '@/components/badge-grid';
 import { LeaderboardRow } from '@/components/leaderboard-row';
-import { myRow } from '@/lib/team';
+import { earnedCount } from '@/lib/badges';
+import { MONTH_DAYS, myRow } from '@/lib/team';
 import { useTeam } from '@/lib/use-team';
 import { useTheme } from '@/theme';
 
@@ -47,7 +49,8 @@ export default function Team() {
     );
   }
 
-  const { board } = state;
+  const { view } = state;
+  const board = view.week;
   const me = myRow(board.rows);
 
   return (
@@ -97,6 +100,33 @@ export default function Team() {
           </View>
         )}
 
+        {/* Player of the month. Shown under the week's so the two read as one
+            award at two ranges, and only when somebody has logged. */}
+        {view.monthMvp.length > 0 && (
+          <View
+            testID="month-mvp"
+            style={{
+              backgroundColor: colors['surface-raised'],
+              borderRadius: radius['radius-lg'],
+              padding: spacing['space-4'],
+              marginTop: spacing['space-3'],
+              gap: 4,
+            }}
+          >
+            <Text style={[typography.label, { color: colors['ink-muted'] }]}>
+              {view.monthMvp.length > 1
+                ? `PLAYER OF THE LAST ${MONTH_DAYS} DAYS — SHARED`
+                : `PLAYER OF THE LAST ${MONTH_DAYS} DAYS`}
+            </Text>
+            <Text
+              testID="month-mvp-name"
+              style={[typography['heading-m'], { color: colors.ink }]}
+            >
+              {view.monthMvp.join(' & ')}
+            </Text>
+          </View>
+        )}
+
         <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>
           {board.rows.length === 0 ? (
             <Text testID="team-empty" style={[typography['body-m'], { color: colors['ink-muted'] }]}>
@@ -131,6 +161,21 @@ export default function Team() {
           </Text>
         )}
 
+        {view.badges.length > 0 && (
+          <View style={{ marginTop: spacing['space-12'], gap: spacing['space-3'] }}>
+            <View style={styles.badgeHeader}>
+              <Text style={[typography['heading-l'], { color: colors.ink }]}>Badges</Text>
+              <Text testID="badge-count" style={[typography['body-s'], { color: colors['ink-muted'] }]}>
+                {earnedCount(view.badges)} of {view.badges.length}
+              </Text>
+            </View>
+            {/* Locked badges stay on screen. A badge nobody can see is not a
+                target, and every one of these is earned by logging rather
+                than by eating anything in particular. */}
+            <BadgeGrid badges={view.badges} testID="badges" />
+          </View>
+        )}
+
         {/* Said plainly, because an athlete comparing themselves to a teammate
             deserves to know what is and is not being compared. */}
         <Text
@@ -162,4 +207,5 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   centre: { alignItems: 'center', justifyContent: 'center' },
   content: { paddingBottom: 48 },
+  badgeHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
 });

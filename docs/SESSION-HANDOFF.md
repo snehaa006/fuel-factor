@@ -148,7 +148,33 @@ that list grows. Equal day counts share a position and a shared week names both.
 The screen says out loud, at the bottom, that nobody is ranked on their weight
 or their size.
 
-**450 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
+**Step 8b** — Badges and player of the month, which step 8 should have carried
+and did not. The badge ladder is seven rows in `badges`; awards are *derived on
+read* like the streak, so there is no awards table to drift and no midnight job.
+Every criterion is behavioural — days logged, best streak, challenges done — and
+the enum is the whole list, because a badge for eating well would need a
+definition of eating well. Player of the month is `team_leaderboard` over thirty
+days: the window was already an argument.
+
+**Step 9** — Progress. Baseline against now on hydration, fluid, breakfast and
+morning energy, plus the Cooper run. Three of the four have **no baseline in this
+database** — the three-day recall holds them as free text that has not been
+exported, and fluid has never been collected at all — so the screen says which
+and why. It passes no judgement: both figures and the signed arithmetic between
+them, no colour, no arrow, no "improved", because nobody has said which direction
+is better. The one piece of meaning on the screen is the tracker's own printed
+wording for a urine level.
+
+**Step 10** — Coach dashboard. Roster, who logged today, breakfast days, days
+inside the deck's band, and the brief's two flags. It is a route in this same
+codebase and runs on web with `npm run web`, which is where a coach opens it.
+`teams.coach_code` is a **second** code: handing the squad their join code must
+not hand them the team's logs. `claim_coach` refuses a device already holding an
+athlete and never writes `participant_profiles`, so a coach has no
+`current_participant_id()` — which is what keeps the leaderboard and badges silent
+for them rather than wrong. Both flags quote the programme's own threshold.
+
+**565 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
 
 To look at the app without a session:
@@ -162,7 +188,9 @@ To look at the app without a session:
 | `mobile/src/app/welcome.tsx` | Consent gate, team code, claim an athlete |
 | `mobile/src/app/log/[slot].tsx` | Food logger |
 | `mobile/src/app/check-in.tsx` | Evening check-in |
-| `mobile/src/app/team.tsx` | The leaderboard |
+| `mobile/src/app/team.tsx` | The leaderboard, the MVPs and the badges |
+| `mobile/src/app/progress.tsx` | Baseline against now |
+| `mobile/src/app/coach.tsx` | The coach dashboard. Web via `npm run web` |
 | `mobile/src/app/learn/index.tsx` | The week list |
 | `mobile/src/app/learn/[week].tsx` | One week's cards |
 | `mobile/src/lib/targets.ts` | The carbohydrate bands. The deck's numbers, nothing else |
@@ -173,12 +201,15 @@ To look at the app without a session:
 | `mobile/src/lib/streak.ts` | Streak length, the seven-day strip, best run |
 | `mobile/src/lib/session.ts` | Training session times, as minutes since midnight |
 | `mobile/src/lib/team.ts` | Ranking, the MVP, the board query. Pure — `today` is passed in |
+| `mobile/src/lib/badges.ts` | The ladder. Awards derived on read, never stored |
+| `mobile/src/lib/progress.ts` | Baseline vs now. Verdict-free by design |
+| `mobile/src/lib/coach.ts` | The squad roll-up and the two flags |
 | `mobile/src/lib/learn.ts` | The four weeks, the cards, challenge completion |
 | `mobile/src/lib/photos.ts` | Challenge photo paths, upload, signed URLs |
 | `mobile/src/lib/auth.ts` | Anonymous sign-in, roster, claim |
 | `mobile/src/lib/errors.ts` | `messageOf` / `asError` — read before touching error handling |
 | `mobile/src/lib/__fixtures__/today.ts` | The demo day, demo foods and the week 1 cards |
-| `mobile/src/components/` | `lesson-card`, `challenge-photo`, `session-times`, `streak-strip`, `leaderboard-row`, `nudge-card`, `fuel-ring`, `meal-timeline` |
+| `mobile/src/components/` | `lesson-card`, `challenge-photo`, `session-times`, `streak-strip`, `leaderboard-row`, `badge-grid`, `metric-compare`, `nudge-card`, `fuel-ring`, `meal-timeline` |
 
 ## Where the code is right now
 
@@ -216,6 +247,25 @@ in this repository, and an approximated swatch does not make a reading vaguer �
 makes it wrong. This is the measurement Theo's three days at 6 rest on. The athlete
 matches the workbook's printed chart and taps the number; the tracker's own wording
 shows for levels 3–6 and the rest show none.
+
+**The Progress screen passes no judgement on a change.** It shows the baseline,
+the current figure and the arithmetic between them, with no colour, no arrow and
+no word like "improved". Which direction is better is a nutrition call, and the
+programme has given a direction for none of these four measures. Ask Sofia
+whether the app may say that a urine reading moving from 6 to 3 is an
+improvement — it plainly is, and it is still not mine to assert.
+
+**The coach's two flags fire on the programme's thresholds**, not on mine:
+three recorded days below the deck's own band, and a urine reading of 5 or worse,
+which is what the seeded `urine_five_or_worse` rule already uses. What *is* mine
+is counting consecutive days in **recorded** days rather than calendar days — a
+day with nothing logged is evidence of not logging, not of under-fuelling, and
+conflating them would put a clinical-sounding flag on a child who went on
+holiday.
+
+**A day holding a food with no carbohydrate figure is left unjudged.** Seven of
+the fifteen seeded foods have no number, and treating unknown as zero would
+manufacture an under-fuelling flag out of a gap in the food database.
 
 **The leaderboard ranks on logging consistency alone.** The brief allows two axes
 — logging consistency *and* diet quality — and only one of them exists. `dq_score`
@@ -339,7 +389,11 @@ and will eat taps meant for a Cancel control. It is not in the app.
 
 ## What's next
 
-9. Coach dashboard (web, after the demo)
+Every feature in the brief's v1 list is built. What is left is not code:
+
+- Turn anonymous sign-ins on, then exercise the whole thing on a device.
+- Replace the seeds as Sofia's and Theo's real content arrives.
+- The app icon and the logo lockups.
 
 ## Still waiting on Theo
 

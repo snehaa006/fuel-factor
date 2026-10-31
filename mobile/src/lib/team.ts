@@ -22,6 +22,16 @@ import { supabase } from './supabase';
 /** The window the board covers. A week, because the MVP is awarded weekly. */
 export const WINDOW_DAYS = 7;
 
+/**
+ * The window the player of the month is taken over.
+ *
+ * Thirty days back from today rather than a calendar month, and the screen
+ * says "last 30 days" rather than naming the month. A calendar month would
+ * award the badge on the 1st to whoever logged once, and the programme itself
+ * runs in weeks, not months.
+ */
+export const MONTH_DAYS = 30;
+
 /** One athlete's standing, as `team_leaderboard` returns it. */
 export type LeaderboardRow = {
   participantCode: string;
@@ -119,27 +129,32 @@ type LeaderboardRpcRow = {
  * fenced off: an athlete cannot read a teammate's `daily_logs`, which is
  * correct, and is why the aggregate is computed in the database.
  */
-export async function fetchLeaderboard(
-  today: string,
-  windowDays: number = WINDOW_DAYS
-): Promise<Leaderboard> {
-  const [team, board] = await Promise.all([
-    supabase.from('teams').select('name').limit(1).maybeSingle(),
-    supabase
-      .rpc('team_leaderboard', { p_today: today, p_days: windowDays })
-      .returns<LeaderboardRpcRow[]>(),
-  ]);
+async function readBoard(today: string, windowDays: number): Promise<LeaderboardRow[]> {
+  const { data, error } = await supabase
+    .rpc('team_leaderboard', { p_today: today, p_days: windowDays })
+    .returns<LeaderboardRpcRow[]>();
 
-  if (team.error) throw asError(team.error);
-  if (board.error) throw asError(board.error);
+  if (error) throw asError(error);
 
-  const rows: LeaderboardRow[] = (board.data ?? []).map((r) => ({
+  return (data ?? []).map((r) => ({
     participantCode: r.participant_code,
     name: r.name,
     daysLogged: r.days_logged,
     loggedToday: r.logged_today,
     isMe: r.is_me,
   }));
+}
+
+export async function fetchLeaderboard(
+  today: string,
+  windowDays: number = WINDOW_DAYS
+): Promise<Leaderboard> {
+  const [team, rows] = await Promise.all([
+    supabase.from('teams').select('name').limit(1).maybeSingle(),
+    readBoard(today, windowDays),
+  ]);
+
+  if (team.error) throw asError(team.error);
 
   return {
     teamName: team.data?.name ?? null,
@@ -147,4 +162,15 @@ export async function fetchLeaderboard(
     mvp: mvp(rows),
     windowDays,
   };
+}
+
+/**
+ * Who leads a longer window -- the player of the month.
+ *
+ * The same function over a wider window, because "who has logged most" does
+ * not become a different question at thirty days. It reads only the names, so
+ * the month costs one RPC rather than a second board.
+ */
+export async function fetchMvp(today: string, windowDays: number): Promise<string[]> {
+  return mvp(await readBoard(today, windowDays));
 }

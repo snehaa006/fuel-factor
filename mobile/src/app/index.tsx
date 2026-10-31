@@ -199,6 +199,23 @@ export default function Today() {
             testID="team"
             onPress={() => router.push('/team')}
           />
+          <PushButton
+            label="Progress"
+            variant="ghost"
+            fullWidth
+            testID="progress"
+            onPress={() => router.push('/progress')}
+          />
+          {/* The dashboard is the coach's, and it asks for a coach code of its
+              own. It sits here so a coach on a shared device can reach it;
+              an athlete who taps it gets the code gate and nothing else. */}
+          <PushButton
+            label="Coach dashboard"
+            variant="ghost"
+            fullWidth
+            testID="coach"
+            onPress={() => router.push('/coach')}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
