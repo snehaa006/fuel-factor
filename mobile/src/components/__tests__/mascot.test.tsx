@@ -151,6 +151,26 @@ describe('MascotBanner', () => {
     expect(screen.getByText('IN PROGRESS')).toBeTruthy();
   });
 
+  it('keeps a server’s own words out of the mascot’s mouth', async () => {
+    // The message is vetted; the detail is whatever the database said and
+    // cannot be. They are different lines, in different type, on purpose.
+    await render(
+      <MascotBanner
+        pose="think"
+        message="That did not save."
+        detail="permission denied"
+        testID="b"
+      />
+    );
+    expect(screen.getByTestId('b-message')).toHaveTextContent('That did not save.');
+    expect(screen.getByTestId('b-detail')).toHaveTextContent('permission denied');
+  });
+
+  it('shows no detail line when there is nothing to add', async () => {
+    await render(<MascotBanner pose="fuel" message="3 of 6." testID="b" />);
+    expect(screen.queryByTestId('b-detail')).toBeNull();
+  });
+
   it('works without an eyebrow', async () => {
     await render(<MascotBanner pose="fuel" message="3 of 6." testID="b" />);
     expect(screen.getByTestId('b-message')).toBeTruthy();

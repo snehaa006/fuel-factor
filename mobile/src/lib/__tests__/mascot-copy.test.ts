@@ -5,6 +5,7 @@ import {
   dayCue,
   LEARN_CUE,
   PROGRESS_CUE,
+  SAVE_FAILED_CUE,
   WELCOME_CUE,
 } from '@/lib/mascot-copy';
 
@@ -88,7 +89,15 @@ describe('the mascot stays in its lane', () => {
     expect(ALL_CUES).toContain(LEARN_CUE);
     expect(ALL_CUES).toContain(WELCOME_CUE);
     expect(ALL_CUES).toContain(PROGRESS_CUE);
+    expect(ALL_CUES).toContain(SAVE_FAILED_CUE);
     expect(ALL_CUES.length).toBeGreaterThanOrEqual(9);
+  });
+
+  it('shakes at a refused write, and says nothing was lost', () => {
+    // The selections are still on screen when a write is refused, so the
+    // line is accurate as well as kind.
+    expect(SAVE_FAILED_CUE.motion).toBe('shake');
+    expect(SAVE_FAILED_CUE.message).toMatch(/Nothing is lost/);
   });
 
   it('only ever asks for a motion the mascot has', () => {

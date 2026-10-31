@@ -112,6 +112,22 @@ export const PROGRESS_CUE: MascotCue = {
   motion: 'enter',
 };
 
+/**
+ * A write the database refused.
+ *
+ * The mascot's own words are fixed and vetted like every other line here.
+ * The refusal's own text is passed to the banner as `detail` and shown
+ * beneath, so what the database said is never put in the mascot's mouth --
+ * an arbitrary server message cannot be held to the vocabulary rule below,
+ * and should not pretend to be the character speaking.
+ */
+export const SAVE_FAILED_CUE: MascotCue = {
+  pose: 'think',
+  eyebrow: 'DID NOT SAVE',
+  message: 'That did not save. Nothing is lost, so try again.',
+  motion: 'shake',
+};
+
 /** Every line the mascot can say, for the test that holds it to its lane. */
 export const ALL_CUES: MascotCue[] = [
   dayCue(0, 6),
@@ -123,4 +139,5 @@ export const ALL_CUES: MascotCue[] = [
   LEARN_CUE,
   WELCOME_CUE,
   PROGRESS_CUE,
+  SAVE_FAILED_CUE,
 ];

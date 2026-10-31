@@ -9,6 +9,12 @@ export type MascotBannerProps = {
   message: string;
   /** A short lead-in above it, in caps. Optional. */
   eyebrow?: string;
+  /**
+   * Something the app was told, shown under the message in muted type.
+   * Deliberately separate: a server's own words are not the mascot's, and
+   * cannot be held to the vocabulary rule the messages are held to.
+   */
+  detail?: string;
   motion?: MascotMotion;
   size?: number;
   testID?: string;
@@ -31,6 +37,7 @@ export function MascotBanner({
   pose,
   message,
   eyebrow,
+  detail,
   motion = 'enter',
   size = 104,
   testID,
@@ -61,6 +68,14 @@ export function MascotBanner({
         >
           {message}
         </Text>
+        {detail !== undefined && (
+          <Text
+            testID={testID ? `${testID}-detail` : undefined}
+            style={[typography['body-s'], { color: colors['ink-muted'] }]}
+          >
+            {detail}
+          </Text>
+        )}
       </View>
     </View>
   );

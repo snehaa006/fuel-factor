@@ -4,7 +4,9 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PushButton } from '@/components/push-button';
+import { MascotBanner } from '@/components/mascot-banner';
 import { messageOf } from '@/lib/errors';
+import { SAVE_FAILED_CUE } from '@/lib/mascot-copy';
 import { GUIDANCE_LABEL, type FoodPortion, type FoodWithPortions } from '@/lib/food';
 import {
   QUANTITIES,
@@ -256,9 +258,17 @@ export default function LogMeal() {
         </View>
 
         {error && (
-          <Text testID="save-error" style={[typography['body-m'], { color: colors['cabai-deep'], marginTop: spacing['space-4'] }]}>
-            {error}
-          </Text>
+          <View testID="save-error" style={{ marginTop: spacing['space-4'] }}>
+            <MascotBanner
+              pose={SAVE_FAILED_CUE.pose}
+              message={SAVE_FAILED_CUE.message}
+              eyebrow={SAVE_FAILED_CUE.eyebrow}
+              motion={SAVE_FAILED_CUE.motion}
+              detail={error}
+              size={88}
+              testID="save-error-mascot"
+            />
+          </View>
         )}
       </ScrollView>
 
