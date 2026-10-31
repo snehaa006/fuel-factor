@@ -27,11 +27,12 @@ The `share` profile builds with `EXPO_PUBLIC_DEMO_DATA=1` and
 Builds for this project live at
 <https://expo.dev/accounts/snehaa006/projects/fuel-factor/builds>.
 
-### The first one
+### Which build to hand out
 
-Built 31 October 2026, version 1.0.0, versionCode 1:
-
-<https://expo.dev/artifacts/eas/xDixmLhIV8OSe5EwnW_OFtIKFwS6AHI9ugMhZNn6R6I.apk>
+Take the newest **finished** build from that page. **Do not use the one from
+31 October (versionCode 1)** — its bundle shipped with no Supabase
+configuration and it dies on launch. The cause is in the commit history, and
+`eas.json` now carries the configuration in every profile so it cannot recur.
 
 ### It is 106 MB, and it does not have to be
 
