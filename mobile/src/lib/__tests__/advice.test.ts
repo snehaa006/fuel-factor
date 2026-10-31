@@ -1,10 +1,10 @@
 import { evaluate, MAX_NUDGES, topNudges, type AdviceRule } from '@/lib/advice';
 import { summariseDay, type LoggedItem } from '@/lib/today';
 import type { TrainingSession } from '@/lib/session';
+import { DEMO_RULES } from '@/lib/__fixtures__/today';
 
 /** Midday. Only the timing tests care what the clock says. */
 const NOON = 12 * 60;
-import { DEMO_RULES } from '@/lib/__fixtures__/today';
 
 const log = {
   day_type: 'training' as const,

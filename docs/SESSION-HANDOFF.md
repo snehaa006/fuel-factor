@@ -109,7 +109,17 @@ hours before the session and `refuel_window_open` thirty minutes after it
 ends. **All five seeded rules now fire.** The windows are the deck's; the app
 supplies only the clock.
 
-**343 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
+**Step 7** — Learn. The four weeks, with week 1 built from the deck: the
+intro, the four headline figures, myth vs fact, the five-step glycogen chain,
+the depletion timeline with its citation, pre/during/post timing, the four
+target bands and the Jakarta food table. Weeks 2 to 4 are locked. Lessons are
+rows in `lesson_cards` / `lesson_points`, so weeks 2 to 4 arrive as an INSERT
+and not as a code change — locked is derived from a week having no cards, so
+seeding week 2 unlocks week 2 with nothing else to remember. The food table
+reads `food_items` rather than carrying a second copy of those figures. The
+week's challenge can be marked done, which writes `challenge_completions`.
+
+**374 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
 
 ### Where things are
@@ -127,6 +137,10 @@ lint and tests. Run it before saying anything is done.
 | `mobile/src/lib/advice.ts` | Rule evaluation. All five seeded rules fire |
 | `mobile/src/lib/streak.ts` | Streak length, the seven-day strip, best run |
 | `mobile/src/lib/session.ts` | Training session times, as minutes since midnight |
+| `mobile/src/lib/learn.ts` | The four weeks, the cards, challenge completion |
+| `mobile/src/app/learn/index.tsx` | The week list |
+| `mobile/src/app/learn/[week].tsx` | One week's cards |
+| `mobile/src/components/lesson-card.tsx` | A card per shape the deck uses |
 | `mobile/src/components/session-times.tsx` | The start/end stepper |
 | `mobile/src/components/streak-strip.tsx` | The week strip |
 | `mobile/src/lib/auth.ts` | Anonymous sign-in, roster, claim |
@@ -245,9 +259,29 @@ honest fix is Theo actually logging through November, which the programme runs
 anyway. If the strip has to look full on stage against live data, that is a
 decision to take deliberately and not a seed to slip in.
 
+## What step 7 left
+
+**The challenge has a check-in but no photo.** The brief pairs them, and the
+WhatsApp message asks for breakfast photos. `challenge_completions.photo_path`
+is already in the schema and stays null. The photo needs `expo-image-picker`,
+a Supabase storage bucket and RLS on that bucket — self-contained, but a
+piece of work of its own rather than a corner of Learn, so it was not slipped
+in half-done.
+
+**The deck's game-day band is now on screen.** Week 1 prints 6–8 g/kg for a
+game day and the Learn page shows it, because the page is their material.
+The app still has no game day type: `day_type` holds Training and Rest, and
+`targets.ts` computes no game band. A test asserts both at once, so showing
+the deck cannot quietly turn into adding a value to their schema.
+
+**The fixture carries a second copy of the week 1 text**, in
+`mobile/src/lib/__fixtures__/today.ts`, because the Learn screen cannot be
+looked at on a device while anonymous sign-ins are off. A test asserts the
+card kinds and their order match the seed file, so the copy cannot drift
+unnoticed — but if you edit the deck's wording, edit both.
+
 ## What's next
 
-7. Learn — Week 1 from the PDF
 8. Team and leaderboard
 9. Coach dashboard (web, after the demo)
 

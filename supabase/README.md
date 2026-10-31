@@ -13,8 +13,8 @@ into their workbook first and here second.
 **App tables carry what the product needs and the study does not record.**
 `teams`, `team_members`, `participant_profiles`, `food_items`, `food_portions`,
 `log_items`, `training_sessions`, `weekly_challenges`, `challenge_completions`,
-`advice_rules`. None of it is exported, and the whole tier could be dropped
-without touching a research column.
+`advice_rules`, `lesson_cards`, `lesson_points`. None of it is exported, and the
+whole tier could be dropped without touching a research column.
 
 `training_sessions` is the clearest case of why the split exists. Two advice
 rules are written against a training session — "2 to 3 hours before", "refuel
@@ -30,7 +30,9 @@ on `daily_logs`, and the export never sees it.
 | `food_portions.protein_g`, `fat_g` | The Week 1 deck gives neither for any food. Fill from TKPI, never from an estimate. |
 | `food_portions.kcal`/`carbs_g` on 7 of 15 foods | The deck lists them with guidance but no figures. |
 | `advice_rules.reviewed_by` | Null means a seed rule. The dietitian's name here is what clears a rule for the real programme. |
-| `day_type` has no `game` | Their Day Type column only ever holds `training` or `rest`. The deck gives a game-day carb band, but the value is not in their schema. |
+| `day_type` has no `game` | Their Day Type column only ever holds `training` or `rest`. The deck gives a game-day carb band, and the Learn page shows it because that page is their material — but showing the deck is not adding a value to their schema. |
+| `challenge_completions.photo_path` | The challenge records that it was done; the photo needs a storage bucket and a picker, which is its own piece of work. |
+| Lessons for weeks 2 to 4 | Only week 1 has been written. A week with no `lesson_cards` rows shows locked, so seeding a week is all it takes to unlock it. |
 
 ## Row level security
 

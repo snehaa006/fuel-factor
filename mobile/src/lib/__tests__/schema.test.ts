@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { Constants } from '@/lib/database.types';
+import { DEMO_LESSON_CARDS } from '@/lib/__fixtures__/today';
 
 const root = resolve(__dirname, '../../../..');
 const read = (p: string) => readFileSync(resolve(root, p), 'utf8');
@@ -122,5 +123,53 @@ describe('nutrition values are never invented', () => {
     const programmeSeed = read('supabase/seed/0002_week1_programme.sql');
     const weeks = [...programmeSeed.matchAll(/values \((\d), '/g)].map((m) => m[1]);
     expect(weeks).toEqual(['1']);
+  });
+});
+
+describe('the Learn section carries the deck and nothing else', () => {
+  const lessonSeed = read('supabase/seed/0006_week1_lessons.sql');
+
+  it('seeds lesson cards for week 1 only', () => {
+    // Weeks 2 to 4 are locked because they have no rows. A row here for week
+    // 2 would unlock a week nobody has written.
+    const weeks = [...lessonSeed.matchAll(/values \((\d), \d+, '/g)].map((m) => m[1]);
+    expect(weeks.length).toBeGreaterThan(0);
+    expect(new Set(weeks)).toEqual(new Set(['1']));
+  });
+
+  it('attributes every card to the deck', () => {
+    const cards = [...lessonSeed.matchAll(/insert into public\.lesson_cards \(([^)]*)\)/g)];
+    expect(cards.length).toBeGreaterThan(0);
+    for (const [, columns] of cards) {
+      expect(columns).toContain('source');
+    }
+    // 'week-1-deck' is the only provenance any card claims.
+    const sources = [...lessonSeed.matchAll(/'(week-1-deck|tkpi|sofia)'/g)].map((m) => m[1]);
+    expect(new Set(sources)).toEqual(new Set(['week-1-deck']));
+  });
+
+  it('copies the deck’s own carbohydrate bands, including the game day it gives', () => {
+    // The deck prints a game-day band, so the Learn page shows it. That is
+    // teaching material, not a third value for the tracker's Day Type column.
+    expect(lessonSeed).toContain('5–7g per kg body weight');
+    expect(lessonSeed).toContain('3–4g per kg body weight');
+    expect(lessonSeed).toContain('6–8g per kg');
+    expect(Constants.public.Enums.day_type).toEqual(['training', 'rest']);
+  });
+
+  it('keeps the demo fixture in step with the seed', () => {
+    // The Learn screen is developed against DEMO_LESSON_CARDS because the
+    // project still has anonymous sign-ins off. A fixture that has drifted
+    // from the database is worse than no fixture, so the kinds and their
+    // order have to match the seed's.
+    const seeded = [...lessonSeed.matchAll(/values \(1, \d+, '([a-z_]+)'/g)].map((m) => m[1]);
+    expect(DEMO_LESSON_CARDS.map((c) => c.kind)).toEqual(seeded);
+  });
+
+  it('keeps the food table out of the lesson rows', () => {
+    // The deck's Jakarta food table is the food database. Copying its figures
+    // here would make a second place for a carbohydrate number to be wrong.
+    expect(lessonSeed).not.toMatch(/carbs_g/);
+    expect(lessonSeed).toContain("'foods'");
   });
 });

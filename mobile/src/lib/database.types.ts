@@ -48,6 +48,20 @@ export type Database = {
         Update: { carbs_g?: number | null; created_at?: string; fat_g?: number | null; food_id?: string; grams?: number | null; id?: string; is_default?: boolean; kcal?: number | null; label?: string; protein_g?: number | null; source_note?: string | null };
         Relationships: [{ foreignKeyName: 'food_portions_food_id_fkey'; columns: ['food_id']; isOneToOne: false; referencedRelation: 'food_items'; referencedColumns: ['id'] }];
       };
+      lesson_cards: {
+        Row: { body: string | null; created_at: string; heading: string | null; id: string; kind: string; position: number; source: string; source_note: string | null; week_number: number };
+        Insert: { body?: string | null; created_at?: string; heading?: string | null; id?: string; kind: string; position: number; source: string; source_note?: string | null; week_number: number };
+        Update: { body?: string | null; created_at?: string; heading?: string | null; id?: string; kind?: string; position?: number; source?: string; source_note?: string | null; week_number?: number };
+        Relationships: [];
+      };
+      lesson_points: {
+        Row: { card_id: string; created_at: string; detail: string | null; id: string; label: string | null; position: number; value: string | null };
+        Insert: { card_id: string; created_at?: string; detail?: string | null; id?: string; label?: string | null; position: number; value?: string | null };
+        Update: { card_id?: string; created_at?: string; detail?: string | null; id?: string; label?: string | null; position?: number; value?: string | null };
+        Relationships: [
+          { foreignKeyName: 'lesson_points_card_id_fkey'; columns: ['card_id']; isOneToOne: false; referencedRelation: 'lesson_cards'; referencedColumns: ['id'] },
+        ];
+      };
       log_items: {
         Row: { daily_log_id: string; food_portion_id: string | null; free_text: string | null; id: string; logged_at: string; quantity: number; slot: Database['public']['Enums']['meal_slot'] };
         Insert: { daily_log_id: string; food_portion_id?: string | null; free_text?: string | null; id?: string; logged_at?: string; quantity?: number; slot: Database['public']['Enums']['meal_slot'] };

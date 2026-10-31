@@ -185,6 +185,13 @@ export default function Today() {
             testID="check-in"
             onPress={() => router.push('/check-in')}
           />
+          <PushButton
+            label="Learn"
+            variant="ghost"
+            fullWidth
+            testID="learn"
+            onPress={() => router.push('/learn')}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
