@@ -27,6 +27,29 @@ The `share` profile builds with `EXPO_PUBLIC_DEMO_DATA=1` and
 Builds for this project live at
 <https://expo.dev/accounts/snehaa006/projects/fuel-factor/builds>.
 
+### The first one
+
+Built 31 October 2026, version 1.0.0, versionCode 1:
+
+<https://expo.dev/artifacts/eas/xDixmLhIV8OSe5EwnW_OFtIKFwS6AHI9ugMhZNn6R6I.apk>
+
+### It is 106 MB, and it does not have to be
+
+That is a **universal** APK: it carries `arm64-v8a`, `armeabi-v7a`, `x86` and
+`x86_64`. Every modern phone uses `arm64-v8a`; `x86` and `x86_64` are emulators
+only and `armeabi-v7a` is for devices from roughly before 2015.
+
+A download that size over mobile data is a real obstacle for the people this is
+meant for. Cutting it to the architectures that are actually phones roughly
+halves it — add this to the `share` profile in `eas.json` and rebuild:
+
+```json
+"android": { "buildType": "apk", "ndk": { "abiFilters": ["arm64-v8a", "armeabi-v7a"] } }
+```
+
+Keep `armeabi-v7a` unless you know the squad's phones; dropping it saves a
+little more and silently excludes older handsets.
+
 ### The same build against the real database
 
 ```bash
