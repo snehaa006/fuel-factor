@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { palette } from '@/theme';
@@ -30,20 +30,33 @@ describe('brand', () => {
     }
   });
 
-  it('keeps the board’s five brand colours as the colour tokens, hex for hex', () => {
+  it('keeps the boards’ brand colours as the colour tokens, hex for hex', () => {
+    // Sampled from the two boards in design-system/brand/. langit is the
+    // icon lockup's sky, which the five-colour set never had a name for and
+    // which is now the dark theme's ground.
     expect({
       cabai: palette.light.cabai,
       pisang: palette.light.pisang,
       kecap: palette.light.kecap,
       santan: palette.light.santan,
       gula: palette.light.gula,
+      langit: palette.light.langit,
     }).toEqual({
-      cabai: '#b8420d',
-      pisang: '#f8a720',
-      kecap: '#642714',
-      santan: '#fde2cf',
-      gula: '#89472e',
+      cabai: '#fc5b27',
+      pisang: '#f6aa32',
+      kecap: '#523123',
+      santan: '#f6eed3',
+      gula: '#8c7359',
+      langit: '#0a2639',
     });
+  });
+
+  it('names the board files that are actually in the repository', () => {
+    // The lockups below are still wanted from Theo as their own files. These
+    // two are here, and the app icon is cut from the first.
+    for (const file of ['brand/brand-board.jpg', 'brand/mascot-board.jpg']) {
+      expect(existsSync(resolve(__dirname, '../../../../design-system', file))).toBe(true);
+    }
   });
 
   it('holds the wordmark to drawn artwork rather than typeset text', () => {

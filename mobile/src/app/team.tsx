@@ -3,8 +3,10 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BadgeGrid } from '@/components/badge-grid';
+import { MascotBanner } from '@/components/mascot-banner';
 import { LeaderboardRow } from '@/components/leaderboard-row';
 import { earnedCount } from '@/lib/badges';
+import { badgeCue } from '@/lib/mascot-copy';
 import { MONTH_DAYS, myRow } from '@/lib/team';
 import { useTeam } from '@/lib/use-team';
 import { useTheme } from '@/theme';
@@ -169,6 +171,18 @@ export default function Team() {
                 {earnedCount(view.badges)} of {view.badges.length}
               </Text>
             </View>
+            {(() => {
+              const cue = badgeCue(earnedCount(view.badges), view.badges.length);
+              return (
+                <MascotBanner
+                  pose={cue.pose}
+                  message={cue.message}
+                  eyebrow={cue.eyebrow}
+                  motion={cue.motion}
+                  testID="badge-mascot"
+                />
+              );
+            })()}
             {/* Locked badges stay on screen. A badge nobody can see is not a
                 target, and every one of these is earned by logging rather
                 than by eating anything in particular. */}

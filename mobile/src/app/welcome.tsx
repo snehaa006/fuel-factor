@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Mascot } from '@/components/mascot';
 import { PushButton } from '@/components/push-button';
+import { WELCOME_CUE } from '@/lib/mascot-copy';
 import { claimParticipant, signIn, teamRoster, type RosterEntry } from '@/lib/auth';
 import { messageOf } from '@/lib/errors';
 import { useTheme } from '@/theme';
@@ -102,6 +104,16 @@ export default function Welcome() {
 
         {step === 'consent' && (
           <View style={{ gap: spacing['space-4'] }}>
+            {/* The one place the mascot is the hero rather than a messenger:
+                this is the app introducing itself. */}
+            <View style={{ alignItems: 'center' }}>
+              <Mascot
+                pose={WELCOME_CUE.pose}
+                size={176}
+                motion={WELCOME_CUE.motion}
+                testID="welcome-mascot"
+              />
+            </View>
             {heading('Before you start')}
             <Text style={[typography['body-l'], { color: colors.ink }]}>
               Fuel Factor records what you eat and drink so your coach and the programme’s dietitian

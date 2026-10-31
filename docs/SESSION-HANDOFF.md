@@ -174,7 +174,35 @@ athlete and never writes `participant_profiles`, so a coach has no
 `current_participant_id()` — which is what keeps the leaderboard and badges silent
 for them rather than wrong. Both flags quote the programme's own threshold.
 
-**565 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
+**Step 11** — The palette, re-derived. Theo's call on 31 October: the app uses
+the boards' colours and no others. Every token is now sampled from
+`design-system/brand/brand-board.jpg` and `mascot-board.jpg`. Three findings came
+out of it: **`langit` `#0a2639` did not exist** — the five-colour set had no name
+for the navy the icon sits on, and it is now the dark theme's surface, so the
+splash continues straight into the app instead of cutting from navy to brown.
+**`daun` and `air` were invented** and are board colours now, from the mascot
+sheet's nutrient planets. **`ink-muted` can no longer alias `gula`**: the board's
+mid-brown reaches 3.8:1 on the board's cream, under the 4.5:1 the system
+promises, so it stays a graphic colour. All thirteen contrast pairs pass in both
+themes; the worst is 5.5:1.
+
+**Step 12** — The mascot. Theo's astronaut, seven poses plus the balloon bunch,
+cut from the mascot sheet and animated with Reanimated: a slow idle bob, an
+entrance, and a celebration pop with a wiggle. Every pose has a still version and
+the whole thing falls back to it when the device asks for reduced motion. It is
+on Today (by how much of the day is recorded), Welcome (the hero), Learn, Team
+(the badge ladder) and Progress.
+
+**The mascot never says anything about food.** Every line it can utter lives in
+`mobile/src/lib/mascot-copy.ts` and is about logging, streaks, badges or
+challenges. The programme's sentences stay in `NudgeCard`, which carries a rule
+code and a source and can be reviewed. A cartoon astronaut is the most persuasive
+voice on the screen and the least qualified one, and a test holds its whole
+vocabulary to that. The balloons are labelled B, C, Mg and Ca; **the app tracks
+none of those** and the Week 1 deck gives no micronutrient figures at all, so they
+appear once, as brand art, with no number near them.
+
+**607 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
 
 To look at the app without a session:
@@ -209,7 +237,9 @@ To look at the app without a session:
 | `mobile/src/lib/auth.ts` | Anonymous sign-in, roster, claim |
 | `mobile/src/lib/errors.ts` | `messageOf` / `asError` — read before touching error handling |
 | `mobile/src/lib/__fixtures__/today.ts` | The demo day, demo foods and the week 1 cards |
-| `mobile/src/components/` | `lesson-card`, `challenge-photo`, `session-times`, `streak-strip`, `leaderboard-row`, `badge-grid`, `metric-compare`, `nudge-card`, `fuel-ring`, `meal-timeline` |
+| `mobile/src/components/mascot.tsx` | The astronaut. Poses, motions, reduced-motion fallback |
+| `mobile/src/lib/mascot-copy.ts` | Every line the mascot can say. Read the note at the top |
+| `mobile/src/components/` | `mascot-banner`, `lesson-card`, `challenge-photo`, `session-times`, `streak-strip`, `leaderboard-row`, `badge-grid`, `metric-compare`, `nudge-card`, `fuel-ring`, `meal-timeline` |
 
 ## Where the code is right now
 

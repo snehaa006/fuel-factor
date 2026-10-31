@@ -5,7 +5,11 @@ holds the artwork it points at.
 
 ## What is here
 
-`brand-board.jpg` — the whole board, as Theo supplied it. It carries four
+`mascot-board.jpg` — the astronaut sheet: seven poses, a balloon bunch and six
+nutrient roundels, with the taglines. The app's mascot assets are cut from it
+into `mobile/assets/mascots/`.
+
+`brand-board.jpg` — the logo board, as Theo supplied it. It carries four
 lockups: a circular badge with the wordmark inside the ring, a horizontal
 lockup with the shuttle left, a stacked lockup, and an app-icon tile with no
 wordmark.
@@ -38,27 +42,59 @@ is the same navy, so the inset square's edges never show.
 The splash is the same artwork on the same navy, so launching continues
 straight on from the icon on the home screen.
 
-## The navy is not in the colour tokens
+## The palette comes from the boards
 
-The icon tile's sky is **`#132936`**, and it is not one of the five brand
-colours the design system knows about:
+Every colour token is sampled from the two boards. Theo's call, taken on
+31 October: the app uses these colours and no others.
 
-| Board | Token |
-|---|---|
-| `#B8420D` | `cabai` |
-| `#F8A720` | `pisang` |
-| `#642714` | `kecap` |
-| `#FDE2CF` | `santan` |
-| `#89472E` | `gula` |
+| Token | Hex | Where it is on a board |
+|---|---|---|
+| `santan` | `#f6eed3` | The ground of both boards |
+| `pisang` | `#f6aa32` | The lightning roundel; the C planet |
+| `cabai` | `#fc5b27` | The shuttle's nose and exhaust |
+| `gula` | `#8c7359` | The mascot suit's webbing |
+| `kecap` | `#523123` | The mascot sheet's wordmark |
+| `langit` | `#0a2639` | The icon lockup's sky |
+| `daun` | `#a6b385` | The natural-nutrients planet, light tone |
+| `air` | `#406c79` | The magnesium planet |
 
-`mobile/src/theme/__tests__/tokens.test.ts` fails if any of those five drifts.
-The navy is a sixth colour, it appears nowhere in the app's own surfaces, and
-it is currently written into `app.json` as a literal rather than a token.
+Three of those are new facts about the brand:
 
-**This is a question for Theo**, not something to resolve by adding a token:
-either the navy is part of the brand and belongs in `tokens.json`, or the icon
-should be recoloured onto `kecap`. An earlier version of this file assumed the
-latter. The board says otherwise, so the board won.
+**`langit` did not exist.** The five-colour set had no name for the navy the
+icon sits on. It is now the dark theme's surface, which makes the splash
+continue straight into the app instead of cutting from navy to brown.
+
+**`daun` and `air` were invented.** Both were marked *FUNCTIONAL, not from the
+brand board*. The mascot sheet's nutrient planets supply a green and a teal, so
+they are board colours now and the comment is gone.
+
+**`ink-muted` is no longer `gula`.** The board's mid-brown is lighter than the
+old `#89472e` and reaches only 3.8:1 on the board's cream, under the 4.5:1 the
+design system promises for text. `gula` stays a graphic colour and `ink-muted`
+is its own value. A test pins that so nobody re-aliases it.
+
+Contrast is checked for all thirteen text pairings in both themes by
+`mobile/src/theme/__tests__/contrast.test.ts`; the worst pair is 5.5:1.
+
+## The mascot
+
+Seven poses plus the balloon bunch, cut from `mascot-board.jpg` the same way
+the icon was — flood fill inward from the corners so the cream becomes
+transparent, then trim. They live in `mobile/assets/mascots/` and are drawn by
+`mobile/src/components/mascot.tsx`.
+
+**The mascot never says anything about food.** Every line it can utter is in
+`mobile/src/lib/mascot-copy.ts` and is about logging, streaks, badges or
+challenges — the app's own side, which needs nobody's sign-off. The
+programme's sentences go through `NudgeCard`, which carries a rule code and a
+source and can be reviewed. A cartoon astronaut is the most persuasive voice
+on the screen and the least qualified one, and a test holds its whole
+vocabulary to that.
+
+**The nutrient roundels are props, not data.** The balloons are labelled B, C,
+Mg and Ca, and the app tracks none of those — the Week 1 deck gives no
+micronutrient figures at all. They appear once, on the welcome screen, as
+brand art with no number near them. Do not build a nutrient chip out of them.
 
 ## Still wanted from Theo
 
@@ -90,7 +126,7 @@ typography, and both faces load behind the splash.
 From `mobile/`, with ImageMagick:
 
 ```bash
-magick ../design-system/brand/brand-board.jpg -crop 335x358+1207+1018 +repage -alpha off -fuzz 22% -fill '#132936' -draw 'color 0,0 floodfill' -draw 'color 334,0 floodfill' -draw 'color 0,357 floodfill' -draw 'color 334,357 floodfill' -background '#132936' -gravity center -extent 358x358 -filter Lanczos -resize 1024x1024 assets/images/icon.png
+magick ../design-system/brand/brand-board.jpg -crop 335x358+1207+1018 +repage -alpha off -fuzz 22% -fill '#0a2639' -draw 'color 0,0 floodfill' -draw 'color 334,0 floodfill' -draw 'color 0,357 floodfill' -draw 'color 334,357 floodfill' -background '#0a2639' -gravity center -extent 358x358 -filter Lanczos -resize 1024x1024 assets/images/icon.png
 ```
 
 To see it on a device — Expo Go shows **its own** icon, never yours:

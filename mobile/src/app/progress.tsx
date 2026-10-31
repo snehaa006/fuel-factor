@@ -2,7 +2,9 @@ import { useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { MascotBanner } from '@/components/mascot-banner';
 import { MetricCompare } from '@/components/metric-compare';
+import { PROGRESS_CUE } from '@/lib/mascot-copy';
 import { useProgress } from '@/lib/use-progress';
 import { useTheme } from '@/theme';
 
@@ -65,9 +67,15 @@ export default function ProgressScreen() {
         <Text style={[typography['display-l'], { color: colors.ink, marginTop: spacing['space-2'] }]}>
           Progress
         </Text>
-        <Text testID="progress-intro" style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-          Your three-day baseline against what you have logged since.
-        </Text>
+        <View testID="progress-intro" style={{ marginTop: spacing['space-4'] }}>
+          <MascotBanner
+            pose={PROGRESS_CUE.pose}
+            message={PROGRESS_CUE.message}
+            eyebrow={PROGRESS_CUE.eyebrow}
+            motion={PROGRESS_CUE.motion}
+            testID="progress-mascot"
+          />
+        </View>
 
         <View style={{ marginTop: spacing['space-6'], gap: spacing['space-3'] }}>
           {progress.metrics.map((metric) => (

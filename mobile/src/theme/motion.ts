@@ -10,6 +10,12 @@ export const motion = {
   fill: { duration: 900 },
   /** Streak flame, lesson-node halo: one shared 2s heartbeat. */
   heartbeat: { duration: 1000, scale: 1.06 },
+  /** The mascot's idle bob. One slow rise and fall, forever. */
+  bob: { duration: 2600, offset: 6 },
+  /** The mascot's entrance: fades up as it springs to full size. */
+  enter: { duration: 220, from: 0.86 },
+  /** The mascot's celebration wiggle, either side of upright. */
+  wiggle: { duration: 110, degrees: 5 },
   /** Validation error. */
   shake: { duration: 300, offset: 8, cycles: 3 },
 } as const;
