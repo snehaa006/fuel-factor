@@ -27,11 +27,17 @@ The `share` profile builds with `EXPO_PUBLIC_DEMO_DATA=1` and
 Builds for this project live at
 <https://expo.dev/accounts/snehaa006/projects/fuel-factor/builds>.
 
-### The first one
+### The one to hand out
 
-Built 31 October 2026, version 1.0.0, versionCode 1:
+<https://expo.dev/artifacts/eas/m9WbHnG3XIIkiklCHKe6FK0yG51ogzg6l56Z2em6N7g.apk>
 
-<https://expo.dev/artifacts/eas/xDixmLhIV8OSe5EwnW_OFtIKFwS6AHI9ugMhZNn6R6I.apk>
+Verified by unpacking it: the bundle carries the Supabase configuration, the
+stand-in names are in it and none of the real ones are.
+
+**The earlier build, versionCode 1, is dead** — its bundle shipped with no
+Supabase configuration and it crashes on launch. `eas.json` now carries the
+configuration in every profile, so that cannot recur. If you handed that link
+to anyone, send them this one.
 
 ### It is 106 MB, and it does not have to be
 
@@ -62,15 +68,58 @@ until anonymous sign-ins are switched on** (Supabase dashboard → Authenticatio
 
 ## 2. On an iPhone
 
-Apple does not allow an app to be installed from a link. An iOS build needs a
-paid Apple Developer account and goes out through TestFlight:
+**Apple does not allow an app to be installed from a link.** There is no iOS
+equivalent of the APK above, and no free way to make one. The two real options:
+
+### Expo Go, free, nothing running on your machine
+
+The bundle is published to Expo's servers, so it keeps working whether or not
+anyone's laptop is on.
+
+1. Install **Expo Go** from the App Store.
+2. Open this on the phone:
+
+```
+exp://u.expo.dev/32b11a9f-9dfa-4ca6-9bae-2950fae749bd?channel-name=preview&runtime-version=exposdk:58.0.0
+```
+
+Send it by message and tap it, or point the **Camera** app at a QR of it. (The
+Camera app, not Expo Go's scanner — that one is Android.) The same link works
+on Android in Expo Go.
+
+Published updates live at
+<https://expo.dev/accounts/snehaa006/projects/fuel-factor/updates>.
+
+Two things to expect, so they do not look like faults:
+
+- **Expo Go shows its own icon, name and splash**, never Fuel Factor's. It is a
+  container; it cannot show your icon. That is exactly what the Android APK is
+  for.
+- The first open takes a few seconds while it fetches the bundle.
+
+Publishing a new one, after any change:
+
+```bash
+cd mobile && EXPO_PUBLIC_DEMO_DATA=1 EXPO_PUBLIC_ANON_DEMO=1 \
+  npx eas update --branch preview --environment preview --message "what changed"
+```
+
+`runtimeVersion` is on the `sdkVersion` policy, which is what makes an update
+openable in Expo Go rather than only in a custom build. Changing that policy
+breaks this route.
+
+### TestFlight, $99 a year, a real app
+
+A paid Apple Developer account, and then:
 
 ```bash
 cd mobile && npx eas build --platform ios --profile share
+npx eas submit --platform ios
 ```
 
-Without that account, the iOS options are the simulator on a Mac (below) or
-Expo Go.
+Testers install from TestFlight and get the real icon, the real name and the
+real splash — the iOS equivalent of the APK. Up to 10,000 of them. This is the
+only way an iPhone runs this as an actual app rather than inside Expo Go.
 
 ## 3. On a machine, for development
 
