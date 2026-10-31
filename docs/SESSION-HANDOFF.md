@@ -226,7 +226,25 @@ vocabulary to that. The balloons are labelled B, C, Mg and Ca; **the app tracks
 none of those** and the Week 1 deck gives no micronutrient figures at all, so they
 appear once, as brand art, with no number near them.
 
-**607 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
+**Step 13** — Builds. The app is an EAS project under `snehaa006`, with
+`android.package` and `ios.bundleIdentifier` both `dev.snehaa006.fuelfactor` —
+Android installs and updates against that string, so it must not move.
+`eas.json` has three profiles: `share` (an APK anybody can install, demo data,
+anonymised names), `live` (the same APK against Supabase, blocked at the gate
+until sign-ins are on) and `production`. **`docs/RUNNING-IT.md` is the page to
+hand someone.**
+
+**The demo's three athletes are real minors.** `EXPO_PUBLIC_ANON_DEMO=1` swaps
+their names for stand-ins and changes nothing else; the `share` profile sets it.
+The stand-ins sort the same way the real names do, because the coach's roster is
+alphabetical and the fixture is written in that order — a test holds the two in
+step, and the whole suite passes with the flag on and off.
+
+The app also exports as a single-page web build (`web.output: "single"`), which
+is what the coach dashboard is eventually for. It runs, and it is **not deployed
+anywhere**.
+
+**627 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
 
 To look at the app without a session:

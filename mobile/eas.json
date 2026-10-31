@@ -1,0 +1,22 @@
+{
+  "cli": { "version": ">= 27.0.0", "appVersionSource": "remote" },
+  "build": {
+    "share": {
+      "android": { "buildType": "apk" },
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_DEMO_DATA": "1",
+        "EXPO_PUBLIC_ANON_DEMO": "1"
+      }
+    },
+    "live": {
+      "android": { "buildType": "apk" },
+      "distribution": "internal"
+    },
+    "production": {
+      "android": { "buildType": "app-bundle" },
+      "autoIncrement": true
+    }
+  },
+  "submit": { "production": {} }
+}

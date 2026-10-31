@@ -9,6 +9,34 @@ import type { Progress } from '../progress';
 import type { CoachView } from '../coach';
 
 /**
+ * The squad's names, or stand-ins for them.
+ *
+ * The three athletes are real, named 14 to 16 year olds, and the figures
+ * beside them -- hydration readings, Cooper run distances -- are transcribed
+ * from the programme's own tracker. That is fine inside a demo on a laptop and
+ * is not fine in a build handed to people, so any build meant to be passed
+ * around sets EXPO_PUBLIC_ANON_DEMO=1 and gets stand-ins instead.
+ *
+ * Only the names change. Every figure, every finding and every shape of the
+ * demo stays exactly as it is, because those are the programme's results and
+ * they are the point.
+ *
+ * The stand-ins have to sort the same way the real names do -- Jacob,
+ * Jeongho, Theo -- because the coach's roster is alphabetical and the fixture
+ * is written in that order. A test holds the two in step.
+ */
+const ANON = process.env.EXPO_PUBLIC_ANON_DEMO === '1';
+
+export const DEMO_NAMES = {
+  /** The athlete this device holds. Sorts last, as Theo does. */
+  me: ANON ? 'Candra' : 'Theo',
+  /** The squad's most consistent logger. Sorts second, as Jeongho does. */
+  first: ANON ? 'Bima' : 'Jeongho',
+  /** Sorts first, as Jacob does. */
+  third: ANON ? 'Arya' : 'Jacob',
+} as const;
+
+/**
  * Theo's day, as the seeds in supabase/seed/0005_demo_today.sql describe it.
  *
  * One source for the component tests and for the offline development flag, so
@@ -103,7 +131,7 @@ export function demoToday(today: string): TodayData {
   return {
     participantId: 'demo-theo',
     dailyLogId: 'demo-log',
-    participantName: 'Theo',
+    participantName: DEMO_NAMES.me,
     weightKg: 68,
     summary: summariseDay(
       {
@@ -296,11 +324,11 @@ export const DEMO_LESSON_CARDS: LessonCard[] = [
 export const DEMO_LEADERBOARD: Leaderboard = {
   teamName: 'Jakarta U16',
   rows: [
-    { participantCode: 'J-01', name: 'Jeongho', daysLogged: 7, loggedToday: true, isMe: false, position: 1 },
-    { participantCode: 'T-01', name: 'Theo', daysLogged: 6, loggedToday: true, isMe: true, position: 2 },
-    { participantCode: 'JA-01', name: 'Jacob', daysLogged: 4, loggedToday: false, isMe: false, position: 3 },
+    { participantCode: 'J-01', name: DEMO_NAMES.first, daysLogged: 7, loggedToday: true, isMe: false, position: 1 },
+    { participantCode: 'T-01', name: DEMO_NAMES.me, daysLogged: 6, loggedToday: true, isMe: true, position: 2 },
+    { participantCode: 'JA-01', name: DEMO_NAMES.third, daysLogged: 4, loggedToday: false, isMe: false, position: 3 },
   ],
-  mvp: ['Jeongho'],
+  mvp: [DEMO_NAMES.first],
   windowDays: 7,
 };
 
@@ -311,7 +339,7 @@ export const DEMO_LEADERBOARD: Leaderboard = {
  * showing off the mechanic rather than showing what the squad's data says,
  * and the squad has one athlete who logs more than the others.
  */
-export const DEMO_MONTH_MVP: string[] = ['Jeongho'];
+export const DEMO_MONTH_MVP: string[] = [DEMO_NAMES.first];
 
 /**
  * Theo's figures, as the rest of this fixture describes them.
@@ -421,17 +449,17 @@ export const DEMO_COACH_VIEW: CoachView = {
   loggedToday: 2,
   athletes: [
     {
-      participantId: 'p-jacob', name: 'Jacob', weightKg: 67,
+      participantId: 'p-jacob', name: DEMO_NAMES.third, weightKg: 67,
       days: [], loggedToday: false, daysLogged: 9, breakfastDays: 7,
       insideBand: 4, daysWithBand: 6, flags: [],
     },
     {
-      participantId: 'p-jeongho', name: 'Jeongho', weightKg: null,
+      participantId: 'p-jeongho', name: DEMO_NAMES.first, weightKg: null,
       days: [], loggedToday: true, daysLogged: 12, breakfastDays: 11,
       insideBand: 0, daysWithBand: 0, flags: [],
     },
     {
-      participantId: 'p-theo', name: 'Theo', weightKg: 68,
+      participantId: 'p-theo', name: DEMO_NAMES.me, weightKg: 68,
       days: [], loggedToday: true, daysLogged: 11, breakfastDays: 6,
       insideBand: 2, daysWithBand: 8,
       flags: [

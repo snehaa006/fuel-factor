@@ -15,7 +15,8 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.RECORD_AUDIO"
-      ]
+      ],
+      "package": "dev.snehaa006.fuelfactor"
     },
     "web": {
       "output": "single",
@@ -44,7 +45,18 @@
       "reactCompiler": true
     },
     "ios": {
-      "bundleIdentifier": "com.snehaa006.fuel-factor"
-    }
+      "bundleIdentifier": "dev.snehaa006.fuelfactor"
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "32b11a9f-9dfa-4ca6-9bae-2950fae749bd"
+      }
+    },
+    "owner": "snehaa006"
   }
 }

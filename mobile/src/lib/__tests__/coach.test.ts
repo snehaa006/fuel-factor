@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import { DEMO_COACH_VIEW } from '@/lib/__fixtures__/today';
+import { DEMO_COACH_VIEW, DEMO_NAMES } from '@/lib/__fixtures__/today';
 import {
   DEHYDRATED_AT,
   UNDER_FUELLING_DAYS,
@@ -235,20 +235,38 @@ describe('coach access is not athlete access', () => {
 });
 
 describe('the demo squad shows each state the screen has', () => {
+  // Named through DEMO_NAMES rather than as literals: a build meant to be
+  // passed around sets EXPO_PUBLIC_ANON_DEMO=1 and the three athletes get
+  // stand-ins, and the suite has to pass either way.
   it('includes a flagged athlete, a clean one, and one with no band', () => {
     const byName = Object.fromEntries(DEMO_COACH_VIEW.athletes.map((a) => [a.name, a]));
-    expect(byName.Theo.flags.map((f) => f.code)).toEqual(['under_fuelling', 'dehydrated']);
-    expect(byName.Jacob.flags).toEqual([]);
-    expect(byName.Jeongho.daysWithBand).toBe(0);
+    expect(byName[DEMO_NAMES.me].flags.map((f) => f.code)).toEqual([
+      'under_fuelling',
+      'dehydrated',
+    ]);
+    expect(byName[DEMO_NAMES.third].flags).toEqual([]);
+    expect(byName[DEMO_NAMES.first].daysWithBand).toBe(0);
   });
 
   it('is alphabetical, like the real one', () => {
-    expect(DEMO_COACH_VIEW.athletes.map((a) => a.name)).toEqual(['Jacob', 'Jeongho', 'Theo']);
+    const names = DEMO_COACH_VIEW.athletes.map((a) => a.name);
+    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+    expect(names).toHaveLength(3);
   });
 
-  it('agrees with the roster seed that Theo’s reading was 6', () => {
+  it('uses stand-ins that sort the way the real names do', () => {
+    // The coach's roster is alphabetical and the fixture is written in that
+    // order, so a stand-in set that sorts differently would silently make
+    // the roster look unsorted.
+    const order = [DEMO_NAMES.third, DEMO_NAMES.first, DEMO_NAMES.me];
+    expect(order).toEqual([...order].sort((a, b) => a.localeCompare(b)));
+  });
+
+  it('keeps the baseline reading of 6 whichever names are used', () => {
+    // The figure is the programme's finding and never changes; only the
+    // name beside it does.
     expect(
-      DEMO_COACH_VIEW.athletes.find((a) => a.name === 'Theo')?.flags[1].detail
+      DEMO_COACH_VIEW.athletes.find((a) => a.name === DEMO_NAMES.me)?.flags[1].detail
     ).toMatch(/was 6/);
   });
 });

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 import Coach from '@/app/coach';
-import { DEMO_COACH_VIEW } from '@/lib/__fixtures__/today';
+import { DEMO_COACH_VIEW, DEMO_NAMES } from '@/lib/__fixtures__/today';
 import { useCoach } from '@/lib/use-coach';
 import type { CoachView } from '@/lib/coach';
 
@@ -85,7 +85,9 @@ describe('the coach dashboard', () => {
     for (const athlete of DEMO_COACH_VIEW.athletes) {
       expect(screen.getByTestId(`athlete-${athlete.participantId}`)).toBeTruthy();
     }
-    expect(DEMO_COACH_VIEW.athletes.map((a) => a.name)).toEqual(['Jacob', 'Jeongho', 'Theo']);
+    const names = DEMO_COACH_VIEW.athletes.map((a) => a.name);
+    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+    expect(names).toContain(DEMO_NAMES.me);
   });
 
   it('shows the counts a coach opens this for', async () => {
