@@ -1,8 +1,12 @@
 import { render, screen } from '@testing-library/react-native';
 import { AccessibilityInfo } from 'react-native';
 
-import { Mascot, MASCOT_ASPECT, MASCOT_POSES } from '@/components/mascot';
+import * as Haptics from 'expo-haptics';
+import { useSharedValue } from 'react-native-reanimated';
+
+import { Mascot, MASCOT_ASPECT, MASCOT_MOTIONS, MASCOT_POSES } from '@/components/mascot';
 import { MascotBanner } from '@/components/mascot-banner';
+import { SparkleBurst } from '@/components/sparkle-burst';
 
 /**
  * A decorative mascot is deliberately hidden from the accessibility tree, and
@@ -14,6 +18,10 @@ const hidden = (testID: string) =>
 
 beforeEach(() => {
   jest.restoreAllMocks();
+  // expo-haptics is mocked for the whole suite in jest.setup.js, and
+  // restoreAllMocks does not clear a module mock's call history -- so without
+  // this, one test's celebration counts as the next one's.
+  jest.clearAllMocks();
   jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(false);
 });
 
@@ -68,6 +76,65 @@ describe('Mascot', () => {
     jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(true);
     await render(<Mascot pose="best" motion="celebrate" testID="m" />);
     expect(hidden('m')).toBeTruthy();
+  });
+});
+
+describe('the motions', () => {
+  it.each(MASCOT_MOTIONS)('renders with %s', async (how) => {
+    await render(<Mascot pose="stand" motion={how} testID="m" />);
+    expect(hidden('m')).toBeTruthy();
+  });
+
+  it('taps the device once when it celebrates', async () => {
+    // The tap belongs to the celebration, not to the render.
+    const tap = jest.spyOn(Haptics, 'notificationAsync');
+    await render(<Mascot pose="best" motion="celebrate" testID="m" />);
+    expect(tap).toHaveBeenCalledWith(Haptics.NotificationFeedbackType.Success);
+  });
+
+  it('does not tap for an ordinary pose', async () => {
+    const tap = jest.spyOn(Haptics, 'notificationAsync');
+    await render(<Mascot pose="stand" motion="idle" testID="m" />);
+    expect(tap).not.toHaveBeenCalled();
+  });
+
+  it('still taps when the device asks for reduced motion', async () => {
+    // Reduced motion is about what moves on screen. Somebody who turned it
+    // on still deserves to be told they finished the day.
+    jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(true);
+    const tap = jest.spyOn(Haptics, 'notificationAsync');
+    await render(<Mascot pose="best" motion="celebrate" testID="m" />);
+    expect(tap).toHaveBeenCalled();
+  });
+
+  it('carries a burst field for the celebration to throw', async () => {
+    await render(<Mascot pose="best" motion="celebrate" testID="m" />);
+    expect(hidden('m-sparkles')).toBeTruthy();
+  });
+});
+
+/** The burst takes a shared value, which only a component can own. */
+function BurstHarness({ at, testID }: { at: number; testID: string }) {
+  const progress = useSharedValue(at);
+  return <SparkleBurst progress={progress} testID={testID} />;
+}
+
+describe('SparkleBurst', () => {
+  it('is decorative, so a screen reader is told nothing', async () => {
+    await render(<BurstHarness at={0.5} testID="s" />);
+    const field = hidden('s');
+    expect(field.props.accessibilityElementsHidden).toBe(true);
+    expect(field.props.pointerEvents).toBe('none');
+  });
+
+  it('renders at rest', async () => {
+    await render(<BurstHarness at={0} testID="s" />);
+    expect(hidden('s')).toBeTruthy();
+  });
+
+  it('renders at full spread', async () => {
+    await render(<BurstHarness at={1} testID="s" />);
+    expect(hidden('s')).toBeTruthy();
   });
 });
 

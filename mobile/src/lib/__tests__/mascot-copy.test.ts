@@ -1,4 +1,4 @@
-import { MASCOT_POSES } from '@/components/mascot';
+import { MASCOT_MOTIONS, MASCOT_POSES } from '@/components/mascot';
 import {
   ALL_CUES,
   badgeCue,
@@ -89,6 +89,22 @@ describe('the mascot stays in its lane', () => {
     expect(ALL_CUES).toContain(WELCOME_CUE);
     expect(ALL_CUES).toContain(PROGRESS_CUE);
     expect(ALL_CUES.length).toBeGreaterThanOrEqual(9);
+  });
+
+  it('only ever asks for a motion the mascot has', () => {
+    for (const cue of ALL_CUES) {
+      expect(MASCOT_MOTIONS).toContain(cue.motion);
+    }
+  });
+
+  it('nudges at what is undone and celebrates only what is finished', () => {
+    // The hop is for an empty day and an empty badge ladder; the jump and
+    // the burst are for a day actually finished. Celebrating a half-done
+    // day would make the celebration mean nothing.
+    expect(dayCue(0, 6).motion).toBe('nudge');
+    expect(badgeCue(0, 7).motion).toBe('nudge');
+    expect(dayCue(6, 6).motion).toBe('celebrate');
+    expect(dayCue(3, 6).motion).toBe('idle');
   });
 
   it('only ever asks for a pose the board actually drew', () => {

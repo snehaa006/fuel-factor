@@ -38,7 +38,8 @@ export function dayCue(loggedSlots: number, totalSlots: number): MascotCue {
       pose: 'stand',
       eyebrow: 'READY WHEN YOU ARE',
       message: 'Nothing logged yet today. Start with whatever you ate last.',
-      motion: 'enter',
+      // A hop every few seconds, to pull an eye back to something undone.
+      motion: 'nudge',
     };
   }
 
@@ -66,7 +67,7 @@ export function badgeCue(earned: number, total: number): MascotCue {
       pose: 'think',
       eyebrow: 'NOTHING YET',
       message: 'No badges yet. The first one only asks you to log once.',
-      motion: 'enter',
+      motion: 'nudge',
     };
   }
 

@@ -187,11 +187,35 @@ promises, so it stays a graphic colour. All thirteen contrast pairs pass in both
 themes; the worst is 5.5:1.
 
 **Step 12** — The mascot. Theo's astronaut, seven poses plus the balloon bunch,
-cut from the mascot sheet and animated with Reanimated: a slow idle bob, an
-entrance, and a celebration pop with a wiggle. Every pose has a still version and
-the whole thing falls back to it when the device asks for reduced motion. It is
-on Today (by how much of the day is recorded), Welcome (the hero), Learn, Team
-(the badge ladder) and Progress.
+cut from the mascot sheet and animated with Reanimated. Six motions:
+
+| Motion | What it does | Where |
+|---|---|---|
+| `idle` | One slow bob, forever | A day part-logged, a ladder part-earned |
+| `enter` | Drops in and lands, stretching | Learn, Welcome, Progress |
+| `celebrate` | Crouch, launch, land, wiggle, burst, one haptic | A day fully logged, every badge earned |
+| `nudge` | One hop every 4.2s | Nothing logged yet, no badges yet |
+| `shake` | Wobble, four cycles | Something refused |
+| `none` | Still | Reduced motion, and tests |
+
+The movement is **squash and stretch**, not a sprite slid up the screen: the
+character compresses before it leaves the ground and stretches on the way up,
+which is what makes a jump read as weight. The frame scales from its bottom
+edge, so the feet stay put while the body squashes.
+
+`SparkleBurst` throws eight marks outward on a celebration — amber and orange
+ticks, which is what the boards already draw around the astronaut, so the
+flourish is the board's own punctuation rather than borrowed confetti. One
+shared value drives all eight; a burst costs no render.
+
+**Every motion has a still version** and the whole thing falls back to it under
+reduced motion. The haptic deliberately still fires: reduced motion is about
+what moves on screen, and somebody who turned it on still deserves to be told
+they finished the day.
+
+`cancelAnimation` runs on unmount. `idle` and `nudge` repeat forever, and
+without it they keep ticking after the screen is gone — which showed up as a
+jest worker that would not exit.
 
 **The mascot never says anything about food.** Every line it can utter lives in
 `mobile/src/lib/mascot-copy.ts` and is about logging, streaks, badges or
