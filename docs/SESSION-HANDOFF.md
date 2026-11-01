@@ -619,6 +619,11 @@ badge and progress reads. All of them have only ever drawn from the fixture.
 **The coach dashboard is the widest of those gaps.** Its flag logic is tested
 hard and pure, but the queries feeding it have never run against the database.
 
+**Step 14 is published to the `preview` channel**, update group `c544368d`,
+1 Nov 2026 — so the iOS Expo Go link in `docs/RUNNING-IT.md` serves it. It is
+a demo bundle with anonymised names, because that link gets forwarded by
+message. A `git push` does not move it; only `eas update` does.
+
 **All four of step 14's migrations are applied.** The live project has 15
 migrations and its data is untouched: 3 participants, 1 team, 9 recalls, 0
 `recall_nutrition` rows. Security advisors report only the deliberate
