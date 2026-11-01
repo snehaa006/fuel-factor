@@ -90,6 +90,40 @@ on Android in Expo Go.
 Published updates live at
 <https://expo.dev/accounts/snehaa006/projects/fuel-factor/updates>.
 
+**What this link currently serves.** Step 14 — coach accounts, the invite
+flow, the questionnaire, the sidebar and the recall form — published 1 Nov
+2026, update group `c544368d`. It is a **demo bundle**:
+`EXPO_PUBLIC_DEMO_DATA=1` so every screen draws from the fixture and nothing
+writes to the database, and `EXPO_PUBLIC_ANON_DEMO=1` so the three athletes
+appear under their stand-in names. That second flag matters here and not only
+in the APK: this link gets forwarded by message, and the athletes are real
+minors. Verified in the uploaded bundle — the stand-ins are present and none
+of the three real names is.
+
+**Pushing to GitHub does not change this link.** The bundle moves only when
+somebody runs `eas update`. The two are separate systems, and the link served
+a day-old bundle for a while because of exactly that assumption:
+
+```bash
+cd mobile && EXPO_PUBLIC_DEMO_DATA=1 EXPO_PUBLIC_ANON_DEMO=1 \
+  npx eas-cli@latest update --branch preview --environment preview \
+  --platform all --message "what changed"
+```
+
+`--environment` is required in non-interactive mode on EAS CLI 27. Drop the two
+flags to publish a bundle that talks to the real database instead; the coach
+half works against it today, and the athlete half stops at the gate until
+anonymous sign-ins are switched on.
+
+To check what the link is actually serving, without a phone:
+
+```bash
+curl -s "https://u.expo.dev/32b11a9f-9dfa-4ca6-9bae-2950fae749bd" \
+  -H "expo-runtime-version: exposdk:58.0.0" \
+  -H "expo-channel-name: preview" -H "expo-platform: ios" \
+  -H "accept: multipart/mixed" | grep -oE '"createdAt":"[^"]*"'
+```
+
 Two things to expect, so they do not look like faults:
 
 - **Expo Go shows its own icon, name and splash**, never Fuel Factor's. It is a
