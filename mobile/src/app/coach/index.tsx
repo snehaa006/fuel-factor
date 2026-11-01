@@ -79,6 +79,24 @@ export default function Coach() {
             Enter your coach code. It is not the same code the squad uses to join.
           </Text>
 
+          {/* The route for a coach who owns the squad rather than joining
+              somebody else's. Creating a team needs an account, because a team
+              owned by an anonymous device is lost the moment the app is
+              reinstalled and there is nothing to prove it was theirs. */}
+          <View style={{ marginTop: spacing['space-4'], gap: spacing['space-3'] }}>
+            <PushButton
+              label="Create a team instead"
+              variant="ghost"
+              fullWidth
+              testID="coach-create-team"
+              onPress={() => router.push('/coach/team')}
+            />
+            <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
+              A coach code joins a team somebody else made. Creating your own needs a coach
+              account.
+            </Text>
+          </View>
+
           <TextInput
             testID="coach-code"
             value={code}

@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "fuel-factor-web-demo",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "mobile", "run", "web:demo"],
+      "port": 8095,
+      "autoPort": false
+    }
+  ]
+}

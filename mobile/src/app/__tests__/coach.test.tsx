@@ -6,7 +6,7 @@ import { useCoach } from '@/lib/use-coach';
 import type { CoachView } from '@/lib/coach';
 
 jest.mock('@/lib/use-coach');
-jest.mock('expo-router', () => ({ useRouter: () => ({ back: jest.fn() }) }));
+jest.mock('expo-router', () => ({ useRouter: () => ({ back: jest.fn(), push: jest.fn() }) }));
 
 const mockUseCoach = useCoach as jest.MockedFunction<typeof useCoach>;
 const mockJoin = jest.fn();
