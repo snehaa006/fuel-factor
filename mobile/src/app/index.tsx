@@ -1,28 +1,34 @@
 import { Redirect, useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppSidebar } from '@/components/app-sidebar';
 import { DayTypeSwitch } from '@/components/day-type-switch';
 import { FuelRing } from '@/components/fuel-ring';
 import { MascotBanner } from '@/components/mascot-banner';
 import { MealTimeline } from '@/components/meal-timeline';
 import { NudgeCard } from '@/components/nudge-card';
 import { PushButton } from '@/components/push-button';
+import { RecallPrompt } from '@/components/recall-prompt';
 import { SessionTimes } from '@/components/session-times';
+import { SidebarButton } from '@/components/sidebar';
 import { StreakChip } from '@/components/streak-chip';
 import { StreakStrip } from '@/components/streak-strip';
 import { topNudges } from '@/lib/advice';
 import { dayCue } from '@/lib/mascot-copy';
 import { hasSession, nowMinutes } from '@/lib/session';
 import { bestStreak, loggedToday, recentDays, streakLength } from '@/lib/streak';
+import { useRecallStatus } from '@/lib/use-recall';
 import { useToday } from '@/lib/use-today';
 import { useTheme } from '@/theme';
 
 export default function Today() {
   const router = useRouter();
   const state = useToday();
+  const recall = useRecallStatus();
   const { colors, spacing, typography } = useTheme();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Coming back from the logger, the day has changed underneath this screen.
   // The first focus is the mount, which has just loaded, so it is skipped.
@@ -78,9 +84,14 @@ export default function Today() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
       <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-4'] }]}>
         <View style={styles.header}>
-          <View>
-            <Text style={[typography.label, { color: colors['ink-muted'] }]}>TODAY</Text>
-            <Text style={[typography['display-l'], { color: colors.ink }]}>{data.participantName}</Text>
+          <View style={styles.title}>
+            <SidebarButton onPress={() => setMenuOpen(true)} testID="menu" />
+            <View>
+              <Text style={[typography.label, { color: colors['ink-muted'] }]}>TODAY</Text>
+              <Text style={[typography['display-l'], { color: colors.ink }]}>
+                {data.participantName}
+              </Text>
+            </View>
           </View>
           <StreakChip days={streak} lit={loggedToday(data.activeDates, date)} testID="streak" />
         </View>
@@ -109,6 +120,20 @@ export default function Today() {
             </Text>
           )}
         </View>
+
+        {recall.status === 'ready' && (
+          <View style={{ marginTop: spacing['space-6'] }}>
+            <RecallPrompt
+              window={recall.window}
+              onPress={() =>
+                router.push(
+                  recall.window.status === 'due' ? `/recall/${recall.window.dayNumber}` : '/recall'
+                )
+              }
+              testID="recall-prompt"
+            />
+          </View>
+        )}
 
         <View style={{ marginTop: spacing['space-6'] }}>
           <MascotBanner
@@ -199,39 +224,18 @@ export default function Today() {
             testID="check-in"
             onPress={() => router.push('/check-in')}
           />
-          <PushButton
-            label="Learn"
-            variant="ghost"
-            fullWidth
-            testID="learn"
-            onPress={() => router.push('/learn')}
-          />
-          <PushButton
-            label="Team"
-            variant="ghost"
-            fullWidth
-            testID="team"
-            onPress={() => router.push('/team')}
-          />
-          <PushButton
-            label="Progress"
-            variant="ghost"
-            fullWidth
-            testID="progress"
-            onPress={() => router.push('/progress')}
-          />
-          {/* The dashboard is the coach's, and it asks for a coach code of its
-              own. It sits here so a coach on a shared device can reach it;
-              an athlete who taps it gets the code gate and nothing else. */}
-          <PushButton
-            label="Coach dashboard"
-            variant="ghost"
-            fullWidth
-            testID="coach"
-            onPress={() => router.push('/coach')}
-          />
+          {/* Learn, Team, Progress and the coach dashboard were four more
+              ghost slabs here. They are in the menu now: this screen is about
+              today, and four of its six buttons went somewhere else. */}
         </View>
       </ScrollView>
+
+      <AppSidebar
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        title={data.participantName}
+        current="today"
+      />
     </SafeAreaView>
   );
 }
@@ -241,6 +245,7 @@ const styles = StyleSheet.create({
   centre: { alignItems: 'center', justifyContent: 'center' },
   content: { paddingBottom: 48 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  title: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   streak: { width: '100%' },
   dq: { gap: 4 },
 });

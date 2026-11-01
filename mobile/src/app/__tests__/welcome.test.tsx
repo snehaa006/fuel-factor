@@ -2,18 +2,32 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 
 import Welcome from '@/app/welcome';
 import { claimParticipant, signIn, teamRoster } from '@/lib/auth';
+import { teamByCode } from '@/lib/join';
 
 jest.mock('@/lib/auth');
+jest.mock('@/lib/join');
+
+// A mock factory can only reach variables named mock*, so these are.
 const mockReplace = jest.fn();
-jest.mock('expo-router', () => ({ useRouter: () => ({ replace: mockReplace }) }));
+const mockPush = jest.fn();
+let mockParams: { code?: string } = {};
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ replace: mockReplace, push: mockPush }),
+  // The gate is also where an invite link lands when its holder is already on
+  // the squad's roster, so it reads a code off the route.
+  useLocalSearchParams: () => mockParams,
+}));
 
 const mockSignIn = signIn as jest.MockedFunction<typeof signIn>;
 const mockRoster = teamRoster as jest.MockedFunction<typeof teamRoster>;
 const mockClaim = claimParticipant as jest.MockedFunction<typeof claimParticipant>;
+const mockTeamByCode = teamByCode as jest.MockedFunction<typeof teamByCode>;
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockParams = {};
   mockSignIn.mockResolvedValue('user-1');
+  mockTeamByCode.mockResolvedValue({ name: 'Jakarta U16', programmeStartsOn: null });
   mockRoster.mockResolvedValue([
     { participant_code: 'JA-01', name: 'Jacob', claimed: true },
     { participant_code: 'T-01', name: 'Theo', claimed: false },
@@ -91,11 +105,32 @@ describe('the team code step', () => {
   });
 
   it('says so plainly when no team has that code', async () => {
+    // An empty roster alone no longer proves the code is wrong, so the screen
+    // asks whether the team exists before saying so.
     mockRoster.mockResolvedValue([]);
+    mockTeamByCode.mockResolvedValue(null);
     await render(<Welcome />);
     await advanceToTeam();
     await lookUp('NOPE');
     await waitFor(() => expect(screen.getByTestId('gate-error')).toHaveTextContent(/no team with that code/i));
+  });
+
+  it('offers the questionnaire for a team that exists and has nobody on it', async () => {
+    // A team a coach has only just created has no roster at all. Telling its
+    // first athlete their code is wrong would make a new team unjoinable.
+    mockRoster.mockResolvedValue([]);
+    await render(<Welcome />);
+    await advanceToTeam();
+    await lookUp('NEWONE');
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/join/NEWONE'));
+    expect(screen.queryByTestId('gate-error')).toBeNull();
+  });
+
+  it('carries a code from the invite link so nobody retypes it', async () => {
+    mockParams = { code: 'fuel01' };
+    await render(<Welcome />);
+    await advanceToTeam();
+    expect(screen.getByTestId('team-code').props.value).toBe('FUEL01');
   });
 });
 

@@ -59,7 +59,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "typecheck": "tsc --noEmit",
-    "check": "npm run theme && npm run typecheck && npm run lint && npm test"
+    "check": "npm run theme && npm run typecheck && npm run lint && npm test",
+    "web:demo": "EXPO_PUBLIC_DEMO_DATA=1 expo start --web --port 8095"
   },
   "private": true
 }

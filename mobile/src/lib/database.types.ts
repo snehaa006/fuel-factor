@@ -1,5 +1,17 @@
-// GENERATED from the Supabase schema. Regenerate after a migration with:
+// GENERATED from the Supabase schema, then maintained by hand. Regenerate with:
 //   npx supabase gen types typescript --project-id nprvrlpkdrgckzceyryc > src/lib/database.types.ts
+// and merge rather than overwrite -- the comments here record decisions the
+// generator cannot know, and the generator drops them.
+//
+// Checked against a fresh generation on 1 Nov 2026, after the step 14
+// migrations were applied: every table, column, function and enum agrees. Two
+// deliberate differences remain, both because the generator models a
+// function's return and argument nullability poorly:
+//   * `create_team.p_starts_on` is `string | null` here and `string` there.
+//     Null is what the app passes when a coach has not set a date.
+//   * `create_team` / `my_team` return `programme_starts_on: string | null`
+//     here and `string` there. It is a nullable column.
+//
 // Note that the `private` schema's RLS helpers are absent on purpose: PostgREST
 // does not expose that schema, which is the point of it.
 
@@ -98,6 +110,14 @@ export type Database = {
         Update: { activities?: string | null; breakfast?: string | null; created_at?: string; day_number?: number; day_type?: Database['public']['Enums']['day_type'] | null; dinner?: string | null; energy?: number | null; est_calories?: number | null; fluid_ml?: number | null; id?: string; lunch?: string | null; notes?: string | null; participant_id?: string; recall_date?: string | null; recovery?: number | null; sleep_hours?: number | null; supplements?: string | null; updated_at?: string; urine_colour?: number | null };
         Relationships: [{ foreignKeyName: 'recalls_participant_id_fkey'; columns: ['participant_id']; isOneToOne: false; referencedRelation: 'participants'; referencedColumns: ['id'] }];
       };
+      recall_nutrition: {
+        // App tier. What the food database made of one recall day; never
+        // exported. Null macros mean not computed, never zero.
+        Row: { carbs_g: number | null; computed_at: string; fat_g: number | null; kcal: number | null; method: Database['public']['Enums']['nutrition_method']; note: string | null; protein_g: number | null; recall_id: string };
+        Insert: { carbs_g?: number | null; computed_at?: string; fat_g?: number | null; kcal?: number | null; method?: Database['public']['Enums']['nutrition_method']; note?: string | null; protein_g?: number | null; recall_id: string };
+        Update: { carbs_g?: number | null; computed_at?: string; fat_g?: number | null; kcal?: number | null; method?: Database['public']['Enums']['nutrition_method']; note?: string | null; protein_g?: number | null; recall_id?: string };
+        Relationships: [{ foreignKeyName: 'recall_nutrition_recall_id_fkey'; columns: ['recall_id']; isOneToOne: true; referencedRelation: 'recalls'; referencedColumns: ['id'] }];
+      };
       team_members: {
         Row: { created_at: string; role: Database['public']['Enums']['team_role']; team_id: string; user_id: string };
         Insert: { created_at?: string; role?: Database['public']['Enums']['team_role']; team_id: string; user_id: string };
@@ -105,9 +125,12 @@ export type Database = {
         Relationships: [{ foreignKeyName: 'team_members_team_id_fkey'; columns: ['team_id']; isOneToOne: false; referencedRelation: 'teams'; referencedColumns: ['id'] }];
       };
       teams: {
-        Row: { created_at: string; id: string; coach_code: string | null; join_code: string; name: string };
-        Insert: { created_at?: string; id?: string; coach_code?: string | null; join_code: string; name: string };
-        Update: { created_at?: string; id?: string; coach_code?: string | null; join_code?: string; name?: string };
+        // `coach_code` is revoked from `authenticated` at the column level, so
+        // a select on this table never returns it however the row is reached.
+        // A coach reads their own through `my_team()`.
+        Row: { created_at: string; created_by: string | null; id: string; coach_code: string | null; join_code: string; name: string; programme_starts_on: string | null };
+        Insert: { created_at?: string; created_by?: string | null; id?: string; coach_code?: string | null; join_code: string; name: string; programme_starts_on?: string | null };
+        Update: { created_at?: string; created_by?: string | null; id?: string; coach_code?: string | null; join_code?: string; name?: string; programme_starts_on?: string | null };
         Relationships: [];
       };
       training_sessions: {
@@ -139,6 +162,59 @@ export type Database = {
         Args: { p_join_code: string };
         Returns: { claimed: boolean; name: string; participant_code: string }[];
       };
+      create_team: {
+        Args: { p_name: string; p_starts_on?: string | null };
+        Returns: {
+          id: string;
+          name: string;
+          join_code: string;
+          coach_code: string;
+          programme_starts_on: string | null;
+        }[];
+      };
+      my_team: {
+        Args: Record<string, never>;
+        Returns: {
+          id: string;
+          name: string;
+          join_code: string;
+          coach_code: string;
+          programme_starts_on: string | null;
+          athletes: number;
+        }[];
+      };
+      set_programme_start: {
+        Args: { p_starts_on: string | null };
+        Returns: string | null;
+      };
+      team_by_code: {
+        // A name and the programme date. Deliberately not the roster: that is
+        // `team_roster`, and it is a list of named minors.
+        Args: { p_join_code: string };
+        Returns: { name: string; programme_starts_on: string | null }[];
+      };
+      join_team: {
+        Args: {
+          p_join_code: string;
+          p_name: string;
+          p_consent_ack: boolean;
+          p_sport?: string | null;
+          p_age_band?: string | null;
+          p_height_cm?: number | null;
+          p_weight_kg?: number | null;
+          p_waist_cm?: number | null;
+          p_muac_cm?: number | null;
+          p_calf_cm?: number | null;
+          p_consent_signed?: boolean;
+          p_parent_contact?: string | null;
+          p_notes?: string | null;
+        };
+        Returns: string;
+      };
+      compute_recall_nutrition: {
+        Args: { p_recall_id: string };
+        Returns: Database['public']['Tables']['recall_nutrition']['Row'];
+      };
       team_leaderboard: {
         Args: { p_today?: string; p_days?: number };
         // A first name, a day count and two booleans. No body metric and no
@@ -157,6 +233,7 @@ export type Database = {
       badge_criterion: 'days_logged' | 'streak' | 'challenges_done';
       day_type: 'training' | 'rest';
       meal_slot: 'breakfast' | 'pre_training' | 'lunch' | 'post_training' | 'dinner' | 'evening_snack';
+      nutrition_method: 'not_computed' | 'food_database';
       team_role: 'athlete' | 'coach';
     };
     CompositeTypes: { [_ in never]: never };
@@ -176,6 +253,7 @@ export const Constants = {
       badge_criterion: ['days_logged', 'streak', 'challenges_done'],
       day_type: ['training', 'rest'],
       meal_slot: ['breakfast', 'pre_training', 'lunch', 'post_training', 'dinner', 'evening_snack'],
+      nutrition_method: ['not_computed', 'food_database'],
       team_role: ['athlete', 'coach'],
     },
   },

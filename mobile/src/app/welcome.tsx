@@ -1,13 +1,22 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CheckBox } from '@/components/check-box';
 import { Mascot } from '@/components/mascot';
 import { PushButton } from '@/components/push-button';
 import { WELCOME_CUE } from '@/lib/mascot-copy';
 import { claimParticipant, signIn, teamRoster, type RosterEntry } from '@/lib/auth';
+import { teamByCode } from '@/lib/join';
+import {
+  CONSENT_CHECKBOX,
+  CONSENT_HEADING,
+  CONSENT_WHAT_IT_IS,
+  CONSENT_WHAT_IT_IS_NOT,
+} from '@/lib/consent';
 import { messageOf } from '@/lib/errors';
+import { normaliseCode } from '@/lib/invite';
 import { useTheme } from '@/theme';
 
 type Step = 'consent' | 'team' | 'athlete';
@@ -22,11 +31,14 @@ type Step = 'consent' | 'team' | 'athlete';
  */
 export default function Welcome() {
   const router = useRouter();
+  // An invite link that landed on the questionnaire and was sent here instead
+  // arrives with its code, so nobody types six characters they already have.
+  const { code } = useLocalSearchParams<{ code?: string }>();
   const { colors, radius, spacing, typography } = useTheme();
 
   const [step, setStep] = useState<Step>('consent');
   const [consented, setConsented] = useState(false);
-  const [joinCode, setJoinCode] = useState('');
+  const [joinCode, setJoinCode] = useState(() => normaliseCode(code ?? ''));
   const [roster, setRoster] = useState<RosterEntry[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +66,15 @@ export default function Welcome() {
     try {
       const entries = await teamRoster(joinCode);
       if (entries.length === 0) {
-        setError('No team with that code.');
+        // A team a coach has only just created has nobody on it yet, which
+        // reads identically to a wrong code through `team_roster` alone. Ask
+        // whether the team exists before telling somebody their code is bad.
+        const team = await teamByCode(joinCode);
+        if (team === null) {
+          setError('No team with that code.');
+          return;
+        }
+        router.push(`/join/${normaliseCode(joinCode)}`);
         return;
       }
       setRoster(entries);
@@ -114,49 +134,18 @@ export default function Welcome() {
                 testID="welcome-mascot"
               />
             </View>
-            {heading('Before you start')}
-            <Text style={[typography['body-l'], { color: colors.ink }]}>
-              Fuel Factor records what you eat and drink so your coach and the programme’s dietitian
-              can see how the squad is fuelling. It is part of a school nutrition programme.
-            </Text>
+            {heading(CONSENT_HEADING)}
+            <Text style={[typography['body-l'], { color: colors.ink }]}>{CONSENT_WHAT_IT_IS}</Text>
             <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-              It never sets a weight goal, never tells you to eat less, and never calls a food bad.
-              Nothing it shows you is a substitute for advice from a dietitian or a doctor.
+              {CONSENT_WHAT_IT_IS_NOT}
             </Text>
 
-            <Pressable
-              onPress={() => setConsented((c) => !c)}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: consented }}
-              accessibilityLabel="I am under 18 and my parent or guardian has agreed to this"
+            <CheckBox
+              label={CONSENT_CHECKBOX}
+              checked={consented}
+              onChange={setConsented}
               testID="consent-checkbox"
-              style={[
-                styles.check,
-                {
-                  backgroundColor: consented ? colors['daun-tint'] : colors['surface-raised'],
-                  borderColor: consented ? colors['daun-deep'] : colors.hairline,
-                  borderRadius: radius['radius-lg'],
-                  padding: spacing['space-4'],
-                  gap: spacing['space-3'],
-                },
-              ]}
-            >
-              <View
-                style={[
-                  styles.box,
-                  {
-                    backgroundColor: consented ? colors.daun : 'transparent',
-                    borderColor: consented ? colors['daun-edge'] : colors.hairline,
-                    borderRadius: radius['radius-sm'],
-                  },
-                ]}
-              >
-                {consented && <Text style={{ color: colors['on-bright'], fontWeight: '700' }}>✓</Text>}
-              </View>
-              <Text style={[typography['body-m'], { color: colors.ink, flex: 1 }]}>
-                I am under 18 and my parent or guardian has agreed to this.
-              </Text>
-            </Pressable>
+            />
 
             <PushButton
               label="Continue"
@@ -202,6 +191,20 @@ export default function Welcome() {
               testID="find-team"
               onPress={findTeam}
             />
+
+            {/* A coach is not an athlete and needs an account, not a team
+                code. Said here so a coach handed the squad's link does not
+                type their way into claiming a child's row. */}
+            <Pressable
+              onPress={() => router.push('/coach/account')}
+              accessibilityRole="button"
+              testID="i-am-a-coach"
+              style={{ paddingVertical: spacing['space-3'] }}
+            >
+              <Text style={[typography['body-m'], { color: colors['air-deep'], textAlign: 'center' }]}>
+                I am a coach →
+              </Text>
+            </Pressable>
           </View>
         )}
 
@@ -242,6 +245,21 @@ export default function Welcome() {
                 </Text>
               </Pressable>
             ))}
+
+            {/* Somebody the research team has not typed into the tracker yet.
+                They fill the programme's questionnaire instead of claiming a
+                row, which is the only way a participant row is created from a
+                phone. */}
+            <Pressable
+              onPress={() => router.push(`/join/${normaliseCode(joinCode)}`)}
+              accessibilityRole="button"
+              testID="not-listed"
+              style={{ paddingVertical: spacing['space-3'] }}
+            >
+              <Text style={[typography['body-m'], { color: colors['air-deep'], textAlign: 'center' }]}>
+                I am not on this list →
+              </Text>
+            </Pressable>
           </View>
         )}
 
@@ -259,7 +277,5 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { paddingBottom: 48, gap: 24 },
   notice: { gap: 2 },
-  check: { flexDirection: 'row', alignItems: 'center', borderWidth: 2 },
-  box: { width: 28, height: 28, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   row: { gap: 2 },
 });

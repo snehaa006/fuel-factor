@@ -18,6 +18,8 @@ Read these first — they hold the detail and I don't want it re-derived:
   (`plantuml -tpng *.puml` to render; it's installed)
 - `supabase/README.md` — what's in the database and what's deliberately empty
 - `mobile/` — the Expo app
+- `docs/reference/call-2026-10-30.txt` — the 30 Oct call transcript, grep-able
+  (`.docx` original beside it). Where the locked decisions come from
 
 **The Week 1 deck is not in this repository.** It lives at
 `~/Downloads/Fuel Factor — Week 1_ Carbohydrates.pdf` — three pages, read it with
@@ -80,7 +82,8 @@ load behind a held splash. `PushButton` with its solid under-edge, 80ms drop,
 spring release and haptics.
 
 **Step 2** — Supabase project `fuel-factor` (`nprvrlpkdrgckzceyryc`),
-`ap-southeast-1` Singapore. **16 tables, RLS on every one**, security advisors
+`ap-southeast-1` Singapore. **16 tables, RLS on every one** (17 once step 14's
+migrations are applied — `recall_nutrition` joins them), security advisors
 clean apart from two deliberate RPCs (`claim_participant`, `team_roster`). 15
 foods seeded from the deck: 7 with its carbohydrate figures, the rest null, zero
 protein and fat anywhere because the deck gives neither.
@@ -244,23 +247,146 @@ The app also exports as a single-page web build (`web.output: "single"`), which
 is what the coach dashboard is eventually for. It runs, and it is **not deployed
 anywhere**.
 
-**627 tests pass.** `cd mobile && npm run check` runs theme generation, typecheck,
+**Step 14** — Coach accounts, team onboarding and the recall form. The three
+gaps that made the app un-startable by anybody who was not already in the
+tracker.
+
+**A coach signs in with an email and a password; the athletes still do not.**
+That asymmetry is the old argument read in both directions: a squad of 14 to 16
+year olds should not carry a credential each, and the adult who owns the squad's
+data should not be identified by a device. An anonymous session is one app
+install's storage, so a coach who reinstalled would lose the team they created
+with nothing to prove it was theirs. `create_team` refuses an anonymous session
+outright, checking the `is_anonymous` claim Supabase signs into the token.
+Email and password is also the one provider switched **on** for this project, so
+the whole coach half can be exercised live today while the athlete half still
+cannot.
+
+**A coach creates a team and gets a link.** Both codes are generated in the
+database, never chosen — a coach picking a join code picks a guessable one, and
+a guessable join code is a stranger reading a roster of named minors through
+`team_roster`. The alphabet drops 0/O and 1/I/L, because these get typed off a
+WhatsApp message and read out across a pitch. The invite is
+`fuelfactor://join/<code>` **and the code in words beside it**: a custom scheme
+only opens if the app is installed, there is no https fallback because the web
+build is deployed nowhere, and without the code in the text a phone without the
+app gets a dead message. `inviteMessage` is pure and a test holds it to saying
+nothing about food, weight or nutrition — it is the least controllable text the
+app produces, because it gets forwarded around a group chat.
+
+**A coach code an athlete could read was not a second code at all.** `coach_code`
+arrived in step 10 and the read policy on `teams` was never revisited: that
+policy lets any team member select the row, and an athlete is a team member.
+`claim_coach` refuses a device already holding an athlete, so they could not
+promote the phone in their hand — they could read the code and type it into a
+second install, and have the whole squad's logs. A coach reads their own
+through `my_team()`, which is security definer.
+
+It took two migrations: the first attempt revoked a column grant that was
+never what let them read it. See `## How the coach code was actually closed`.
+
+**Joining by link writes a research table, which nothing had done before.**
+`participants` mirrors the PARTICIPANTS sheet and the CSV export reads it. The
+joiner fills the sheet's own questions and no others, which is what Sofia
+described: *"if a participant gets into the app, he'll have to fill in his
+height, weight, and certain parameters."* Three things are handled deliberately:
+the **ID is generated**, never typed, because a joiner typing `T-01` would be
+typing Theo's real row; **Age** is the sheet's `age_band` text, so it is a band
+picker rather than an integer; and **Consent Signed?** is asked as *reporting*
+whether the paper form was signed, never as the checkbox being the consent —
+`consent_ack_at` stays separate and still holds the app's own gate. Every
+measurement is optional and a blank stays null, because a 14 year old guessing
+at their calf circumference is worse data than no figure. The bounds in
+`join_team` only catch a units mistake (a height of 1760 is a typo); nothing
+grades a value inside them.
+
+**The claim path is untouched.** A team whose roster already holds unclaimed
+athletes still offers them, so the three seeded footballers are claimed with
+their tracker-measured heights and weights intact and are never overwritten by a
+self-report. `/welcome` is the manual-code route and `/join/[code]` the link
+route, and each offers the other.
+
+**The sidebar.** Today used to carry six stacked ghost buttons under the day's
+content, which is where navigation goes when a screen has nowhere to put it.
+Profile, Food recall, Learn, Team, Progress and Coach live in a slide-over panel
+now, and Today keeps only the two actions that are about today. Hand-built
+rather than `@react-navigation/drawer`: a drawer navigator means replacing the
+root Stack that every screen and every screen test is written against, for an
+edge-swipe nobody needs on a six-item menu. It animates from the left, has a
+still version under reduced motion, and is unmounted when closed so nothing
+behind it can be reached by the accessibility cursor.
+
+**The recall form, which did not exist — rows were typed into the database by
+hand.** `recalls` had been read-only to everybody since the first RLS migration
+on the grounds that the research team fills them. That was true of the baseline
+and is not what the programme wants next: *"post one month, the app can prompt
+the participant to try to fulfill the data again or food recalls."* An athlete
+may now write their own recall rows and only their own. **A coach still cannot**,
+for the same reason they cannot write a `daily_log` — a coach who can write a
+recall can put words in an athlete's mouth inside the study's own record.
+
+The form carries every RECALL column **except `est_calories`**. The sheet holds
+hand-typed estimates there and replacing them with computed figures is the whole
+point: *"the calories is estimated and calculated based on our composition data
+that we have ... This will be backend. This is not manual calculation."*
+
+**Two rounds of three days, both the programme's design.** Three at baseline
+before the programme starts — *"we took a three-day recall already ... so we've
+done our baseline"* — and three more four weeks later, *"because nutrition to
+have an effect, it isn't one or two weeks."* The sheet numbers recall days
+continuously, so the rounds are `day_number` 1–3 and 4–6; every screen counts
+from 1 inside its round via `positionInRound`, because a card reading "Day 4 of
+3" is nonsense to the 14 year old holding it. Which recall is due is **derived
+on read** from the day numbers that exist and `teams.programme_starts_on`, like
+the streak and the badges — there is no "recall due" flag to drift and no
+midnight job. The coach sets the start date and the app never guesses it.
+*"One weekend and two working days, recall is ideal"* is printed as guidance and
+never enforced, because refusing a third weekday loses real data to a preference.
+
+**The macro computation is a seam, not a stub that pretends.**
+`compute_recall_nutrition` is the backend Sofia asked for, and it computes
+nothing yet on purpose: turning a recall's free text into grams needs the
+Jakarta composition tables, and what this database holds is the deck's fifteen
+foods — carbohydrate for seven of them and **no protein or fat for any food at
+all**. An average protein derived from that would be invented. So the row is
+written with its method and its reason and the screen says "Not computed yet",
+exactly as Today says "Not scored yet" for the DQ score. The figures live in
+`recall_nutrition`, which is app tier and keyed on the recall, so the export
+cannot pick a computed number up and present it as a collected one. When the
+tables arrive, the body of that one function changes and nothing else does.
+
+**835 tests pass.**
+
+`cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
 
 To look at the app without a session:
-`cd mobile && EXPO_PUBLIC_DEMO_DATA=1 npx expo start --ios`
+`cd mobile && EXPO_PUBLIC_DEMO_DATA=1 npx expo start --ios`, or
+`npm run web:demo` for the browser on port 8095.
+
+In demo mode the recall prompt shows the **follow-up** round as due. That is not
+a fixture contradicting the database: seed 0003 really does hold Theo's three
+baseline days, so the app has no business asking for them again. What the
+fixture supplies is a programme start date thirty days back, because **no team
+in the database has one** — it is the coach's to set and nobody has.
 
 ### Where things are
 
 | Path | What |
 |---|---|
 | `mobile/src/app/index.tsx` | Today |
-| `mobile/src/app/welcome.tsx` | Consent gate, team code, claim an athlete |
+| `mobile/src/app/welcome.tsx` | Consent gate, team code, claim an athlete. Takes `?code=` from a link |
+| `mobile/src/app/join/[code].tsx` | The invite link's landing: consent, then the PARTICIPANTS questionnaire |
+| `mobile/src/app/profile.tsx` | Athlete or coach. Measurements shown, never editable |
+| `mobile/src/app/recall/index.tsx` | The two rounds and which days are in |
+| `mobile/src/app/recall/[day].tsx` | One recall day. Every RECALL column but `est_calories` |
+| `mobile/src/app/coach/account.tsx` | Coach sign-up and sign-in. Email and password |
+| `mobile/src/app/coach/team.tsx` | Create a team, the invite link, the programme start date |
 | `mobile/src/app/log/[slot].tsx` | Food logger |
 | `mobile/src/app/check-in.tsx` | Evening check-in |
 | `mobile/src/app/team.tsx` | The leaderboard, the MVPs and the badges |
 | `mobile/src/app/progress.tsx` | Baseline against now |
-| `mobile/src/app/coach.tsx` | The coach dashboard. Web via `npm run web` |
+| `mobile/src/app/coach/index.tsx` | The coach dashboard. Web via `npm run web` |
 | `mobile/src/app/learn/index.tsx` | The week list |
 | `mobile/src/app/learn/[week].tsx` | One week's cards |
 | `mobile/src/lib/targets.ts` | The carbohydrate bands. The deck's numbers, nothing else |
@@ -277,8 +403,20 @@ To look at the app without a session:
 | `mobile/src/lib/learn.ts` | The four weeks, the cards, challenge completion |
 | `mobile/src/lib/photos.ts` | Challenge photo paths, upload, signed URLs |
 | `mobile/src/lib/auth.ts` | Anonymous sign-in, roster, claim |
+| `mobile/src/lib/coach-auth.ts` | The coach's account and the team they own |
+| `mobile/src/lib/join.ts` | The PARTICIPANTS questionnaire, its validation and `join_team` |
+| `mobile/src/lib/invite.ts` | The invite link and its message. Pure |
+| `mobile/src/lib/consent.ts` | The gate's words, in one place, because two screens take consent |
+| `mobile/src/lib/recall.ts` | The RECALL fields, limits, parsing and writes |
+| `mobile/src/lib/recall-window.ts` | Which recall is due. Pure — every input is passed in |
+| `mobile/src/lib/recall-nutrition.ts` | The client half of the backend macro seam |
+| `mobile/src/lib/profile.ts` | Athlete and coach profiles |
 | `mobile/src/lib/errors.ts` | `messageOf` / `asError` — read before touching error handling |
 | `mobile/src/lib/__fixtures__/today.ts` | The demo day, demo foods and the week 1 cards |
+| `mobile/src/components/sidebar.tsx` | The slide-over panel and its button |
+| `mobile/src/components/app-sidebar.tsx` | The app's one menu, so no two screens differ |
+| `mobile/src/components/recall-prompt.tsx` | The card on Today that asks for a recall day |
+| `mobile/src/components/check-box.tsx` | Shared by both consent gates |
 | `mobile/src/components/mascot.tsx` | The astronaut. Poses, motions, reduced-motion fallback |
 | `mobile/src/lib/mascot-copy.ts` | Every line the mascot can say. Read the note at the top |
 | `mobile/src/components/` | `mascot-banner`, `lesson-card`, `challenge-photo`, `session-times`, `streak-strip`, `leaderboard-row`, `badge-grid`, `metric-compare`, `nudge-card`, `fuel-ring`, `meal-timeline` |
@@ -317,7 +455,53 @@ is the simulator or Expo Go.
 `dev.snehaa006.fuelfactor`. Android installs and updates against that string,
 so changing it later makes a different app rather than an update.
 
+## How the coach code was actually closed
+
+**Status: closed, and verified against the live database.**
+
+`20261101000001` contained `revoke select (coach_code) on public.teams from
+authenticated`. That statement succeeded and **did nothing**. It removes a
+*column-level* grant, and Supabase grants `select` on every table in `public`
+to `anon` and `authenticated` at **table level** — a table-level grant covers
+every column, including ones never granted individually.
+
+`20261101000004_coach_code_really_revoked.sql` does it the other way round:
+
+```sql
+revoke select on public.teams from authenticated, anon;
+grant select (id, name, join_code, created_at, created_by, programme_starts_on)
+  on public.teams to authenticated;
+```
+
+Verified as the `authenticated` role on the live project:
+
+| Check | Result |
+|---|---|
+| `select coach_code from teams` | refused — permission denied for table teams |
+| `select * from teams` | refused — the wildcard expands to include it |
+| `has_column_privilege(authenticated, coach_code, SELECT)` | `false` |
+| `has_column_privilege(anon, coach_code, SELECT)` | `false` |
+| `has_table_privilege(anon, teams, SELECT)` | `false` |
+| `select name` (team.ts, coach.ts) | ok |
+| `select name, join_code, programme_starts_on` (profile.ts) | ok |
+| `my_team()`, `team_by_code()`, `team_roster()` | ok — security definer, unaffected |
+| `service_role` | untouched |
+
+**The lesson is not about this column.** The test that was meant to guard it
+asserted that the migration's *text* contained the revoke. The text was
+correct. A string in a file is not a privilege, and only asking the live
+database caught it. `schema-onboarding.test.ts` now asserts the table-level
+revoke and the exact granted column list, which is the thing that has an
+effect — but the real check is the `has_column_privilege` query above, and it
+is worth re-running after anything that touches grants on `teams`.
+
 ## The one thing blocking live data
+
+**It now blocks only the athlete half.** A coach signs in with an email and a
+password, which is a provider this project already has switched on, so
+`/coach/account`, `/coach/team`, `create_team`, `my_team` and
+`set_programme_start` can all be exercised against the real database today.
+Everything an athlete touches still cannot.
 
 **Anonymous sign-ins are disabled on the project.** Turn them on in the Supabase
 dashboard under Authentication → Sign In / Providers. Only the project owner can,
@@ -332,6 +516,40 @@ from a fixture meanwhile.
 ## Decisions I made that are really Sofia's or Theo's
 
 Each of these was the honest call with what we have. None should stay mine.
+
+**The joiner's own height and weight now drive the carbohydrate band.** Sofia
+said participants fill these in and the questionnaire asks for them, so for
+anybody who joins by link the band on Today is computed from a self-report
+rather than a measurement. For the three seeded footballers nothing changed —
+they claim a roster row and keep the tracker's figures. Ask Sofia whether a
+self-reported weight is good enough to compute a band from, or whether the band
+should stay blank until a coach has measured somebody.
+
+**`consent_signed` is now answered by a 14 year old about their own parent.**
+It is asked as a report about the paper form, never as the form, and the app's
+own gate stays in `consent_ack_at`. It is still a self-report landing in a
+column the study reads. Ask Sofia whether she wants it there at all, or whether
+only the research team should ever set it.
+
+**An athlete can now write a research table.** `recalls` was read-only to
+everybody on the grounds that the research team fills them; the four-week
+prompt is Sofia's own instruction and an athlete who is prompted has to be able
+to answer. A coach still cannot write one. Worth confirming she is happy that
+athlete-entered recall rows and research-team-entered ones sit in the same table
+with nothing distinguishing them — a `source` column would fix it and would be a
+column on a research table, which is hers to approve.
+
+**The app does not replace `est_calories` with a computed figure.** The column's
+own comment says re-running a recall through the food database is meant to
+replace those hand-typed estimates, and `compute_recall_nutrition` deliberately
+does not write it — writing an app-computed number into a column the CSV export
+reads is the tier boundary, and it should be a decision rather than a side
+effect of a stub. Ask before wiring it.
+
+**The age bands are mine.** The sheet's `age_band` column is free text and the
+only value in it is `14-16`. The questionnaire offers `13 or under`, `14-16`,
+`17-18` and `19 or over` so somebody outside the study arm can answer honestly.
+Nothing depends on the value.
 
 **Sleep hours and supplements are not on the check-in.** They are RECALL columns,
 not DAILY LOG ones, and recalls are filled by the research team. Putting them on
@@ -401,6 +619,47 @@ badge and progress reads. All of them have only ever drawn from the fixture.
 **The coach dashboard is the widest of those gaps.** Its flag logic is tested
 hard and pure, but the queries feeding it have never run against the database.
 
+**All four of step 14's migrations are applied.** The live project has 15
+migrations and its data is untouched: 3 participants, 1 team, 9 recalls, 0
+`recall_nutrition` rows. Security advisors report only the deliberate
+security-definer RPC lint, which has been there since step 8.
+
+**What was exercised against the live database**, with no rows written:
+
+| Checked | Result |
+|---|---|
+| All six new functions exist, `security definer`, `authenticated` may call, `anon` may not | pass |
+| `create_team` with no session | `not signed in` |
+| `create_team` with an anonymous token | `creating a team needs an account with an email, not an anonymous session` |
+| `join_team` without consent | `consent is required before joining a team` |
+| `compute_recall_nutrition` with an unknown id | `no recall with that id` |
+| `set_programme_start` as a non-coach | `only a coach can set the programme start` |
+| `private.new_code`, 400 draws | all 6 chars, all from the unambiguous alphabet, 400 distinct |
+| `private.next_participant_code` | `Theo`→`T-02`, `Jeongho`→`J-02`, `Budi`→`B-01`, `'123'`→`X-01` |
+| `team_by_code('fuel01')` | `Jakarta U16`; unknown code returns 0 rows |
+| `recalls` policies | insert/update own + the existing read; **no coach write** |
+| `recall_nutrition` | RLS on, `SELECT` policy only |
+| `participants` insert policies | still 0 — `join_team` is the only route |
+
+**Still unexercised: every happy path that needs a real `auth.users` row.**
+`create_team`, `join_team` and `compute_recall_nutrition` all insert against a
+foreign key into `auth.users`, so none of them has actually created anything.
+Sign up a coach in the app and make a team — that is the first real test, and
+email sign-in is already on, so nothing blocks it.
+
+`database.types.ts` was checked against a fresh generation and agrees on every
+table, column, function and enum. It is maintained by hand (the generator drops
+the comments that record decisions), so merge rather than overwrite:
+
+```bash
+cd mobile && npx supabase gen types typescript --project-id nprvrlpkdrgckzceyryc > /tmp/types.ts
+```
+
+**The invite link has never been opened on a phone.** `fuelfactor://join/<code>`
+is built and tested as a string; whether Android hands it to the app from a
+WhatsApp message is not something a web preview can answer. The message carries
+the code in words precisely because that path is the one that will fail.
+
 **The APK itself.** It built on EAS and nobody has installed it. Watch the first
 install: an APK outside the Play Store makes Android ask permission once, which
 is normal and worth saying to whoever you hand it to.
@@ -431,6 +690,34 @@ asserts the card kinds and their order match `supabase/seed/0006_week1_lessons.s
 so it cannot drift unnoticed — but if you edit the deck's wording, edit both.
 
 ## Things that will bite, and did
+
+**A stale Metro bundle will tell you your new screen crashed a component you
+never touched.** Today came up white on web with a `react-native-svg` stack
+inside `FuelRing`, which is untouched and has no dependency changes. Stashing
+the one changed file and reloading showed Today rendering perfectly at HEAD,
+which looked like proof the new code broke it — and reloading the new code then
+showed it rendering perfectly too. It was a stale bundle the whole time. **Both
+of the conclusions a single reload supports can be wrong**; reload twice before
+believing either.
+
+**`expo start` moved to 8091 and then to 8095.** Ports 8081 and 8090 are still
+held by the two `expo start --ios` servers the previous session could not kill.
+`.claude/launch.json` and `npm run web:demo` pin 8095 to stay clear of them, and
+the preview's own log is the only proof you are looking at your own bundle.
+
+**`StyleSheet.absoluteFillObject` is gone in react-native 0.88.** Spell the four
+edges out. `absoluteFill` still exists.
+
+**A component test that does not `await render(...)` fails with "`render`
+function has not been called".** Every test in this repo awaits it; a helper
+that returns the promise unawaited breaks every assertion after it in a way
+that looks like the component is broken.
+
+**The research tier guards read comments as well as code.** The schema tests
+strip `--` lines before asserting a column is absent, and the new migrations
+explain themselves in `/** */` blocks, so a check for an absent `est_calories`
+found the sentence saying it is deliberately absent. `schema-onboarding.test.ts`
+strips both forms.
 
 **supabase-js rejects with a plain object, not an Error.** `e instanceof Error` is
 false for it and `String(e)` gives `[object Object]` — which is what reached the

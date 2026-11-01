@@ -7,6 +7,10 @@ import type { Leaderboard } from '../team';
 import type { EarnedBadge } from '../badges';
 import type { Progress } from '../progress';
 import type { CoachView } from '../coach';
+import type { CoachTeam } from '../coach-auth';
+import type { AthleteProfile } from '../profile';
+import type { RecallDay } from '../recall';
+import type { RecallNutrition } from '../recall-nutrition';
 
 /**
  * The squad's names, or stand-ins for them.
@@ -474,4 +478,83 @@ export const DEMO_COACH_VIEW: CoachView = {
       ],
     },
   ],
+};
+
+/**
+ * The programme's start date, for the demo only.
+ *
+ * Thirty days back, so the four-week follow-up recall is open and the prompt
+ * on Today can be looked at. **The database holds no start date for any team**
+ * — it is the coach's to set and nobody has — so this is a fixture choosing
+ * one rather than a second copy of a stored value, in the same spirit as
+ * DEMO_LEADERBOARD's day counts.
+ */
+export function demoProgrammeStart(today: string): string {
+  return new Date(Date.parse(`${today}T00:00:00Z`) - 30 * 86_400_000).toISOString().slice(0, 10);
+}
+
+/**
+ * Theo's baseline recall, as seed 0003 actually holds it.
+ *
+ * Three days, and `hasMeals` false on every one of them. That is not a gap in
+ * the fixture: the tracker holds those meals as free text per athlete per day,
+ * that text is not in this repository, and writing plausible meals for three
+ * named minors into a research table would put invented food in the study's
+ * own record. The three days carry a urine reading and nothing else.
+ *
+ * Which is also why the follow-up round is the one the demo shows as due:
+ * the baseline rows exist, so the app has no business asking for them again.
+ */
+export const DEMO_RECALL_DAYS: RecallDay[] = [
+  { id: 'r-theo-1', dayNumber: 1, recallDate: null, hasMeals: false },
+  { id: 'r-theo-2', dayNumber: 2, recallDate: null, hasMeals: false },
+  { id: 'r-theo-3', dayNumber: 3, recallDate: null, hasMeals: false },
+];
+
+/**
+ * What the food database has made of those days: nothing, and it says why.
+ *
+ * The composition tables are not loaded, so every macro is null and the note
+ * is the database's own sentence. A zero here would assert that Theo ate no
+ * carbohydrate on a day nobody has transcribed yet.
+ */
+export const DEMO_RECALL_NUTRITION: RecallNutrition = {
+  method: 'not_computed',
+  kcal: null,
+  carbs_g: null,
+  protein_g: null,
+  fat_g: null,
+  note: "The programme's food composition tables are not loaded yet, so no figure has been calculated for this day.",
+};
+
+/** Theo's profile, from seed 0003. Waist and MUAC were never measured. */
+export const DEMO_PROFILE: AthleteProfile = {
+  kind: 'athlete',
+  participantId: 'p-theo',
+  participantCode: 'T-01',
+  name: DEMO_NAMES.me,
+  teamName: 'Jakarta U16',
+  joinCode: 'FUEL01',
+  sport: 'Football',
+  ageBand: '14-16',
+  heightCm: 174,
+  weightKg: 68,
+  waistCm: null,
+  muacCm: null,
+  calfCm: 36,
+  // The paper form. The tracker does not record that it was collected, so the
+  // app does not assert it was.
+  consentSigned: false,
+  consentAckAt: null,
+  programmeStartsOn: null,
+};
+
+/** The demo team, as a coach sees it. Both codes are seed 0004's and 0008's. */
+export const DEMO_COACH_TEAM: CoachTeam = {
+  id: 't-jakarta',
+  name: 'Jakarta U16',
+  joinCode: 'FUEL01',
+  coachCode: 'COACH01',
+  programmeStartsOn: null,
+  athletes: 3,
 };
