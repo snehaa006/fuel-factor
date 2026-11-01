@@ -1,0 +1,258 @@
+Fuel Factor — Ascend Now progress call, 30 Oct 2026
+Present: Theo (founder), Sofia (dietitian), Bhavesh (business mentor),
+Marilena Kolokotsa (Ascend Now), Sneha Gupta (developer).
+
+Plain text extracted from docs/reference/call-2026-10-30.docx.
+Format: "@<timestamp> - <speaker>" then that turn's words.
+
+This and the Week 1 deck are the only sources for the nutrition side.
+Nothing on that side is invented; see docs/PRODUCT-BRIEF.md.
+
+----------------------------------------------------------------------
+
+@2:02:27 - sneha gupta
+I'm good. How are you?
+@2:02:29 - Marilena Eleni Kolokotsa (ascendnow.info)
+Good. Um, I can't see anybody. Also, is this Theo?
+@2:02:35 - Sofia
+Uh, no, this is me. Uh, give me a second.
+@2:02:38 - Marilena Eleni Kolokotsa (ascendnow.info)
+Oh, you've got two accounts? Wait, Sofia. Okay, I was like, what? I'm so confused.
+@2:02:45 - Sofia
+Uh, that's my surname. It's, it's taken an different account with mine.
+@2:02:50 - Marilena Eleni Kolokotsa (ascendnow.info)
+Oh.
+@2:02:50 - Sofia
+Uh, as I log in, but, uh, yeah, this could work. No worries. It's just that my backdrop, my backdrop is not Ascend Now.
+@2:02:57 - Marilena Eleni Kolokotsa (ascendnow.info)
+Okay, I see. Yeah, yeah, yeah. With Ascend Now, it's funny, because even with my Ascend Now email, they botched my full name, so my name is not Marilena Eleni Kolokotsa, it's Marilena Kolokotsa, but somehow I now have two names, which is great. Theo is not on call, and this is all for him, so give me one second to get him in check and show up.
+But in the meantime, how's everybody doing?
+@2:03:26 - Sofia
+All good. I've just actually come back from a vacation. I just entered my room and I think this is the first meeting. I haven't even unpacked yet.
+@2:03:34 - Marilena Eleni Kolokotsa (ascendnow.info)
+That's crazy. Well, welcome back. We'll get to John Pack right after this. It'll be quick.
+@2:03:40 - Sofia
+Yeah, actually, I was down with fever yesterday. I'm actually having certain fever right now as well. I was actually feeling very down last evening. So, on my vacation, I actually got sick. And that is bound to happen, I feel.
+@2:03:55 - Marilena Eleni Kolokotsa (ascendnow.info)
+Can you hear me? His Zoom is frozen. He'll be here in the next three minutes. So you, sorry, I didn't mean to interrupt. So you, you have a cold.
+@2:04:20 - Sofia
+I actually have a fever and a cold. I actually felt sick on the vacation while I was on my vacation. And I, and of course, I think that was bound to happen. Like, vacations aren't supposed to be fun until and unless you're getting sick. So I was like, okay, that's a good sign. I was having a lot of fun.
+@2:04:35 - Marilena Eleni Kolokotsa (ascendnow.info)
+Where did you go?
+@2:04:37 - Sofia
+I actually went to Kashi. Yeah, it's actually for your references, Varanasi. It's a city located in Uttar Pradesh. I am not sure if you've actually heard of the city, Varanasi. It's, it's like a pilgrimage sort of a city where people belonging to Hinduism, they actually go and worship, etcetera.
+@2:04:59 - Marilena Eleni Kolokotsa (ascendnow.info)
+Oh, wow. And is this a city in India?
+@2:05:03 - Sofia
+It is a city in India, yes.
+@2:05:05 - Marilena Eleni Kolokotsa (ascendnow.info)
+Which part? Is it west, north, south, east, central?
+@2:05:09 - Sofia
+North.
+@2:05:10 - Marilena Eleni Kolokotsa (ascendnow.info)
+So not, but not New Delhi?
+@2:05:12 - Sofia
+Uh, it is actually above New Delhi. I stay in New Delhi. Uh, it's an eight-hour journey from New Delhi. Eight to ten hours journey from New Delhi.
+@2:05:22 - Marilena Eleni Kolokotsa (ascendnow.info)
+That is crazy. Alright, well. I hope you take your time to recover, because this weekend also is good.
+@2:05:29 - Sofia
+I just entered my room. Actually, I just entered my room, and this is the first call.
+@2:05:33 - Marilena Eleni Kolokotsa (ascendnow.info)
+That's insane. That's insane. Alright, well, we're going to make this super meaningful, and we're going to get things done, and then we're going to get off the call, so you can also rest and unpack. Hi, Theo.
+@2:05:44 - Kurt Theodore’s iPhone
+Hi.
+@2:05:45 - Marilena Eleni Kolokotsa (ascendnow.info)
+What's up, bro? How are you doing?
+@2:05:46 - Kurt Theodore’s iPhone
+I'm doing pretty good.
+@2:05:48 - Marilena Eleni Kolokotsa (ascendnow.info)
+Are you currently in your gym locker room?
+@2:05:51 - Kurt Theodore’s iPhone
+Yeah.
+@2:05:53 - Marilena Eleni Kolokotsa (ascendnow.info)
+I love your headphones.
+@2:05:55 - Kurt Theodore’s iPhone
+It's kind of loud, but can you guys hear the background?
+@2:05:58 - Marilena Eleni Kolokotsa (ascendnow.info)
+No, they're actually perfect. We can hear you fully and there's no background noise.
+@2:06:02 - Kurt Theodore’s iPhone
+It's like really, like, outside it's like a basketball game. It's like two basketball games outside.
+@2:06:06 - Marilena Eleni Kolokotsa (ascendnow.info)
+Really?
+@2:06:07 - Kurt Theodore’s iPhone
+It's like really loud. Yeah, I don't know how you guys can do it.
+@2:06:09 - Marilena Eleni Kolokotsa (ascendnow.info)
+No, that's, that's impressive. I guess the power of technology. Okay, so. I'm really glad we're having this meeting just so we can all be on the same page. Guys, any questions, any sort of concerns, let's just do it here right now because I know it's a bit tough to have everybody, you know, working together when we've all got also a lot of other things to do. Um, but I thought today we could focus on the app and just discussing a bit about sort of the timeline.
+Um, Sneha, are you able to, um, hear and see us? Is everything okay on your end?
+@2:06:43 - sneha gupta
+Yeah, I can see you.
+@2:06:45 - Marilena Eleni Kolokotsa (ascendnow.info)
+Okay, beautiful. So, I think maybe I'll stop talking because I'm the least meaningful, important person in this whole conversation. I just want you guys to have the opportunity to discuss sort of the product. But the basically overall goal of this meeting is to talk about timeline and what prototype product we can form before the December bullpen, which is happening in the first or the second week. Ruchi still hasn't confirmed the date yet. When I find out, you will be the first ones to know. But it's still kind of a question mark. And we only just confirmed all the contestants this week. Um, so the goal, I think, ideally is to have a fixed prototype with something, something at least to show.
+Um, and maybe you guys could work on it like a week before the actual bullpen and have something to, you know, present to in, in Theo, your pitch.
+Alright. I'm gonna shut up and disappear. Um, Theo, do you want to maybe take the floor and then, Sneha, I would love if you could, you know, give also a bit of an intro of the work that you do and everything.
+@2:07:50 - Kurt Theodore’s iPhone
+Uh, wait. What can I, what can I call you, Miss? Is it Mr. or Miss Sneha?
+@2:07:56 - sneha gupta
+Uh, it's Miss.
+@2:07:59 - Kurt Theodore’s iPhone
+Alright. So, uh, my project is about, uh, it's like, mainly on, uh, sports and nutrition. And it's focused on ages 14 to 16. So, we're trying to help specifically Indonesian teams in those ages, uh, enhance their performance, specifically for football, if it's, uh, like, I thought it was soccer only. And, uh, yeah, we're trying to, first, forward, like, we're trying to, like, make, uh, them more exposed to better nutrients, because Indonesia's not really good at that.
+And, yeah, so that's what we're trying to do. And we thought of an app that could, uh, help. It would be like a Duolingo base, I think. We're talking, something like that. And it would just be like, uh, yeah, an app. And we're, now we're at, we're testing, uh, nutrition to performance with my friends and myself. And then that's where we're at right now.
+@2:09:03 - sneha gupta
+So, uh, you will be providing a diet plan basically to all the teams in Indonesia.
+@2:09:10 - Kurt Theodore’s iPhone
+Yes, but it's not like the, like, you have to eat this, but it's like a suggestion of, like, uh, what you can eat, like.
+@2:09:17 - sneha gupta
+So we can add a feedback also, like, their feedback and we can change it based on that.
+@2:09:22 - Kurt Theodore’s iPhone
+Yeah.
+@2:09:24 - sneha gupta
+Do you have a specific workflow in mind? Like, they should, uh, do this and that, then the output should be this and that.
+@2:09:33 - Kurt Theodore’s iPhone
+In India, the reason we chose Duolingo as, like, a, like, uh, like, an influence, because they have a really good way of, uh, keeping their relationship with their customers, especially as an app. And it's because they have streaks, and so we're trying to do something similar to that. So our hook would be something like, uh, because we're teaming up with teams, not just individual players. So, like, player of the month, we're gonna have, like, uh, MVPs, basically, and, like, rewards with possibly some prizes. And, yeah, that's not to keep the hook.
+And they, they, they just need to, like, actively, uh, put in their progress.
+@2:10:17 - sneha gupta
+Have you collected any type of data or sort of program or logic? Have you built any logic? Like, how do you want to, uh, how do you want to show the diet plan? How do you want to build the diet plan in the app? Like, the backend logic of it?
+@2:10:31 - Kurt Theodore’s iPhone
+Well, for, for, like, to see if it really works, to see, like, our test, to test our problem. We're doing it on me and my friends. And so far, it's been going pretty well. We've been getting results.
+Uh, and the logic. I think it's just, uh, that's what we're thinking about. Cause, like, we weren't really sure what to do yet for the app. And, yeah.
+But we have, like, already some, some, uh, what's it called, like, experiments happening, I guess.
+@2:11:03 - sneha gupta
+So, have you, like, collected all the data or still you're working on it?
+@2:11:07 - Kurt Theodore’s iPhone
+So, uh, me and, like, me, Miss Sofia and Mr. Bhavesh have been talking about our, it's like a monthly, it's like a one month plan. And each week will be divided into individual challenges. So this week, the first week is, uh, carbohydrates.
+And yeah, so we're not done with it and we'll probably be done like the end of November.
+@2:11:35 - sneha gupta
+So I, I had built a plan, like, how should we build the app? So, uh, I was working, like, we could first finalize the workflow. Because we don't have the data yet and we don't know, like, how do we want to build the logic for, because for each person of the team, it will depend on each person, how do we want to show the diet plan? So, uh, I don't think that, uh, the logic is still finalized and we would have to work a lot on it. But, uh, till then we could, uh, simply have, like he said, we can have streaks and everything, like the other details which, which we don't need the data for.
+So, uh, we can build the basic app around that, and we can, like, have simple workflow for that. And once you provide me with the data of all the foods that we're going to be having and how we are going to be, uh, doing the logic, so we can do that later.
+@2:12:31 - Sofia
+Um, I'd like to, uh, add in Theo to what you just said. Um, so, uh, Theo has come up with a pro, uh, he's noticed a problem, right? He's noticed that, uh, his peers have, uh, have been eating less or, in general, uh, the footballers of his age are, uh, different in, uh, their stature. They are much more smaller in frame. And which is totally nutritionally right. If they don't have solid nutrition, they're going to grow up into, uh, you know, smaller framed humans. Uh, but that is in the large scale. But what he's trying to notice is that his friends have different, varied diets, which can be helped. And, uh, that is where nutrition comes into play.
+So what, what he's, uh, the problem is that he's noticed there has been a lack. And, uh, had he just gone directly to developing that, it would not make sense of what is happening. So he's come up, he's seen a problem, he's, uh, now doing his preliminary research, he's finding, uh, research that helps build this program. So what we did initially is we took a three-day recall already. A three-day, uh, so we've done our baseline.
+In every research, we have a baseline, and then we have an intervention, and then we see the post effects. So what we've done is we've understood the baseline. Based on the baseline, we've framed a program. So, based on the program that is being framed, we'll see the after effects of the program. The program is not, uh, necessarily, this is the diet chart, please follow this to the T. That does not work, because that is a, uh, personalized sports nutrition plan, because there has to be a one-on-one communication. Whereas an app, we cannot, uh, customize nutrition plan. It would be a generalized advice, or, uh, nutritionally, uh, advice. So, each, each week, or each month can be, uh,
+Like, the algorithm can be customized to what input the, uh, teams or the individual players are putting into the app, uh, such as their hydration value, such as their nutrition value. So, if they input their foods into the app, the app should be able to calculate what the, uh, energy carbohydrates could be. Based on that, there is a, uh, algorithm that gives them the right kind of advice out there. So, if they're, if, if we notice in their, uh, input, input data that they have been having less protein, obviously, the algorithm will, uh, of the advice will tell, hey, have to, uh, this protein.
+And Theo's app will definitely be a little different because it is not a global advice, but it's tailored to Jakarta foods or Indonesian foods. So we'll have the Indonesian, Jakarta, uh, that food composition tables also being fed into the data. If that's something that you can, you know, help build, I'm happy to, uh, tag him. So this app is specifically not, uh, like FitnessPal. This is what they do. Uh, and I'm sure there'll be many more sports nutrition apps, but, uh, this is specifically for this team athletes as well as, uh, customized to the local cuisine as well.
+So, if they input, uh, input any food that they have, it, it is supposed to calculate the nutritional value, or something close to it, and then provide an output. Uh, and that output would be the nutrition advice. So, that could give them, we could, uh, currently we're having a four-week program. Each week, we're trying to educate them onto some, uh, onto some themes that we have noticed that has been lacking in the, uh, the pre-assessment collection. And post-assessment, uh, so after this work week, we, uh, our last week of training is the last week of November. By the end of November, we should have our data ready.
+So when we come to the prototype or the pitch deck, which I'm assuming is in the second week of December, we, uh, Theo has a strong point when he comes to present his pitch deck saying, I have noticed a problem. And I, uh, this is the solution that I've found. But I have, um, you know, also done my preliminary research. This is what the research says. These are the assumptions. This is where, uh, the value lies. Like, there has been, uh, you know, poor nutrition and we have given advice. And, uh, let's see what the research proves out to be, right? They, they will have possible, uh, energy uploads.
+Or any, any difference that the nutrition plan may have given them. And so when he comes to the bullpen, he's ready with data. He's not just, uh, uh, you know, it's, it's not secondary research. It's primary research as well.
+So he has a strong point of both. He has done like research. He has, uh, collected with his friends. He has got the consent forms ready. He's come prepared to show that this is accurate data. And we are now extrapolating the data into the product that we are building. So, I want to, uh, know if we are already having the product ready before we do the bullpen or we are pitching that this is the value and from here is when we'll build the app. So, do we have the app before or are we going to build the app after the bullpen because of the timelines that we have? Uh, or, uh, and for your prototypes that you're planning on or the mockups of how the app can look, this is what Theo has been working on.
+Um, let me show you the. Uh, let me know if you can see my history. Yeah. Yeah. So let me show you the assessments from which we are looking. So, uh, to give you an example, your app can have, uh, inputs, right? If a, if a participant, uh, gets into the app, he'll have to fill in his height, weight, and certain parameters. Then it will give them a customized nutrition advice or a, uh, a plan. So, even in that plan, it is not a, uh, you have to stick to this plan, this many grams of protein. It isn't too customized. It is general. Uh, because the more you customize, the, uh, ethical value of dietetics is compromised. So, you have to give, uh, um, yeah.
+Too customized. It is general. Because the more you customize, the ethical value of dietetics is compromised. So you have to give, um, yeah. Let me get back.
+So, anthropometry is one of his category. Aerobic exercises is one of his category where he's assessing his participants. Speed and power.
+Uh, rest heart, I mean, the cardiovascular activity, that is resting heart rate. As simple as his sports watch can tell him what the resting heart rate is. We need an average of each day and we have an average value. Diet-wise is from the three-day recall. So, to give you a simple explanation, this is Theo's recall here. This is what he's had in three days. So, day one, he said, I haven't had my breakfast. And with chicken, I've had 200 grams on day one. Dinner is this.
+So, it's as simple as this input. Activity input, supplements if he's having any, fluids, a tentative idea, say, I had, you know, my four liter of water today. It's a tentative thing. And then the calories is estimated and calculated based on our composition data that we have. So, based on Theo's recall, here we have his, his, his values being extrapolated here. This will be backend. This is not manual calculation. It has to be through the app, the average protein, fat.
+So, once we have all this preliminary data, we have the app giving certain advice. And post the advice, a post the advice, a post given two week or four week plan. Because nutrition to have an effect, it isn't one or two weeks. A one month is a good idea of, you know, having a post effect. So, post one month, the app can prompt the participant to try to fulfill the data again or food recalls or try to see weekly how their, you know, their energy levels are or daily, how do they feel?
+Or, currently for our program right now, Theo and I, we've been working on challenging his participants for an activity per week. So this week we've challenged them, can you have breakfast every day? And we've encouraged them, because it's a team athlete group, right? We cannot just have a huge, you know, PDFs and saying read this, but it's tailored to their kind of engagement. And then post it, we have, the app can have the assessments or a tracker saying, hey, this is how you're going, your protein is falling less during your training period. Can you have more protein? Or can you have more calories?
+But at the same time, it is not just nutrition alone. It's also hydration. It's also their sleep that can be tracked. Saying, uh, a simple tracker, right? For, you know, on Tuesday, I slept for six hours and then, you know, my energy level was low. It's something that they can track, or their overall health. So, this is what we ideated. Theo, at any point, like, feel free to stop and say if there's something else that we can have. So, this is how the program is built so far.
+I'm happy for any questions, Theo, if you have any questions.
+@2:21:25 - Kurt Theodore’s iPhone
+I think I'm good. You explained it really thoroughly. And, uh, yeah.
+@2:21:33 - Sofia
+So, um, I think for the better context of, you know, I think, uh, comprehensively, Sofia has been able to explain everything, Sneha. In, in order for us to just know from a consumer standpoint and from a building standpoint, from a building standpoint, it's as simple as that. We want to build some dietary plans for people, young athletes, based out of Jakarta, 30 to 16 years of age. They can just come on the app, find out their plan, not at all customized, because we want to make this app as scalable as possible, to help their sleep and performance. So from a consumer standpoint, what are we providing?
+We're just providing that you come on this app, you visit this app, you put in all your details, what you've been eating, your ingredients, because we have this research, it will give you some suggestions that you can literally follow this, this, this to help improve your performance as well as your sleep patterns. For people who have been playing football and I think we also wanted to tap into basketball, if I'm not mistaken. Um, it was something that we wanted to do. Um, not sure, I think in the last session, Sofia and Theo, what did you guys decide? Are we doing with, are we also going ahead with basketball?
+Um, yes, Theo, I'll let, I'll let you answer.
+@2:22:52 - Kurt Theodore’s iPhone
+I think, Uh, for basketball, it was just, it was just for one person, and it was, luckily, it's not that far off from football, I think, sensitivity-wise, and knowing my friend personally, he's, like, really agile and fast, and he also has, like, a really, really strong diet plan that we could take data from. Like, if you've seen his meal, he has really solid, uh, everything, and I think that it could help us, yeah, unless it was, like, a sport, like, uh,
+Like, dude, you're, I don't know, like, something, like, not intense. Yeah, that would be pretty difficult, but at least basketball is, uh, intense.
+@2:23:33 - Sofia
+But Theo, I, I do want to ask you, uh, for the app, like, do you want to pitch the app as, uh, you know, an app for footballers in Indonesia or an app for athletes, team athletes?
+@2:23:46 - Kurt Theodore’s iPhone
+Oh, that's the thing, because I feel like it would be harder for me, because to reach out to the other athletes, because I'm not really, uh, exposed to other, like, associations.
+@2:24:01 - Sofia
+Yes.
+@2:24:02 - Kurt Theodore’s iPhone
+Yeah, so it would be hard to reach out to them, too.
+@2:24:05 - Sofia
+True. I'm, I'm just having, uh, keeping the bullpen in mind. Uh, our app is, uh, built to monetize, correct? You're supposed to have a,
+business ROI, a business angle to this app. So, uh, I'm encouraging you to think of, like, hey, if this app is built, who is my primary audience? Is it coaches from who you're selling the app to and they will distribute it, uh, to their teams? Or is it individual teams that you're reaching out? That's, that's a question a lot of times around for teams about how you can frame the business angle of this app.
+Okay. On just the basketball and the football aspect as well, um, I feel that on an average, a game of football would last for 90 minutes. On an average, a game of basketball lasts for 40 to 45 minutes.
+There's a huge gap. It's actually, if we will be just giving the meal suggestions on the basis of football preferences, it will not align with what a basketball player goes through on the field. Because for a football, it's literally double the time spent as compared to a basketball field. Theo, I think, uh, my suggestion and my recommendation would be that we should just go with football. And, um, yeah, I think to Miss Sofia's point as well, let's also try to aim it for B2B first.
+Like, we just want to sell it to maybe, let's say, certain schools or certain coaches. And not directly to the consumers. And let's have their feedback first. Because I think they'll be more open in order for the app to be utilized. So I think let's go B2B and by, by B2B, I mean, let's target schools.
+Let's target some football clubs in Jakarta. Maybe that would be our first consumer base. What do you think?
+@2:26:01 - Kurt Theodore’s iPhone
+I agree. But the thing is that basketball, uh, it's also like, quarter of the size of the field.
+@2:26:09 - Sofia
+Yeah.
+@2:26:10 - Kurt Theodore’s iPhone
+Yeah, so that, that you could put that into, like, play. And, like, he's not also just, like, a basketball player. He's really well-rounded. Like, I don't, I, I, I can, like, uh, do something about this, but if you guys, because I, I, I'm close to him, and, like, I know what he's capable of, and I think it's, like, the same as me and Joel and Jacob.
+Someone who I would probably, uh, like, try to exclude from this experiment for our range is, uh, Nathan, because he, he's not, how do I say that? His body's also not the same as ours. Like, he's slimmer and, uh, I can tell by his meals. I don't know about if there's some female analysis, but he doesn't eat as much protein and, like, he doesn't do as much, uh, strength training or intense activities.
+@2:27:04 - Sofia
+Okay. Uh, but now, Theo, what we've done is the preliminary research, right? Uh, so, we are way beyond your five participants. Now, we're thinking big. We're thinking ahead. We're thinking of, uh, you know, uh, participants of various sizes or participants of various, uh, energy levels or, you know, physical, uh, attributes. So, uh, I guess the, like, maybe Nathan's weight would be different.
+Or Nathan's, uh, you know, calf circumference would be different, but then that shouldn't change much of what the nutrition outcome is. Uh, you know, the advice could be.
+@2:27:44 - Kurt Theodore’s iPhone
+Uh, yeah. So, I think it's not about calf, but it's about what his end goal wants to be, because I've talked, I'm also really close to him, and he does cardio a lot rather than strength training, because as a, like, he's like, he's like really good at cardio. Like, he can go racing in Italy, like, everywhere. And his priority is to keep his body weight down, but his cardio up. So, like, I don't think we'll get, uh, really, like, we wouldn't get our expected result from him. Like, the other me and the others would get, would want, like, uh, a growth in our muscle, but he does not. So, yeah, I think we could do something about that.
+@2:28:26 - Sofia
+So, uh, Mr. Parashan, Sneha, um, Sneha. Are we, uh, having a prototype of the app ahead? Like, MVP product?
+@2:28:36 - sneha gupta
+Yeah, yeah, I think we should build up the four double thing so we can present it in the competition. That would be better for his presentation also. And I think it is possible. Like, um, the only thing we don't have is the research right now, which we need for the logic of the plan and everything.
+@2:28:53 - Sofia
+But, uh, we have, uh, preliminary data. So, we, we have a little gaps here that Theo would be filling in the possible, I mean, the following week or so. So, this preliminary data can help us build the app. Like, I mean, uh, from my, um, from my point of view, the app would be having these parameters: the anthropometric, aerobic speed, and, uh, and the program. Uh, sorry, I didn't show you the program that we planned. Like, the first week that Theo said, right, they're having, uh, week one on carbohydrates.
+So, Give me a second, my internet is slow.
+@2:29:33 - Kurt Theodore’s iPhone
+I'm sorry, uh, guys. I gotta, I have to leave in 15 minutes, if that's okay, to be honest.
+@2:29:38 - Sofia
+Okay, yeah, and I'll just sum it up. So, um, so week one is on carbohydrates, so the, the, the material is built in such a way that it has prompts of, you know, tips that they can have, or a standard training day, a meal plan, or, uh, you know, um, tidbits or any information, you know, pop-ups that can come up into the app. Uh, so those would be the nutrition and, uh, advice that would come across.
+So, for example, from the preliminary data that we collected, they had, uh, I mean, they, they, they fell short of their, uh, age group, the energy that they are supposed to have for their age group and for their height and weight, they fell short of what they're supposed to eat. So that's something the app can tell. Like, hey, you've fallen short. I mean, this is where you stand. Like, maybe we can have a metric or a, you know, a circular metric saying, this is where it would be ideal. This is ideal and this is where you stand. So that gives them a picturistic idea of where they are and what they can aim for. So, like Theo rightly said, the end game is what they're aiming for.
+As sports nutritionists, they're always aiming to, you know, be better. Also, Sneha, let me know, uh, if the prototype, like, once the prototype is ready is also when will be the right time for Sneha and Theo to also give some suggestions in terms of, like, what more can we add, etcetera. Uh, for now, we are just looking at it maybe subjectively. Once we also have the prototype, we'll be able to objectively tell, okay, this is lacking from a consumer standpoint, or maybe we could also add this. So I think once the prototype would be ready, uh, which I'd love to know from you, like, what can be an ideal
+Timeline. Because I think that is the objective which Marilena had asked us to also align on.
+@2:31:33 - sneha gupta
+I think if you, uh, give me the data on time, like the one you have shown me with all the columns, so I, so I would have something to add in the app before. And since the data that he's going to be adding, that can be added later, so, uh, he will have one week before the competition. So, uh, for the basic, I think, uh, after the, I, I get the data, I think it will just take three, four days to build that. I can do it early too. So, uh, we can start, like, thinking on what could be a better feature. So, because the features are the main thing. And we can get a lot of feedback in the, like, the rest of the three weeks.
+So, I can try building it in two to three days and then show it to you.
+@2:32:17 - Sofia
+Can we target the 10th of November as the date? I'm assuming, like, by 8th of November is when our data would be complete, Sofia? Is that so?
+Um, the, the data, the preliminary data depends on, uh, Theo, when he'd be able to fill in all the missing gaps. Uh, but the education, the post data, that will be available only after, I mean, the last week of November. Because November 26th is the last material that's going out. So, by 30th, uh, you know, I, I can ask Theo to start collecting the three-day recall.
+Uh, 30th or the 2nd, you know, the December 2nd. One weekend and two working days, uh, recall is ideal. And, uh, we can try, like, by the end of the month, we'll have more clear idea on the post. So, once I have the post data, we have the full picture. Like, this is what the program did. This was the pre and post.
+At least for the pre part, I think by 8th of November, Theo should be able to fill in the data. And Sneha, then let's aim for 10th, 11th November, if that is okay?
+@2:33:29 - sneha gupta
+I think if you give me this much data that you have, I can build it now only. And then when you can complete, I'll just complete it in the classroom.
+@2:33:38 - Sofia
+Fantastic. So Sneha, I dropped the link on, on the chat.
+@2:33:43 - sneha gupta
+In the existing and the week one PDF also that which is showing.
+@2:33:49 - Sofia
+Yes. And, uh, this is dynamic, meaning, Theo, as, like, Theo can fill on the bylines and he can still have access to it.
+@2:33:55 - sneha gupta
+Yeah, yeah.
+@2:33:59 - Sofia
+Right. Sounds like a plan.
+@2:34:02 - sneha gupta
+Yeah. Do you have any, like, brand colors or something that you want to create or should I just choose it myself?
+@2:34:10 - Sofia
+Theo, that's on you.
+@2:34:12 - Kurt Theodore’s iPhone
+Uh, like, like, like, like, like, uh, the logo?
+@2:34:17 - sneha gupta
+Uh, logo and the color also, like, for the...
+@2:34:21 - Kurt Theodore’s iPhone
+Oh, no, no, uh, logo, I think, since I'm a school factor, like, like, a rocket made of different nutrients and, like, blasting up.
+@2:34:31 - sneha gupta
+And the color?
+@2:34:34 - Kurt Theodore’s iPhone
+I think anything, like, that's, like, yellow, green, red. Just to, like, resemble all the different foods. And, like, yeah, just vibrant colors, I guess.
+@2:34:49 - Sofia
+You can also put suggestions in the apps there, I think, then. Uh, and yeah, I think, as I was saying, once the prototype is also ready is when we'll be able to objectively look and, uh, suggest how it is coming across as a consumer. Uh, that would be great as well. I think as early as we can have the prototype is when we'll be just objectively looking at it and we'll be like, okay, this can be done better, this can be added, et cetera.
+Yeah, and Theo can get his, uh, you know, coach's input on what can be added better. Yeah.
+@2:35:20 - sneha gupta
+I'll, I'll try my best to do it early so that we can get a lot of feedback on it and make the changes as well before the competition.
+@2:35:29 - Sofia
+Lovely. Thank you.
+@2:35:31 - Marilena Eleni Kolokotsa (ascendnow.info)
+Beautiful. Well, thank you so much for having this call. Sorry, I disappeared, but I heard the conversation. Seems like we made a lot of good progress. Um, if we need to have another one of these calls arranged so that we're all coordinated again and figure out, you know, by this deadline or we need to sort of be on the same page, text me, all of you guys, if, so we can arrange this again, okay? Um, but, yeah, is there anything else that we need to discuss, Theo, on any questions, thoughts, concerns?
+@2:35:59 - Kurt Theodore’s iPhone
+Uh, no, but if we're gonna have a meeting, would it be like in between 11 or 10 November? I think that would be pretty good, just to see where everyone's at.
+@2:36:07 - Marilena Eleni Kolokotsa (ascendnow.info)
+Alright. How about, if you feel like it's pressing and necessary as the time comes, can you text as well, just as a reminder so I can arrange it when the time comes? Beautiful. It was great.
+@2:36:21 - Sofia
+Sneha, just one more point. Uh, since this team athletes, uh, the consumers are below 18, the age of 18, we should have one screen of privacy or approval saying I consent, I'm below 18 or, you know, my parental consent.
+@2:36:34 - Kurt Theodore’s iPhone
+Yeah, that's a big one.
+@2:36:36 - Sofia
+Uh, and, uh, Theo, Theo said, uh, Theo reminded me that this is particular to Chakrathun Corporation, so try to keep, uh, uh, cultural aspects like pork, everything out of it.
+@2:36:47 - Kurt Theodore’s iPhone
+Okay.
+@2:36:50 - Marilena Eleni Kolokotsa (ascendnow.info)
+Alright. Thank you guys so much.
+@2:36:53 - Kurt Theodore’s iPhone
+Thank you.
+@2:36:54 - Sofia
+Thanks for the call. See you later, everyone.
+@2:36:56 - Marilena Eleni Kolokotsa (ascendnow.info)
+Yeah. Bye.

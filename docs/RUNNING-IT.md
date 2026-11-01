@@ -2,6 +2,41 @@
 
 Three ways, in the order most people will want them.
 
+## What is live right now
+
+As of 1 Nov 2026, everything that can be deployed is. Three surfaces, and they
+deliberately carry different bundles.
+
+| Surface | Carries | Bundle |
+|---|---|---|
+| **Expo Go link**, `preview` channel | step 14 | demo data, anonymised names |
+| **Android APK**, `share` channel | step 14 | demo data, anonymised names |
+| **Web / coach dashboard**, <https://fuel-factor--step14.expo.app> | step 14 | **real database** |
+| **Supabase** `nprvrlpkdrgckzceyryc` | 15 migrations | live |
+
+The split is on purpose. The two phone surfaces get passed around, so they show
+the fixture under stand-in names and write nothing. The web build is the coach
+dashboard, and coach sign-in works against the real database today -- so a
+coach can sign up, create a team and get a real invite code out of it.
+
+**The APK does not need rebuilding.** It was built on channel `share`, so
+publishing to that branch updates every install on next launch. A rebuild is
+only needed when native code changes, and step 14 added no native modules.
+
+**The web deployment is a preview, not production.** `eas deploy --prod` would
+claim the production alias; this session could not run it, so the alias above
+is what exists. Promote it when you want the stable URL:
+
+```bash
+cd mobile && npx eas-cli@latest deploy --prod
+```
+
+**The one thing nobody but the project owner can do:** switch on
+Authentication -> Sign In / Providers -> **Anonymous** in the Supabase
+dashboard. Until then the athlete half stops at the gate on anything pointed at
+the real database, which is why the phone bundles are demo builds. Once it is
+on, republish them without the two flags and the whole thing works for real.
+
 ## 1. On an Android phone, with nothing installed
 
 This is the one to hand people. EAS builds an **APK** that installs directly —
