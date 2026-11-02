@@ -22,9 +22,8 @@ import { todayIso } from './today';
 
 /**
  * Same development flag the Today screen uses: draw from the fixture instead
- * of the network. It matters more here than anywhere else, because the
- * project still has anonymous sign-ins switched off, so without it the Learn
- * section cannot be looked at on a device at all.
+ * of the network, so a build that gets passed around shows the section
+ * without reading or writing a row of the study's own.
  */
 const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
 

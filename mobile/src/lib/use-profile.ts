@@ -54,11 +54,12 @@ export function useProfile(): ProfileController {
   /**
    * Sign out.
    *
-   * For a coach this is ordinary: the account is an email and a password and
-   * signing back in restores the team. **For an athlete it is not** — identity
-   * is the anonymous session, so signing out abandons the claim on their
-   * participant row and there is no credential to get back in with. The
-   * profile screen says that in words before it offers the button.
+   * Ordinary on both sides now: the account is an email and a password, and
+   * signing back in restores the team for a coach and the claim, the logs and
+   * the streak for an athlete. It was not ordinary for an athlete while
+   * identity was an anonymous session -- signing out abandoned the claim on
+   * their participant row with no credential to get back in with, and the
+   * profile screen said so in words before offering the button.
    */
   const leave = useCallback(async () => {
     if (leaving) return;

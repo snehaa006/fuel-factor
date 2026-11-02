@@ -1,5 +1,5 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,7 +7,8 @@ import { CheckBox } from '@/components/check-box';
 import { Mascot } from '@/components/mascot';
 import { PushButton } from '@/components/push-button';
 import { WELCOME_CUE } from '@/lib/mascot-copy';
-import { claimParticipant, signIn, teamRoster, type RosterEntry } from '@/lib/auth';
+import { signOut } from '@/lib/account';
+import { claimParticipant, teamRoster, type RosterEntry } from '@/lib/auth';
 import { teamByCode } from '@/lib/join';
 import {
   CONSENT_CHECKBOX,
@@ -17,20 +18,32 @@ import {
 } from '@/lib/consent';
 import { messageOf } from '@/lib/errors';
 import { normaliseCode } from '@/lib/invite';
+import { useAccount } from '@/lib/use-account';
 import { useTheme } from '@/theme';
 
 type Step = 'consent' | 'team' | 'athlete';
 
 /**
- * The onboarding gate.
+ * The onboarding gate: an account meets its squad.
  *
  * Consent first and always: decision 8 of the brief makes it blocking, and the
  * claim function refuses without it, so there is no path into the app that
- * skips this screen. Then a team code rather than a password, because the
- * athletes are 14 to 16 and a squad will not carry credentials.
+ * skips this screen.
+ *
+ * Then a team code -- still, and for the original reason. The athletes are 14
+ * to 16 and the squad is handed one code, not a credential each. What changed
+ * underneath is only what the code is attached to: it used to *be* the
+ * identity, on top of an anonymous session that lived in one app install and
+ * died with it. Now the account is the identity and the code is what links it
+ * to a squad and a name on the roster, so a new phone signs in and is already
+ * that athlete.
+ *
+ * This screen no longer signs anybody in. Reaching it means there is already
+ * an account; `/` is what decides that and sends them here.
  */
 export default function Welcome() {
   const router = useRouter();
+  const account = useAccount();
   // An invite link that landed on the questionnaire and was sent here instead
   // arrives with its code, so nobody types six characters they already have.
   const { code } = useLocalSearchParams<{ code?: string }>();
@@ -42,23 +55,6 @@ export default function Welcome() {
   const [roster, setRoster] = useState<RosterEntry[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [signInBlocked, setSignInBlocked] = useState(false);
-
-  // The session is what row level security answers about, so it has to exist
-  // before the roster can be read. Anonymous: no credential is ever collected.
-  useEffect(() => {
-    let active = true;
-    signIn()
-      .then((userId) => {
-        if (active && userId === null) setSignInBlocked(true);
-      })
-      .catch((e: unknown) => {
-        if (active) setError(messageOf(e));
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
 
   async function findTeam() {
     setBusy(true);
@@ -91,7 +87,7 @@ export default function Welcome() {
     setError(null);
     try {
       await claimParticipant(joinCode, entry.participant_code, consented);
-      router.replace('/');
+      router.replace('/today');
     } catch (e) {
       setError(messageOf(e));
     } finally {
@@ -103,22 +99,54 @@ export default function Welcome() {
     <Text style={[typography['display-l'], { color: colors.ink }]}>{text}</Text>
   );
 
+  // A gate reached without an account, or by somebody who is past it already.
+  // `/` owns that decision, so it is handed straight back rather than being
+  // answered a second way here.
+  if (account.status === 'ready' && account.account.role !== 'unlinked') {
+    return <Redirect href="/" />;
+  }
+
+  const signedInAs =
+    account.status === 'ready' && account.account.role === 'unlinked'
+      ? account.account.email
+      : null;
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
       <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-6'] }]}>
-        {signInBlocked && (
+        {/* Which account is about to be tied to an athlete. It is the one
+            thing on this screen that is irreversible from the phone, so the
+            email is shown rather than assumed, with the way out beside it. */}
+        {signedInAs !== null && (
           <View
-            testID="sign-in-blocked"
+            testID="signed-in-as"
             style={[
               styles.notice,
-              { backgroundColor: colors['cabai-tint'], borderRadius: radius['radius-lg'], padding: spacing['space-4'] },
+              {
+                backgroundColor: colors['surface-raised'],
+                borderRadius: radius['radius-lg'],
+                padding: spacing['space-4'],
+              },
             ]}
           >
-            <Text style={[typography.label, { color: colors['cabai-deep'] }]}>SIGN-IN UNAVAILABLE</Text>
-            <Text style={[typography['body-s'], { color: colors.ink, marginTop: 4 }]}>
-              Anonymous sign-ins are switched off for this project. Turn them on in Supabase under
-              Authentication → Sign In / Providers.
+            <Text style={[typography.label, { color: colors['ink-muted'] }]}>SIGNED IN AS</Text>
+            <Text style={[typography['body-m'], { color: colors.ink, marginTop: 4 }]}>
+              {signedInAs}
             </Text>
+            <Pressable
+              onPress={() => {
+                signOut()
+                  .then(() => router.replace('/sign-in'))
+                  .catch((e: unknown) => setError(messageOf(e)));
+              }}
+              accessibilityRole="button"
+              testID="welcome-sign-out"
+              style={{ paddingTop: spacing['space-2'] }}
+            >
+              <Text style={[typography['body-s'], { color: colors['air-deep'] }]}>
+                Not you? Sign out
+              </Text>
+            </Pressable>
           </View>
         )}
 
@@ -150,9 +178,7 @@ export default function Welcome() {
             <PushButton
               label="Continue"
               fullWidth
-              // Without a session the roster lookup is refused, so the gate
-              // stops here rather than walking the athlete into a dead end.
-              disabled={!consented || signInBlocked}
+              disabled={!consented}
               testID="consent-continue"
               onPress={() => setStep('team')}
             />

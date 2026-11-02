@@ -40,7 +40,9 @@ export default function Profile() {
     );
   }
 
-  if (state.status === 'signed-out') return <Redirect href="/welcome" />;
+  // `/` is the one place that decides where a given account belongs, and a
+  // signed-out one belongs at the sign-in rather than at the team-code gate.
+  if (state.status === 'signed-out') return <Redirect href="/" />;
 
   const back = (
     <Pressable onPress={() => router.back()} accessibilityRole="button" testID="profile-back">
@@ -86,11 +88,12 @@ export default function Profile() {
                 testID="profile-leave-warning"
                 style={[typography['body-m'], { color: colors.ink }]}
               >
+                {/* This used to warn an athlete there was no way back in,
+                    and it was true: an anonymous session was the only
+                    identity they had. They have an account now, so the
+                    warning would be a lie that costs somebody their logs. */}
                 {profile.kind === 'athlete'
-                  ? // Said in full, because an anonymous session is the only
-                    // identity an athlete has and there is no credential to
-                    // sign back in with.
-                    'Signing out gives up this device’s link to your athlete record. There is no password to get back in with — your coach would have to add you again.'
+                  ? 'You can sign back in with your email and password. Your logs, your streak and your place on the squad stay with the account.'
                   : 'You can sign back in with your email and password. The team stays as it is.'}
               </Text>
               <PushButton

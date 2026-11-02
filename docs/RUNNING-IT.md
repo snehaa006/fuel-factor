@@ -15,9 +15,14 @@ deliberately carry different bundles.
 | **Supabase** `nprvrlpkdrgckzceyryc` | 15 migrations | live |
 
 The split is on purpose. The two phone surfaces get passed around, so they show
-the fixture under stand-in names and write nothing. The web build is the coach
-dashboard, and coach sign-in works against the real database today -- so a
-coach can sign up, create a team and get a real invite code out of it.
+the fixture under stand-in names and write nothing. The web build talks to the
+real database, and both sign-ins work against it today -- an athlete can make
+an account and claim their name, and a coach can sign up, create a team and
+get a real invite code out of it.
+
+**Both phone surfaces are a publish behind**, and the publish is what carries
+the sign-in work and the configuration fix. Until they are republished they
+still serve the step-14 bundle.
 
 **The APK does not need rebuilding.** It was built on channel `share`, so
 publishing to that branch updates every install on next launch. A rebuild is
@@ -31,11 +36,13 @@ is what exists. Promote it when you want the stable URL:
 cd mobile && npx eas-cli@latest deploy --prod
 ```
 
-**The one thing nobody but the project owner can do:** switch on
-Authentication -> Sign In / Providers -> **Anonymous** in the Supabase
-dashboard. Until then the athlete half stops at the gate on anything pointed at
-the real database, which is why the phone bundles are demo builds. Once it is
-on, republish them without the two flags and the whole thing works for real.
+**Anonymous sign-ins no longer matter.** They were the one blocker nobody but
+the project owner could clear, and the athlete half now does not use them:
+athletes sign in with an email and a password, the same provider the coach
+side has always used and the one that is on by default. The team code kept
+the job it was good at -- finding the squad and the right name on its roster
+-- and the account underneath it is what survives a new phone. Republish the
+phone bundles without the two demo flags and the whole thing works for real.
 
 ## 1. On an Android phone, with nothing installed
 
@@ -53,8 +60,8 @@ that browser; that is normal for an app outside the Play Store.
 The `share` profile builds with `EXPO_PUBLIC_DEMO_DATA=1` and
 `EXPO_PUBLIC_ANON_DEMO=1`, which matters for two reasons:
 
-- **Demo data**, because anonymous sign-ins are still switched off on the
-  Supabase project. Without it the app stops at the consent gate and says so.
+- **Demo data**, so a build that gets passed around draws every screen from
+  the fixture and writes nothing to the study's database.
 - **Anonymised names**, because the three athletes in the demo are real
   14 to 16 year olds and the figures beside them are from the programme's own
   tracker. A build passed around gets stand-ins. Every number stays.
@@ -97,9 +104,9 @@ little more and silently excludes older handsets.
 cd mobile && npx eas build --platform android --profile live
 ```
 
-No demo flags, so it talks to Supabase. **It cannot get past the consent gate
-until anonymous sign-ins are switched on** (Supabase dashboard → Authentication
-→ Sign In / Providers). The gate says exactly that on screen.
+No demo flags, so it talks to Supabase. It opens on the sign-in: an athlete
+makes an account or signs in, then enters the team code and picks their name
+off the roster. A coach taps **I am a coach** and gets their own door.
 
 ## 2. On an iPhone
 
@@ -146,9 +153,24 @@ cd mobile && EXPO_PUBLIC_DEMO_DATA=1 EXPO_PUBLIC_ANON_DEMO=1 \
 ```
 
 `--environment` is required in non-interactive mode on EAS CLI 27. Drop the two
-flags to publish a bundle that talks to the real database instead; the coach
-half works against it today, and the athlete half stops at the gate until
-anonymous sign-ins are switched on.
+flags to publish a bundle that talks to the real database instead; both halves
+work against it today.
+
+**The Supabase configuration no longer rides on that command.** It used to:
+`eas.json` sets `EXPO_PUBLIC_SUPABASE_URL` for `eas build` and for nothing
+else, `.env` is gitignored so it only exists on one laptop, and `eas update`
+sees neither unless both are exported into the shell first. One publish
+without them and the phone opened on *"Missing EXPO_PUBLIC_SUPABASE_URL ...
+Copy .env.example to .env"* at the team-code gate, which is what the preview
+channel served. `mobile/src/lib/supabase-config.ts` now holds both values as
+committed defaults, so every bundle carries them by every route; the
+environment still wins wherever it is set. Checkable the same way the APK
+was:
+
+```bash
+cd mobile && EXPO_NO_DOTENV=1 npx expo export --platform ios --output-dir /tmp/check
+strings /tmp/check/_expo/static/js/ios/*.hbc | grep -c nprvrlpkdrgckzceyryc
+```
 
 To check what the link is actually serving, without a phone:
 
@@ -224,7 +246,7 @@ It is not deployed anywhere yet.
 |---|---|
 | `EXPO_PUBLIC_DEMO_DATA=1` | Draws every screen from the fixture. No network, no gate. |
 | `EXPO_PUBLIC_ANON_DEMO=1` | Swaps the three athletes' names for stand-ins. Figures unchanged. |
-| neither | The real app against Supabase, blocked at the gate until sign-ins are on. |
+| neither | The real app against Supabase. Opens on the sign-in. |
 
 ## Identity, once and never again
 

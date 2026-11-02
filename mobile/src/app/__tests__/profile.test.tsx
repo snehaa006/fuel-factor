@@ -116,14 +116,16 @@ describe('an athlete’s profile', () => {
 });
 
 describe('signing out', () => {
-  it('warns an athlete that there is no way back in', async () => {
-    // An anonymous session is the only identity an athlete has. There is no
-    // password to sign back in with.
+  it('tells an athlete they can sign back in, because now they can', async () => {
+    // This warned that there was no way back in, and it was true while an
+    // anonymous session was the only identity an athlete had. Leaving it
+    // there once they have an account would be a lie that costs somebody
+    // their logs.
     await render(<Profile />);
     fireEvent.press(screen.getByTestId('profile-leave'));
     await waitFor(() =>
       expect(screen.getByTestId('profile-leave-warning')).toHaveTextContent(
-        /no password to get back in with/
+        /sign back in with your email and password/
       )
     );
   });
@@ -207,7 +209,10 @@ describe('a coach’s profile', () => {
 });
 
 describe('no session at all', () => {
-  it('goes to the gate', async () => {
+  it('hands the question back to the one screen that answers it', async () => {
+    // Not straight to the team-code gate: after signing out, where somebody
+    // belongs depends on what kind of account signs in next, and `/` is the
+    // only place that decides that.
     mockUseProfile.mockReturnValue({
       status: 'signed-out',
       reload: jest.fn(),
@@ -215,6 +220,6 @@ describe('no session at all', () => {
       leaving: false,
     });
     await render(<Profile />);
-    expect(screen.getByTestId('redirect')).toHaveTextContent('/welcome');
+    expect(screen.getByTestId('redirect')).toHaveTextContent('/');
   });
 });

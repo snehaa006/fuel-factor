@@ -1,13 +1,21 @@
 import { useRouter } from 'expo-router';
 
 import { Sidebar, type SidebarItem } from '@/components/sidebar';
+import { signOut } from '@/lib/account';
 
 /**
- * The app's one menu, in one place.
+ * The athlete's menu, in one place.
  *
- * Every screen that shows a sidebar shows this list, so the navigation cannot
- * differ between two screens and a new destination is added once. Profile is
- * first because it is the item this panel was added for.
+ * Every athlete screen shows this list, so the navigation cannot differ
+ * between two screens and a new destination is added once. Profile is first
+ * because it is the item this panel was added for.
+ *
+ * **"Coach" is not on it.** It was, with a note saying coaches only, which is
+ * the app asking a 15 year old to try a door and reading them the rule on the
+ * way. The coach's half has its own account, its own menu and its own home;
+ * an athlete has no reason to be shown the way to it. Sign out replaces it,
+ * which is the item that was actually missing -- a device used to be whoever
+ * it first became.
  */
 
 export type AppSidebarProps = {
@@ -33,18 +41,20 @@ export function AppSidebar({
 
   const items: SidebarItem[] = [
     { key: 'profile', label: 'Profile', onPress: () => router.push('/profile') },
-    { key: 'today', label: 'Today', onPress: () => router.replace('/') },
+    { key: 'today', label: 'Today', onPress: () => router.replace('/today') },
     { key: 'recall', label: 'Food recall', onPress: () => router.push('/recall') },
     { key: 'learn', label: 'Learn', onPress: () => router.push('/learn') },
     { key: 'team', label: 'Team', onPress: () => router.push('/team') },
     { key: 'progress', label: 'Progress', onPress: () => router.push('/progress') },
     {
-      key: 'coach',
-      label: 'Coach',
-      // Said here rather than discovered on the next screen: an athlete who
-      // taps this gets a sign-in and nothing of anybody's data.
-      detail: 'Coaches only. Needs a coach account.',
-      onPress: () => router.push('/coach'),
+      key: 'sign-out',
+      label: 'Sign out',
+      onPress: () => {
+        // The session is gone locally whether or not the server is reachable,
+        // so the screen goes back to the door either way rather than leaving
+        // a signed-out app on display.
+        signOut().finally(() => router.replace('/sign-in'));
+      },
     },
   ];
 

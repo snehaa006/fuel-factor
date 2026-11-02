@@ -8,8 +8,8 @@ import { todayIso } from './today';
 
 /**
  * The same development flag the rest of the app uses. It matters here for the
- * usual reason -- the project still has anonymous sign-ins switched off, so
- * without a session the board cannot be looked at on a device at all.
+ * usual reason: a build that gets passed around must not read the study's own
+ * rows, so without it there is nothing to draw a board from on a demo build.
  */
 const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
 

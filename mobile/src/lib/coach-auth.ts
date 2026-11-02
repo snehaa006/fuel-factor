@@ -11,9 +11,11 @@ import { supabase } from './supabase';
  * one app install's storage, so a coach who reinstalls would lose the team
  * they created with no way to prove it was theirs.
  *
- * It is also the half that can be exercised live today. Anonymous sign-ins are
- * still switched off on this project, which blocks the athlete flow entirely;
- * email and password is on by default.
+ * Athletes have accounts of their own now (`account.ts`), on this same
+ * provider, which is what unblocked the athlete half -- it used to rest on
+ * anonymous sign-ins, and those are switched off on this project. The
+ * asymmetry that remains is the one that matters: a coach owns a team, and an
+ * athlete claims a name on a roster their coach already put them on.
  */
 
 export type CoachTeam = {

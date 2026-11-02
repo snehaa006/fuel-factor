@@ -77,8 +77,8 @@ export default function CoachTeamScreen() {
       <View style={{ marginTop: spacing['space-2'], gap: spacing['space-4'] }}>
         <Text style={[typography['display-l'], { color: colors.ink }]}>Your squad</Text>
         <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-          Creating a team needs a coach account with an email. The squad still joins from a link
-          with no password.
+          Creating a team needs a coach account with an email. Your squad make their own
+          accounts and join with the code from your link.
         </Text>
         <PushButton
           label="Coach sign-in"
