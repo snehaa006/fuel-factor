@@ -558,3 +558,43 @@ export const DEMO_COACH_TEAM: CoachTeam = {
   programmeStartsOn: null,
   athletes: 3,
 };
+
+/**
+ * The ASSESSMENTS tab's Week 0 column, as the workbook holds it, keyed by the
+ * coach fixture's participant ids. Week 4 is empty everywhere: the follow-up
+ * has not been measured.
+ */
+export const DEMO_ASSESSMENTS: Record<string, import('../assessments').PairValues> = {
+  'p-jeongho': {
+    height: { pre: 175, post: null },
+    weight: { pre: 71, post: null },
+    calf: { pre: 38, post: null },
+    kcal: { pre: 1571, post: null },
+    carbs: { pre: 167, post: null },
+    protein: { pre: 102, post: null },
+    fat: { pre: 48, post: null },
+    fv: { pre: 0.3, post: null },
+  },
+  'p-theo': {
+    height: { pre: 174, post: null },
+    weight: { pre: 68, post: null },
+    calf: { pre: 36, post: null },
+    cooper: { pre: 2680, post: null },
+    kcal: { pre: 1472, post: null },
+    carbs: { pre: 87, post: null },
+    protein: { pre: 134, post: null },
+    fat: { pre: 68, post: null },
+    fv: { pre: 1.2, post: null },
+  },
+  'p-jacob': {
+    height: { pre: 177, post: null },
+    weight: { pre: 66, post: null },
+    calf: { pre: 35, post: null },
+    cooper: { pre: 2800, post: null },
+    kcal: { pre: 1882, post: null },
+    carbs: { pre: 153, post: null },
+    protein: { pre: 120, post: null },
+    fat: { pre: 84, post: null },
+    fv: { pre: 0.3, post: null },
+  },
+};

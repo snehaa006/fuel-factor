@@ -1,3 +1,4 @@
+import { hasSessionDay } from './targets';
 import type { Minutes } from './session';
 import type { DaySummary, MealSlot } from './today';
 import type { Tables } from './database.types';
@@ -66,7 +67,7 @@ export function evaluate(summary: DaySummary, rules: AdviceRule[], now: Minutes)
   const fired: string[] = [];
 
   const breakfast = summary.slots.find((s) => s.slot === 'breakfast');
-  if (summary.dayType === 'training' && breakfast && !breakfast.logged) {
+  if (hasSessionDay(summary.dayType) && breakfast && !breakfast.logged) {
     fired.push('no_breakfast_training_day');
   }
 
@@ -89,7 +90,7 @@ export function evaluate(summary: DaySummary, rules: AdviceRule[], now: Minutes)
   // training has started, telling the athlete to eat two hours beforehand is
   // advice about a moment that has gone.
   if (
-    summary.dayType === 'training' &&
+    hasSessionDay(summary.dayType) &&
     startsAt !== null &&
     !slotLogged('pre_training') &&
     now >= startsAt - PRE_TRAINING_WINDOW_MIN &&

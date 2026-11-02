@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MascotBanner } from '@/components/mascot-banner';
 import { MetricCompare } from '@/components/metric-compare';
+import { PushButton } from '@/components/push-button';
 import { PROGRESS_CUE } from '@/lib/mascot-copy';
 import { useProgress } from '@/lib/use-progress';
 import { useTheme } from '@/theme';
@@ -81,6 +82,17 @@ export default function ProgressScreen() {
           {progress.metrics.map((metric) => (
             <MetricCompare key={metric.key} metric={metric} testID={`metric-${metric.key}`} />
           ))}
+        </View>
+
+        {/* Where the Week 0 / Week 4 figures are entered and compared. */}
+        <View style={{ marginTop: spacing['space-6'] }}>
+          <PushButton
+            label="Assessments: Week 0 vs Week 4"
+            variant="ghost"
+            fullWidth
+            testID="progress-assessments"
+            onPress={() => router.push('/assessments')}
+          />
         </View>
 
         {progress.assessments.length > 0 && (

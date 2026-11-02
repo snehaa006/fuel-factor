@@ -41,6 +41,12 @@ export function CoachSidebar({
       onPress: () => router.push('/coach/team'),
     },
     {
+      key: 'assessments',
+      label: 'Assessments',
+      detail: 'Week 0 and Week 4 measures, and the before-and-after comparison.',
+      onPress: () => router.push('/coach/assessments'),
+    },
+    {
       key: 'sign-out',
       label: 'Sign out',
       onPress: () => {

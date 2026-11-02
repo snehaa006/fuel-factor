@@ -61,6 +61,7 @@ export function AppSidebar({
             onPress: () => router.replace('/before-you-start'),
           },
           { key: 'recall', label: 'Food recall', onPress: () => router.push('/recall') },
+          { key: 'assessments', label: 'Assessments', onPress: () => router.push('/assessments') },
         ]
       : [
           { key: 'today', label: 'Today', onPress: () => router.replace('/today') },
@@ -68,6 +69,7 @@ export function AppSidebar({
           { key: 'learn', label: 'Learn', onPress: () => router.push('/learn') },
           { key: 'team', label: 'Team', onPress: () => router.push('/team') },
           { key: 'progress', label: 'Progress', onPress: () => router.push('/progress') },
+          { key: 'assessments', label: 'Assessments', onPress: () => router.push('/assessments') },
         ]),
     {
       key: 'sign-out',

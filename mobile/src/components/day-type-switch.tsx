@@ -5,14 +5,12 @@ import { useTheme } from '@/theme';
 import type { DayType } from '@/lib/targets';
 
 /**
- * Training and rest, and no third option.
- *
- * The tracker's Day Type column holds these two. The Week 1 deck does give a
- * game-day carbohydrate band, so the concept is the programme's, but the value
- * is not in their schema and the app does not add one.
+ * Training, match and rest: the tracker's Day Type column, in its order.
+ * Match days take the Week 1 deck's game-day carbohydrate band.
  */
 const OPTIONS: { value: DayType; label: string }[] = [
   { value: 'training', label: 'Training' },
+  { value: 'match', label: 'Match' },
   { value: 'rest', label: 'Rest' },
 ];
 
@@ -78,5 +76,5 @@ export function DayTypeSwitch({ value, onChange, testID }: DayTypeSwitchProps) {
 
 const styles = StyleSheet.create({
   track: { flexDirection: 'row', alignSelf: 'flex-start', gap: 4 },
-  option: { minWidth: 96, alignItems: 'center', justifyContent: 'center' },
+  option: { minWidth: 84, alignItems: 'center', justifyContent: 'center' },
 });

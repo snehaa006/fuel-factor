@@ -231,7 +231,7 @@ export type Database = {
     };
     Enums: {
       badge_criterion: 'days_logged' | 'streak' | 'challenges_done';
-      day_type: 'training' | 'rest';
+      day_type: 'training' | 'match' | 'rest';
       meal_slot: 'breakfast' | 'pre_training' | 'lunch' | 'post_training' | 'dinner' | 'evening_snack';
       nutrition_method: 'not_computed' | 'food_database';
       team_role: 'athlete' | 'coach';
@@ -251,7 +251,7 @@ export const Constants = {
   public: {
     Enums: {
       badge_criterion: ['days_logged', 'streak', 'challenges_done'],
-      day_type: ['training', 'rest'],
+      day_type: ['training', 'match', 'rest'],
       meal_slot: ['breakfast', 'pre_training', 'lunch', 'post_training', 'dinner', 'evening_snack'],
       nutrition_method: ['not_computed', 'food_database'],
       team_role: ['athlete', 'coach'],

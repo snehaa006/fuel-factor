@@ -20,6 +20,7 @@ import { topNudges } from '@/lib/advice';
 import { dayCue } from '@/lib/mascot-copy';
 import { hasSession, nowMinutes } from '@/lib/session';
 import { bestStreak, loggedToday, recentDays, streakLength } from '@/lib/streak';
+import { hasSessionDay } from '@/lib/targets';
 import { useRecallStatus } from '@/lib/use-recall';
 import { useToday } from '@/lib/use-today';
 import { useTheme } from '@/theme';
@@ -160,10 +161,10 @@ function TodayScreen() {
           <DayTypeSwitch value={summary.dayType} onChange={state.changeDayType} testID="day-type" />
         </View>
 
-        {/* A training day, or any day that already has a session recorded.
+        {/* A training or match day, or any day that already has a session recorded.
             The second half matters: switching to Rest must not strand a
             session on the row with no way left to clear it. */}
-        {(summary.dayType === 'training' || hasSession(summary.session)) && (
+        {(hasSessionDay(summary.dayType) || hasSession(summary.session)) && (
           <View style={{ marginTop: spacing['space-4'] }}>
             <SessionTimes
               value={summary.session}

@@ -14,10 +14,15 @@ deliberately carry different bundles.
 | **Web / coach dashboard**, <https://fuel-factor--step14.expo.app> | step 14 | **real database** |
 | **Supabase** `nprvrlpkdrgckzceyryc` | 15 migrations | live |
 
-Step 15 adds a sixteenth, `20261102000001_programme_start_required.sql`, which
-is **not applied yet** — it makes the programme's first day required on
-`create_team` and un-clearable afterwards. Everything else below describes the
-step-14 deployment.
+Step 15's `20261102000001_programme_start_required.sql` and step 16's
+`20261103000001_assessment_entry_and_match_day.sql` are **both applied** (17
+migrations live). The second adds `match` to `day_type` and lets an athlete,
+or their coach, write `assessments` rows -- the Week 0 / Week 4 form at
+`/assessments` and `/coach/assessments`.
+
+**Assessments testing mode.** `OPEN_BOTH_FOR_TESTING` in
+`mobile/src/lib/assessments.ts` opens the Week 4 form from day one. Set it to
+`false` before the real programme runs, and Week 4 opens on day 22.
 
 The split is on purpose. The two phone surfaces get passed around, so they show
 the fixture under stand-in names and write nothing. The web build talks to the
