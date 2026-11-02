@@ -626,3 +626,24 @@ export const DEMO_ASSESSMENTS: Record<string, import('../assessments').PairValue
     fv: { pre: 0.3, post: null },
   },
 };
+
+/**
+ * Theo's three baseline recall days, as the assessments read them: the RECALL
+ * tab's breakfast column ("None" twice, then a yogurt) and urine 6/6/6. No
+ * food was picked from the database, so no calories are worked out.
+ */
+export const DEMO_RECALL_FIGURES: Record<string, import('../assessments').RecallDayFigures[]> = {
+  'p-theo': [1, 2, 3].map((dayNumber) => ({
+    dayNumber,
+    breakfast: dayNumber === 3 ? 'Greek yogurt with chia seeds, honey, fruits' : 'None',
+    breakfastPicked: false,
+    fluid_ml: null,
+    energy: null,
+    recovery: null,
+    urine_colour: 6,
+    kcal: null,
+    carbs_g: null,
+    protein_g: null,
+    fat_g: null,
+  })),
+};

@@ -4,14 +4,18 @@ import {
   DEMO_ASSESSMENTS,
   DEMO_COACH_VIEW,
   DEMO_PROFILE,
+  DEMO_RECALL_FIGURES,
   demoProgrammeStart,
 } from './__fixtures__/today';
 import {
   fetchAssessments,
+  fetchRecallFigures,
   mergePhase,
+  recallFill,
   saveAssessment,
   type PairValues,
   type Phase,
+  type RecallFill,
 } from './assessments';
 import { myTeam } from './coach-auth';
 import { asError, messageOf } from './errors';
@@ -39,7 +43,10 @@ export type MyAssessmentsState =
       participantId: string;
       name: string;
       programme: ProgrammeState;
+      /** What has been saved. */
       pairs: PairValues;
+      /** The recall's averages, for the fields nobody has filled. */
+      fill: RecallFill;
     }
   | { status: 'error'; message: string };
 
@@ -53,6 +60,7 @@ export function useMyAssessments(): MyAssessmentsState & { save: SaveFn } {
       name: DEMO_PROFILE.name,
       programme: programmeState(demoProgrammeStart(today), today),
       pairs: DEMO_ASSESSMENTS[DEMO_PROFILE.participantId] ?? {},
+      fill: recallFill(DEMO_RECALL_FIGURES[DEMO_PROFILE.participantId] ?? []),
     };
   });
 
@@ -74,7 +82,10 @@ export function useMyAssessments(): MyAssessmentsState & { save: SaveFn } {
           setState({ status: 'needs-onboarding' });
           return;
         }
-        const all = await fetchAssessments([profile.participantId]);
+        const [all, figures] = await Promise.all([
+          fetchAssessments([profile.participantId]),
+          fetchRecallFigures([profile.participantId]),
+        ]);
         if (!active) return;
         setState({
           status: 'ready',
@@ -82,6 +93,7 @@ export function useMyAssessments(): MyAssessmentsState & { save: SaveFn } {
           name: profile.name,
           programme: programmeState(profile.programmeStartsOn, todayIso()),
           pairs: all[profile.participantId] ?? {},
+          fill: recallFill(figures[profile.participantId] ?? []),
         });
       } catch (error) {
         if (active) setState({ status: 'error', message: messageOf(error) });
@@ -116,6 +128,8 @@ export type SquadAssessmentsState =
       status: 'ready';
       athletes: SquadAthlete[];
       pairs: Record<string, PairValues>;
+      /** Each athlete's recall averages, keyed by participant. */
+      fills: Record<string, RecallFill>;
       /** The team's four weeks, which decide when Week 4 opens. */
       programme: ProgrammeState | null;
     }
@@ -131,6 +145,9 @@ export function useSquadAssessments(): SquadAssessmentsState & { save: SaveFn } 
             name: a.name,
           })),
           pairs: DEMO_ASSESSMENTS,
+          fills: Object.fromEntries(
+            DEMO_COACH_VIEW.athletes.map((a) => [a.participantId, recallFill(DEMO_RECALL_FIGURES[a.participantId] ?? [])])
+          ),
           programme: programmeState(demoProgrammeStart(todayIso()), todayIso()),
         }
       : { status: 'loading' }
@@ -154,13 +171,16 @@ export function useSquadAssessments(): SquadAssessmentsState & { save: SaveFn } 
           participantId: p.id,
           name: p.name,
         }));
-        const [pairs, team] = await Promise.all([
-          fetchAssessments(athletes.map((a) => a.participantId)),
+        const ids = athletes.map((a) => a.participantId);
+        const [pairs, figures, team] = await Promise.all([
+          fetchAssessments(ids),
+          fetchRecallFigures(ids),
           // The start date only gates Week 4; a coach without one still gets the form.
           myTeam().catch(() => null),
         ]);
         const programme = team ? programmeState(team.programmeStartsOn, todayIso()) : null;
-        if (active) setState({ status: 'ready', athletes, pairs, programme });
+        const fills = Object.fromEntries(ids.map((id) => [id, recallFill(figures[id] ?? [])]));
+        if (active) setState({ status: 'ready', athletes, pairs, fills, programme });
       } catch (error) {
         if (active) setState({ status: 'error', message: messageOf(error) });
       }

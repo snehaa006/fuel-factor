@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AssessmentPanel } from '@/components/assessment-panel';
-import { OPEN_BOTH_FOR_TESTING, phaseAccess } from '@/lib/assessments';
+import { OPEN_BOTH_FOR_TESTING, phaseAccess, withRecallFill } from '@/lib/assessments';
 import { useMyAssessments } from '@/lib/use-assessments';
 import { useTheme } from '@/theme';
 
@@ -39,6 +39,9 @@ export default function AssessmentsScreen() {
     );
   }
 
+  // Saved values, with the recall's averages in the fields nobody has filled.
+  const pairs = withRecallFill(state.pairs, state.fill);
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
       <ScrollView
@@ -53,8 +56,9 @@ export default function AssessmentsScreen() {
           Assessments
         </Text>
         <Text style={[typography['body-m'], { color: colors['ink-muted'], marginTop: spacing['space-2'] }]}>
-          Your baseline (Week 0) and follow-up (Week 4) measures. Leave anything you did not
-          measure empty.
+          Your baseline (Week 0) and follow-up (Week 4) measures. Diet, fluid, energy, recovery
+          and urine colour are filled from your food recall where you have one; anything you type
+          wins. Leave anything you did not measure empty.
         </Text>
         {OPEN_BOTH_FOR_TESTING && (
           <Text
@@ -68,13 +72,14 @@ export default function AssessmentsScreen() {
         <View style={{ marginTop: spacing['space-6'] }}>
           <AssessmentPanel
             participantId={state.participantId}
-            pairs={state.pairs}
+            pairs={pairs}
+            fill={state.fill}
             access={{
               pre: phaseAccess('pre', state.programme),
               post: phaseAccess('post', state.programme),
             }}
             onSave={(phase, values) => state.save(state.participantId, phase, values)}
-            comparison={[{ participantId: state.participantId, name: state.name, pairs: state.pairs }]}
+            comparison={[{ participantId: state.participantId, name: state.name, pairs }]}
           />
         </View>
       </ScrollView>

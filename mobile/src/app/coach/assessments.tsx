@@ -4,7 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AssessmentPanel } from '@/components/assessment-panel';
-import { OPEN_BOTH_FOR_TESTING, phaseAccess } from '@/lib/assessments';
+import { OPEN_BOTH_FOR_TESTING, phaseAccess, withRecallFill } from '@/lib/assessments';
 import { useAccount } from '@/lib/use-account';
 import { useSquadAssessments } from '@/lib/use-assessments';
 import { useTheme } from '@/theme';
@@ -128,7 +128,11 @@ function SquadAssessments() {
               <View style={{ marginTop: spacing['space-6'] }}>
                 <AssessmentPanel
                   participantId={athlete.participantId}
-                  pairs={state.pairs[athlete.participantId] ?? {}}
+                  pairs={withRecallFill(
+                    state.pairs[athlete.participantId] ?? {},
+                    state.fills[athlete.participantId] ?? { pre: {}, post: {} }
+                  )}
+                  fill={state.fills[athlete.participantId]}
                   access={{
                     pre: phaseAccess('pre', state.programme),
                     post: phaseAccess('post', state.programme),
@@ -137,7 +141,10 @@ function SquadAssessments() {
                   comparison={state.athletes.map((a) => ({
                     participantId: a.participantId,
                     name: a.name,
-                    pairs: state.pairs[a.participantId] ?? {},
+                    pairs: withRecallFill(
+                      state.pairs[a.participantId] ?? {},
+                      state.fills[a.participantId] ?? { pre: {}, post: {} }
+                    ),
                   }))}
                   showNames
                   testID="coach-assessments"

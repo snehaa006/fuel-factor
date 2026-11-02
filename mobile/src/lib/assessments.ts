@@ -398,3 +398,159 @@ export function mergePhase(
   }
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// Averages from the recall
+//
+// The ASSESSMENTS tab's dietary, subjective and hydration rows are "3-day
+// averages" -- the averages of the three recall days. Week 0 reads the
+// baseline days (1-3), Week 4 the follow-up days (4-6). These fill a field
+// only where nobody has entered a value; a typed or saved value always wins.
+
+/** One recall day, as much of it as the assessments can use. */
+export type RecallDayFigures = {
+  dayNumber: number;
+  breakfast: string | null;
+  /** A breakfast food was picked from the database for this day. */
+  breakfastPicked: boolean;
+  fluid_ml: number | null;
+  energy: number | null;
+  recovery: number | null;
+  urine_colour: number | null;
+  /** From `recall_nutrition`, when the food database worked the day out. */
+  kcal: number | null;
+  carbs_g: number | null;
+  protein_g: number | null;
+  fat_g: number | null;
+};
+
+export const PHASE_DAYS: Record<Phase, readonly number[]> = {
+  pre: [1, 2, 3],
+  post: [4, 5, 6],
+};
+
+/** The assessment rows a recall can fill, and the recall figure each one averages. */
+export const FROM_RECALL: { key: string; field: keyof RecallDayFigures | 'breakfast_days' }[] = [
+  { key: 'kcal', field: 'kcal' },
+  { key: 'carbs', field: 'carbs_g' },
+  { key: 'protein', field: 'protein_g' },
+  { key: 'fat', field: 'fat_g' },
+  { key: 'breakfast', field: 'breakfast_days' },
+  { key: 'fluid', field: 'fluid_ml' },
+  // The recall's single Energy rating is read as morning energy, as the
+  // Progress screen has always read it.
+  { key: 'energyAm', field: 'energy' },
+  { key: 'recovery', field: 'recovery' },
+  { key: 'urine', field: 'urine_colour' },
+];
+
+/** What a recall's breakfast says when there was none. The form asks them to say so. */
+const NO_BREAKFAST = /^(none|no|nothing|skip(ped)?|-+|—|n\/a|tidak( ada)?|ga(k)? sarapan|no breakfast)\.?$/i;
+
+export function hadBreakfast(day: RecallDayFigures): boolean {
+  if (day.breakfastPicked) return true;
+  const text = (day.breakfast ?? '').trim();
+  return text !== '' && !NO_BREAKFAST.test(text);
+}
+
+export type RecallAverage = { value: number; days: number };
+
+/**
+ * One phase's averages from its recall days.
+ *
+ * Each figure averages only the days that have it, and says how many that
+ * was, so "1 day" never passes for a three-day average. Breakfast frequency
+ * is the count of days with a breakfast, out of the sheet's three.
+ */
+export function recallAverages(
+  days: RecallDayFigures[],
+  phase: Phase
+): Record<string, RecallAverage> {
+  const inPhase = days.filter((d) => PHASE_DAYS[phase].includes(d.dayNumber));
+  const out: Record<string, RecallAverage> = {};
+  if (inPhase.length === 0) return out;
+
+  for (const { key, field } of FROM_RECALL) {
+    if (field === 'breakfast_days') {
+      out[key] = { value: inPhase.filter(hadBreakfast).length, days: inPhase.length };
+      continue;
+    }
+    const values = inPhase
+      .map((d) => d[field])
+      .filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
+    if (values.length === 0) continue;
+    out[key] = { value: round2(values.reduce((a, b) => a + b, 0) / values.length), days: values.length };
+  }
+  return out;
+}
+
+export type RecallFill = Record<Phase, Record<string, RecallAverage>>;
+
+export function recallFill(days: RecallDayFigures[]): RecallFill {
+  return { pre: recallAverages(days, 'pre'), post: recallAverages(days, 'post') };
+}
+
+/** Saved values, with the recall's averages filling only what is still empty. */
+export function withRecallFill(pairs: PairValues, fill: RecallFill): PairValues {
+  const out: PairValues = { ...pairs };
+  for (const phase of ['pre', 'post'] as Phase[]) {
+    for (const [key, avg] of Object.entries(fill[phase])) {
+      const current = out[key] ?? { pre: null, post: null };
+      if (current[phase] === null) out[key] = { ...current, [phase]: avg.value };
+    }
+  }
+  return out;
+}
+
+type RecallFigureRow = {
+  participant_id: string;
+  day_number: number;
+  breakfast: string | null;
+  fluid_ml: number | null;
+  energy: number | null;
+  recovery: number | null;
+  urine_colour: number | null;
+  recall_nutrition:
+    | { method: string; kcal: number | null; carbs_g: number | null; protein_g: number | null; fat_g: number | null }
+    | { method: string; kcal: number | null; carbs_g: number | null; protein_g: number | null; fat_g: number | null }[]
+    | null;
+  recall_items: { meal: string }[] | null;
+};
+
+const num = (v: number | null | undefined) => (v === null || v === undefined ? null : Number(v));
+
+/** Recall days for these participants, keyed by participant. RLS decides whose. */
+export async function fetchRecallFigures(
+  participantIds: string[]
+): Promise<Record<string, RecallDayFigures[]>> {
+  if (participantIds.length === 0) return {};
+  const { data, error } = await supabase
+    .from('recalls')
+    .select(
+      'participant_id, day_number, breakfast, fluid_ml, energy, recovery, urine_colour, recall_nutrition(method, kcal, carbs_g, protein_g, fat_g), recall_items(meal)'
+    )
+    .in('participant_id', participantIds)
+    .returns<RecallFigureRow[]>();
+  if (error) throw asError(error);
+
+  const out: Record<string, RecallDayFigures[]> = {};
+  for (const row of data ?? []) {
+    const nutrition = Array.isArray(row.recall_nutrition) ? row.recall_nutrition[0] : row.recall_nutrition;
+    // Only figures the food database actually worked out count.
+    const computed = nutrition && nutrition.method === 'food_database' ? nutrition : null;
+    (out[row.participant_id] ??= []).push({
+      dayNumber: row.day_number,
+      breakfast: row.breakfast,
+      breakfastPicked: (row.recall_items ?? []).some((i) => i.meal === 'breakfast'),
+      fluid_ml: num(row.fluid_ml),
+      energy: num(row.energy),
+      recovery: num(row.recovery),
+      urine_colour: num(row.urine_colour),
+      kcal: num(computed?.kcal),
+      carbs_g: num(computed?.carbs_g),
+      protein_g: num(computed?.protein_g),
+      fat_g: num(computed?.fat_g),
+    });
+  }
+  return out;
+}

@@ -8,7 +8,7 @@ import {
 } from './__fixtures__/today';
 import { messageOf } from './errors';
 import { fetchProfile } from './profile';
-import { recallWindow, type RecallWindow } from './recall-window';
+import { FOLLOW_UP_OPEN_FOR_TESTING, recallWindow, type RecallWindow } from './recall-window';
 import {
   fetchRecall,
   fetchRecallEntries,
@@ -34,6 +34,8 @@ export type RecallStatus =
       days: RecallDay[];
       window: RecallWindow;
       programmeStartsOn: string | null;
+      /** The follow-up round is open now, for testing. See FOLLOW_UP_OPEN_FOR_TESTING. */
+      followUpOpenEarly?: boolean;
     }
   | { status: 'error'; message: string };
 
@@ -57,8 +59,10 @@ export function useRecallStatus(): RecallStatus & { reload: () => void } {
       window: recallWindow(
         DEMO_RECALL_DAYS.map((d) => d.dayNumber),
         programmeStartsOn,
-        today
+        today,
+        FOLLOW_UP_OPEN_FOR_TESTING
       ),
+      followUpOpenEarly: FOLLOW_UP_OPEN_FOR_TESTING,
       programmeStartsOn,
     };
   });
@@ -92,8 +96,10 @@ export function useRecallStatus(): RecallStatus & { reload: () => void } {
           window: recallWindow(
             days.map((d) => d.dayNumber),
             profile.programmeStartsOn,
-            todayIso()
+            todayIso(),
+            FOLLOW_UP_OPEN_FOR_TESTING
           ),
+          followUpOpenEarly: FOLLOW_UP_OPEN_FOR_TESTING,
           programmeStartsOn: profile.programmeStartsOn,
         });
       } catch (error) {

@@ -4,18 +4,23 @@ import {
   derive,
   DOMAINS,
   fetchAssessments,
+  fetchRecallFigures,
   formatDelta,
+  hadBreakfast,
   measureByKey,
   MEASURES,
   mergePhase,
   parseEntry,
   phaseAccess,
   phaseValues,
+  recallFill,
   rowsToSave,
   saveAssessment,
   toPairs,
   withDerived,
+  withRecallFill,
   WEEK_4_OPENS_ON_DAY,
+  type RecallDayFigures,
 } from '@/lib/assessments';
 import { supabase } from '@/lib/supabase';
 
@@ -192,5 +197,79 @@ describe('rows', () => {
     mockFrom.mockReturnValue({ select: () => ({ in: inFn }) });
     expect(await fetchAssessments(['p1'])).toEqual({ p1: { weight: { pre: 68, post: null } } });
     expect(inFn).toHaveBeenCalledWith('participant_id', ['p1']);
+  });
+});
+
+describe('averages from the recall', () => {
+  const day = (dayNumber: number, over: Partial<RecallDayFigures> = {}): RecallDayFigures => ({
+    dayNumber, breakfast: null, breakfastPicked: false, fluid_ml: null, energy: null, recovery: null,
+    urine_colour: null, kcal: null, carbs_g: null, protein_g: null, fat_g: null, ...over,
+  });
+
+  it('averages the baseline days for Week 0 and the follow-up days for Week 4', () => {
+    const days = [
+      day(1, { kcal: 1500, protein_g: 100, urine_colour: 6 }),
+      day(2, { kcal: 1700, protein_g: 120, urine_colour: 5 }),
+      day(4, { kcal: 2400 }),
+    ];
+    const fill = recallFill(days);
+    expect(fill.pre.kcal).toEqual({ value: 1600, days: 2 });
+    expect(fill.pre.protein).toEqual({ value: 110, days: 2 });
+    expect(fill.pre.urine).toEqual({ value: 5.5, days: 2 });
+    expect(fill.post.kcal).toEqual({ value: 2400, days: 1 });
+  });
+
+  it('counts a breakfast written as "None" or "skipped" as no breakfast', () => {
+    const fill = recallFill([
+      day(1, { breakfast: 'None' }),
+      day(2, { breakfast: 'skipped' }),
+      day(3, { breakfast: 'Greek yogurt with chia seeds' }),
+    ]);
+    expect(fill.pre.breakfast).toEqual({ value: 1, days: 3 });
+  });
+
+  it('counts a breakfast food picked from the database', () => {
+    expect(hadBreakfast(day(1, { breakfast: null, breakfastPicked: true }))).toBe(true);
+  });
+
+  it('reads the recall’s energy rating as morning energy, and averages recovery and fluid', () => {
+    const fill = recallFill([day(1, { energy: 6, recovery: 7, fluid_ml: 1500 }), day(2, { energy: 8, recovery: 5, fluid_ml: 2500 })]);
+    expect(fill.pre.energyAm.value).toBe(7);
+    expect(fill.pre.recovery.value).toBe(6);
+    expect(fill.pre.fluid.value).toBe(2000);
+  });
+
+  it('fills nothing for a week with no recall days', () => {
+    expect(recallFill([day(1, { kcal: 1500 })]).post).toEqual({});
+  });
+
+  it('fills only empty fields; a saved value wins', () => {
+    const pairs = { kcal: { pre: 1800, post: null } };
+    const filled = withRecallFill(pairs, {
+      pre: { kcal: { value: 1600, days: 3 }, protein: { value: 110, days: 3 } },
+      post: { kcal: { value: 2400, days: 3 } },
+    });
+    expect(filled.kcal).toEqual({ pre: 1800, post: 2400 });
+    expect(filled.protein).toEqual({ pre: 110, post: null });
+  });
+
+  it('reads only figures the food database worked out', async () => {
+    const rows = [
+      {
+        participant_id: 'p1', day_number: 1, breakfast: 'None', fluid_ml: 1500, energy: 6, recovery: 7, urine_colour: 4,
+        recall_nutrition: { method: 'food_database', kcal: 1650, carbs_g: 200, protein_g: 90, fat_g: 50 },
+        recall_items: [{ meal: 'breakfast' }],
+      },
+      {
+        participant_id: 'p1', day_number: 2, breakfast: null, fluid_ml: null, energy: null, recovery: null, urine_colour: null,
+        recall_nutrition: [{ method: 'not_computed', kcal: null, carbs_g: null, protein_g: null, fat_g: null }],
+        recall_items: [],
+      },
+    ];
+    const returns = jest.fn().mockResolvedValue({ data: rows, error: null });
+    mockFrom.mockReturnValue({ select: () => ({ in: () => ({ returns }) }) });
+    const figures = await fetchRecallFigures(['p1']);
+    expect(figures.p1[0]).toMatchObject({ kcal: 1650, breakfastPicked: true, fluid_ml: 1500 });
+    expect(figures.p1[1]).toMatchObject({ kcal: null, breakfastPicked: false });
   });
 });

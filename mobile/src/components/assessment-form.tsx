@@ -10,6 +10,7 @@ import {
   PHASE_LABEL,
   type MeasureDef,
   type Phase,
+  type RecallAverage,
 } from '@/lib/assessments';
 import { messageOf } from '@/lib/errors';
 import { useTheme } from '@/theme';
@@ -28,10 +29,18 @@ export type AssessmentFormProps = {
   /** The saved values for this phase, by measure key. */
   initial: Record<string, number | null>;
   onSave: (values: Record<string, number | null>) => Promise<void>;
+  /** This phase's recall averages, shown under the fields they can fill. */
+  fromRecall?: Record<string, RecallAverage>;
   testID?: string;
 };
 
-export function AssessmentForm({ phase, initial, onSave, testID = 'assessment-form' }: AssessmentFormProps) {
+export function AssessmentForm({
+  phase,
+  initial,
+  onSave,
+  fromRecall = {},
+  testID = 'assessment-form',
+}: AssessmentFormProps) {
   const { colors, radius, spacing, typography } = useTheme();
 
   const [drafts, setDrafts] = useState<Record<string, string>>(() =>
@@ -108,6 +117,14 @@ export function AssessmentForm({ phase, initial, onSave, testID = 'assessment-fo
                   <Text style={[typography['body-m'], { color: colors.ink }]}>{def.label}</Text>
                   {def.unit !== null && (
                     <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>{def.unit}</Text>
+                  )}
+                  {fromRecall[def.key] !== undefined && (
+                    <Text
+                      testID={`${testID}-${def.key}-recall`}
+                      style={[typography['body-s'], { color: colors['air-deep'] }]}
+                    >
+                      {recallHint(def.key, fromRecall[def.key])}
+                    </Text>
                   )}
                   {parsed.errors[def.key] !== undefined && (
                     <Text
@@ -186,6 +203,12 @@ export function AssessmentForm({ phase, initial, onSave, testID = 'assessment-fo
       />
     </View>
   );
+}
+
+/** "Recall average: 1520 (3 days)", or for breakfast "From recall: 2 of 3 days". */
+function recallHint(key: string, avg: RecallAverage): string {
+  if (key === 'breakfast') return `From recall: breakfast on ${avg.value} of ${avg.days} days`;
+  return `Recall average: ${avg.value} (${avg.days} day${avg.days === 1 ? '' : 's'})`;
 }
 
 const styles = StyleSheet.create({

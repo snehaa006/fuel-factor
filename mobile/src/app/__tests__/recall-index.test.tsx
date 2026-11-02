@@ -110,3 +110,21 @@ describe('filling them', () => {
     expect(screen.getByTestId('round-follow-up-locked')).toBeTruthy();
   });
 });
+
+describe('testing mode', () => {
+  it('opens the follow-up days now, and says it is testing', async () => {
+    mockUseRecall.mockReturnValue({
+      status: 'ready',
+      participantId: 'p-theo',
+      days: [],
+      window: baselineDue(),
+      programmeStartsOn: '2026-12-01',
+      followUpOpenEarly: true,
+      reload: jest.fn(),
+    });
+    await render(<RecallIndex />);
+    expect(screen.queryByTestId('round-follow-up-locked')).toBeNull();
+    expect(screen.getByTestId('recall-day-4')).toBeTruthy();
+    expect(screen.getByTestId('recall-testing')).toBeTruthy();
+  });
+});

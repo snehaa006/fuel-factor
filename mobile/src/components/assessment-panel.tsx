@@ -9,6 +9,7 @@ import {
   type PairValues,
   type Phase,
   type PhaseAccess,
+  type RecallFill,
 } from '@/lib/assessments';
 import { useTheme } from '@/theme';
 
@@ -26,6 +27,8 @@ export type AssessmentPanelProps = {
   access: Record<Phase, PhaseAccess>;
   onSave: (phase: Phase, values: Record<string, number | null>) => Promise<void>;
   comparison: ComparisonColumn[];
+  /** The recall's averages, for the hints under each field. */
+  fill?: RecallFill;
   showNames?: boolean;
   initialTab?: PanelTab;
   testID?: string;
@@ -43,6 +46,7 @@ export function AssessmentPanel({
   access,
   onSave,
   comparison,
+  fill,
   showNames = false,
   initialTab = 'pre',
   testID = 'assessments',
@@ -90,7 +94,8 @@ export function AssessmentPanel({
           <ComparisonTable columns={comparison} showNames={showNames} testID={`${testID}-comparison`} />
           <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
             Δ = Week 4 minus Week 0. For sprint time a negative Δ means faster. A dash means not
-            measured yet.
+            measured yet. Diet, fluid, morning energy, recovery and urine colour not entered by hand
+            are the recall’s averages for that week.
           </Text>
         </View>
       ) : (() => {
@@ -113,6 +118,7 @@ export function AssessmentPanel({
             phase={phase}
             initial={phaseValues(pairs, phase)}
             onSave={(values) => onSave(phase, values)}
+            fromRecall={fill?.[phase]}
             testID={`${testID}-${phase}`}
           />
         );

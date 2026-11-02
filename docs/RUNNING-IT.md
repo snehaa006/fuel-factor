@@ -31,6 +31,15 @@ and can be re-run safely.
 **Assessments testing mode.** `OPEN_BOTH_FOR_TESTING` in
 `mobile/src/lib/assessments.ts` opens the Week 4 form from day one. Set it to
 `false` before the real programme runs, and Week 4 opens on day 22.
+`FOLLOW_UP_OPEN_FOR_TESTING` in `mobile/src/lib/recall-window.ts` does the same
+for the four-weeks-on recall (days 4-6): on, it opens as soon as the baseline
+is in, with no start date needed. Turn both off together.
+
+**Assessments read the recall.** Calories, carbohydrate, protein, fat,
+breakfast frequency, fluid, morning energy (the recall's Energy rating),
+recovery and urine colour are filled from the recall's averages -- days 1-3 for
+Week 0, days 4-6 for Week 4 -- wherever nobody has typed a value. Saving the
+form writes them into `assessments`.
 
 The split is on purpose. The two phone surfaces get passed around, so they show
 the fixture under stand-in names and write nothing. The web build talks to the
