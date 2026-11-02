@@ -83,9 +83,19 @@ export default function RecallIndex() {
 
   const round = (name: RecallRound, days: readonly number[], blurb: string) => {
     const done = days.filter((day) => recorded.includes(day)).length;
-    // The follow-up is shut until the four weeks are up. Said with the date
-    // rather than greyed out silently.
-    const locked = name === 'follow-up' && window.status === 'waiting';
+    // The follow-up is shut until it is the round being asked for, which is
+    // the four weeks being up *and* the baseline being in. It used to be shut
+    // only on `waiting`, and `waiting` is reached only once the baseline is
+    // complete -- so an athlete who had not filled their baseline was offered
+    // all six days, and could answer the post-intervention round before the
+    // intervention. Said with the reason rather than greyed out silently.
+    // A round with a day already on it is always open, so a finished
+    // follow-up can still be corrected.
+    const started = done > 0;
+    const locked =
+      name === 'follow-up' &&
+      !started &&
+      !(window.status === 'due' && window.round === 'follow-up');
 
     return (
       <View
@@ -111,10 +121,13 @@ export default function RecallIndex() {
           <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>{blurb}</Text>
         </View>
 
-        {locked && window.status === 'waiting' ? (
+        {locked ? (
           <Text testID={`round-${name}-locked`} style={[typography['body-s'], { color: colors['ink-faint'] }]}>
-            Opens on {window.opensOn}, {window.daysUntil}{' '}
-            {window.daysUntil === 1 ? 'day' : 'days'} from now.
+            {window.status === 'waiting'
+              ? `Opens on ${window.opensOn}, ${window.daysUntil} ${
+                  window.daysUntil === 1 ? 'day' : 'days'
+                } from now.`
+              : `Opens ${PROGRAMME_WEEKS} weeks after the programme starts. Your three baseline days come first.`}
           </Text>
         ) : (
           <View style={{ gap: spacing['space-2'] }}>
@@ -213,13 +226,25 @@ export default function RecallIndex() {
         )}
 
         {window.status === 'due' && (
-          <View style={{ marginTop: spacing['space-8'] }}>
+          <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>
             <PushButton
               label={`Fill in day ${window.position}`}
               fullWidth
               testID="recall-next"
               onPress={() => router.push(`/recall/${window.dayNumber}`)}
             />
+            {/* The same three days, one sitting. Offered only while more than
+                one is outstanding: with a single day left it is the button
+                above with a longer label. */}
+            {window.of - window.done > 1 && (
+              <PushButton
+                label="Fill all three in one go"
+                variant="ghost"
+                fullWidth
+                testID="recall-all"
+                onPress={() => router.push('/recall/all')}
+              />
+            )}
           </View>
         )}
 

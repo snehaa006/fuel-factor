@@ -2,6 +2,7 @@ import { Redirect } from 'expo-router';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ProgrammeGate } from '@/components/programme-gate';
 import { useAccount } from '@/lib/use-account';
 import { useTheme } from '@/theme';
 
@@ -65,7 +66,14 @@ export default function Entry() {
       // An account with no athlete behind it yet: consent, then the team code.
       return <Redirect href="/welcome" />;
     case 'athlete':
-      return <Redirect href="/today" />;
+      // An athlete whose programme has not started yet has one screen, and
+      // the gate is what knows which: it sends them to the baseline recall
+      // and lets everyone else through to their day.
+      return (
+        <ProgrammeGate>
+          <Redirect href="/today" />
+        </ProgrammeGate>
+      );
   }
 }
 

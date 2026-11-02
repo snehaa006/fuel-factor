@@ -83,6 +83,48 @@ export const EMPTY_RECALL: RecallEntry = {
   notes: null,
 };
 
+/**
+ * A day being typed, before its three number-ish fields are numbers.
+ *
+ * The form cannot hold a `RecallEntry` alone: parsing on every keystroke
+ * mangles "1.5" into 1 while it is being typed, so the date, the sleep hours
+ * and the fluid stay as text until they are read out. One screen could keep
+ * three `useState`s beside the entry and the original did; three days in one
+ * sitting cannot, because the drafts have to survive switching between days.
+ */
+export type RecallDraft = {
+  /** Everything the controls set directly. Its three text-backed fields are ignored. */
+  entry: RecallEntry;
+  dateText: string;
+  sleepText: string;
+  fluidText: string;
+};
+
+/** A saved day, opened for typing again. */
+export function draftOf(entry: RecallEntry): RecallDraft {
+  return {
+    entry: { ...entry },
+    dateText: entry.recall_date ?? '',
+    sleepText: entry.sleep_hours === null ? '' : String(entry.sleep_hours),
+    fluidText: entry.fluid_ml === null ? '' : String(entry.fluid_ml),
+  };
+}
+
+/** A fresh blank draft. Built each call, so no two days share one. */
+export function blankDraft(): RecallDraft {
+  return draftOf(EMPTY_RECALL);
+}
+
+/** The row this draft would save. The three text fields are parsed here, once. */
+export function entryOf(draft: RecallDraft): RecallEntry {
+  return {
+    ...draft.entry,
+    recall_date: parseText(draft.dateText),
+    sleep_hours: parseSleepHours(draft.sleepText),
+    fluid_ml: parseFluid(draft.fluidText),
+  };
+}
+
 /** A blank field stays null. Not answered is not the same as none. */
 export function parseSleepHours(text: string): number | null {
   const trimmed = text.trim();
@@ -189,6 +231,50 @@ export async function fetchRecall(
       notes: row.notes,
     },
   };
+}
+
+/**
+ * Several recall days at once, keyed by day number.
+ *
+ * One request for the round rather than three, because the screen that fills
+ * all three days in one sitting needs every answer before it can mount a
+ * single field: the drafts are lazy initial state, and a day loaded a moment
+ * later would need an effect to copy into one.
+ *
+ * A day with no row is simply absent from the result. Nothing is invented for
+ * it, and the caller blanks it.
+ */
+export async function fetchRecallEntries(
+  participantId: string,
+  dayNumbers: readonly number[]
+): Promise<Record<number, RecallEntry>> {
+  const { data, error } = await supabase
+    .from('recalls')
+    .select('*')
+    .eq('participant_id', participantId)
+    .in('day_number', [...dayNumbers]);
+
+  if (error) throw asError(error);
+
+  const byDay: Record<number, RecallEntry> = {};
+  for (const row of (data ?? []) as Tables<'recalls'>[]) {
+    byDay[row.day_number] = {
+      recall_date: row.recall_date,
+      day_type: row.day_type,
+      sleep_hours: row.sleep_hours,
+      breakfast: row.breakfast,
+      lunch: row.lunch,
+      dinner: row.dinner,
+      activities: row.activities,
+      supplements: row.supplements,
+      fluid_ml: row.fluid_ml,
+      energy: row.energy,
+      recovery: row.recovery,
+      urine_colour: row.urine_colour,
+      notes: row.notes,
+    };
+  }
+  return byDay;
 }
 
 /**

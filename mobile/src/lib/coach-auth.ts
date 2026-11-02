@@ -25,7 +25,13 @@ export type CoachTeam = {
   joinCode: string;
   /** The code that makes another coach. Never handed out. */
   coachCode: string;
-  /** Day one of the four weeks, or null if the coach has not set it. */
+  /**
+   * Day one of the four weeks.
+   *
+   * Required of every team created from here on, and null only on teams that
+   * predate that -- the seeded squad among them. The app reads a null as "not
+   * set yet" and holds those athletes to their baseline recall.
+   */
   programmeStartsOn: string | null;
   athletes: number;
 };
@@ -112,8 +118,12 @@ function toTeam(row: {
  * Both codes are generated in the database rather than chosen here. A coach
  * picking a join code would pick a guessable one, and a guessable join code is
  * a stranger reading a roster of named minors.
+ *
+ * `startsOn` is required, and the database refuses the call without it. The
+ * whole app hangs off that date: the follow-up recall is four weeks after it,
+ * and logging opens on it.
  */
-export async function createTeam(name: string, startsOn: string | null = null): Promise<CoachTeam> {
+export async function createTeam(name: string, startsOn: string): Promise<CoachTeam> {
   const { data, error } = await supabase.rpc('create_team', {
     p_name: name,
     p_starts_on: startsOn,
@@ -135,13 +145,16 @@ export async function myTeam(): Promise<CoachTeam | null> {
 }
 
 /**
- * Set or move day one of the four weeks.
+ * Move day one of the four weeks.
  *
  * The coach's to set, and the app never guesses it. Every recall prompt is
  * derived from this date, so a wrong one is visible and correctable rather
  * than baked into rows.
+ *
+ * It cannot be cleared. A squad mid-programme whose start date vanished would
+ * be locked back out of logging, and nothing in the app could put it back.
  */
-export async function setProgrammeStart(startsOn: string | null): Promise<void> {
+export async function setProgrammeStart(startsOn: string): Promise<void> {
   const { error } = await supabase.rpc('set_programme_start', { p_starts_on: startsOn });
   if (error) throw new CoachAuthError(messageOf(error));
 }

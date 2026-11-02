@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ProgrammeGate } from '@/components/programme-gate';
 import { PushButton } from '@/components/push-button';
 import { MascotBanner } from '@/components/mascot-banner';
 import { messageOf } from '@/lib/errors';
@@ -31,7 +32,7 @@ function isMealSlot(value: string | undefined): value is MealSlot {
  * calculated rather than typed, so nothing on this screen takes a number from
  * the athlete except the quantity — the grams come from the database.
  */
-export default function LogMeal() {
+function LogMealForm() {
   const { slot: slotParam } = useLocalSearchParams<{ slot: string }>();
   const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
@@ -299,3 +300,15 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { paddingHorizontal: 14, paddingVertical: 8 },
 });
+
+/**
+ * Logging a meal writes a DAILY LOG row, and a DAILY LOG row is a day of
+ * the intervention. There are none before day one.
+ */
+export default function LogMeal() {
+  return (
+    <ProgrammeGate>
+      <LogMealForm />
+    </ProgrammeGate>
+  );
+}

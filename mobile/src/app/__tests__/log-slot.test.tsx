@@ -3,9 +3,11 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import LogMeal from '@/app/log/[slot]';
 import { addLogItem, ensureDailyLog } from '@/lib/logger';
 import { useFoods, useParticipantId } from '@/lib/use-foods';
+import { useProgramme } from '@/lib/use-programme';
 import { DEMO_FOODS } from '@/lib/__fixtures__/today';
 
 jest.mock('@/lib/use-foods');
+jest.mock('@/lib/use-programme');
 jest.mock('@/lib/logger', () => ({
   ...jest.requireActual('@/lib/logger'),
   ensureDailyLog: jest.fn(),
@@ -13,10 +15,15 @@ jest.mock('@/lib/logger', () => ({
 }));
 
 const mockBack = jest.fn();
+const mockRedirect = jest.fn();
 let mockSlotParam = 'breakfast';
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: mockBack, push: jest.fn() }),
   useLocalSearchParams: () => ({ slot: mockSlotParam }),
+  Redirect: ({ href }: { href: string }) => {
+    mockRedirect(href);
+    return null;
+  },
 }));
 
 const mockFoods = useFoods as jest.MockedFunction<typeof useFoods>;
@@ -24,12 +31,26 @@ const mockParticipant = useParticipantId as jest.MockedFunction<typeof usePartic
 const mockEnsure = ensureDailyLog as jest.MockedFunction<typeof ensureDailyLog>;
 const mockAdd = addLogItem as jest.MockedFunction<typeof addLogItem>;
 
+const mockUseProgramme = useProgramme as jest.MockedFunction<typeof useProgramme>;
+
+/** A squad five days into the four weeks, which is when these screens exist. */
+function programmeOpen() {
+  mockUseProgramme.mockReturnValue({
+    status: 'ready',
+    programme: { status: 'open', startsOn: '2026-11-01', day: 5, of: 28 },
+    name: 'Theo',
+    teamName: 'Jakarta U16',
+    reload: jest.fn(),
+  });
+}
+
 // Each render gets a fresh root; without this the trees accumulate and a
 // later lookup searches one that was never populated.
 afterEach(cleanup);
 
 beforeEach(() => {
   jest.clearAllMocks();
+  programmeOpen();
   mockSlotParam = 'breakfast';
   mockFoods.mockReturnValue({ status: 'ready', foods: DEMO_FOODS });
   mockParticipant.mockReturnValue('p1');
@@ -178,5 +199,32 @@ describe('getting out', () => {
     await choose('f1');
     fireEvent.press(screen.getByTestId('cancel'));
     expect(mockAdd).not.toHaveBeenCalled();
+  });
+});
+
+describe('before the programme starts', () => {
+  it('logs nothing, because there is no day of the intervention to log into', async () => {
+    mockUseProgramme.mockReturnValue({
+      status: 'ready',
+      programme: { status: 'before', startsOn: '2026-12-01', daysUntil: 9 },
+      name: 'Theo',
+      teamName: 'Jakarta U16',
+      reload: jest.fn(),
+    });
+    await render(<LogMeal />);
+    expect(mockRedirect).toHaveBeenCalledWith('/before-you-start');
+    expect(screen.queryByTestId('food-oat')).toBeNull();
+  });
+
+  it('is shut for a team whose coach has set no first day', async () => {
+    mockUseProgramme.mockReturnValue({
+      status: 'ready',
+      programme: { status: 'no-date' },
+      name: 'Theo',
+      teamName: 'Jakarta U16',
+      reload: jest.fn(),
+    });
+    await render(<LogMeal />);
+    expect(mockRedirect).toHaveBeenCalledWith('/before-you-start');
   });
 });

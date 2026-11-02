@@ -355,7 +355,81 @@ exactly as Today says "Not scored yet" for the DQ score. The figures live in
 cannot pick a computed number up and present it as a collected one. When the
 tables arrive, the body of that one function changes and nothing else does.
 
-**835 tests pass.**
+**Step 15** — The programme has a start date, and the app waits for it. Plus
+the workbook's two scales, and a way to fill all three recall days at once.
+
+**Day one stopped being optional.** `teams.programme_starts_on` was nullable in
+every sense: the column allowed null, `create_team` took `default null`,
+`set_programme_start(null)` cleared it, and the coach's screen labelled the
+field OPTIONAL. The app used it for exactly one thing — counting four weeks to
+the follow-up recall — and opened everything else the moment an athlete joined
+a squad, whenever that happened to be. That is not a tidier version of the same
+study. *"In every research, we have a baseline, and then we have an
+intervention, and then we see the post effects."* A baseline recall filled on
+the fourth day of logging is not a baseline, and logged days that fall before
+the intervention started are days the before-and-after cannot account for.
+
+So the date is asked for once, when the team is created, and afterwards it can
+only be **moved**. `20261102000001` makes `create_team` raise without it and
+`set_programme_start` raise on a null — clearing it would lock a squad
+mid-programme straight back out of logging with no screen able to undo it. The
+column stays nullable on purpose: rows created before this exist, the seeded
+Jakarta U16 among them, and a NOT NULL would have to invent a date for each of
+them. Seed 0004 now sets `current_date - 30` for that squad, which is
+placeholder data in an app-tier table that the export never reads.
+
+**Before day one the athlete's whole app is the baseline recall.**
+`programme.ts` derives `before` / `open` / `no-date` from the team's date and
+today's — nothing stored, like the recall window, the streak and the badges.
+`ProgrammeGate` wraps Today, the logger and the evening check-in, so the rule
+is written once and a new screen joins it by being wrapped; `/` sends an
+athlete who is waiting to `/before-you-start` instead of to their day. That
+screen is a countdown, the three baseline days and nothing else — no ring, no
+streak, no lessons, no leaderboard — and the sidebar lists Profile, the recall
+and Sign out. A team with no date reads the same way, and says only that the
+coach has not set the first day.
+
+The recall itself is **not** behind the gate: the three baseline days are the
+one thing that has to happen before day one. What did change is that the
+follow-up round on `/recall` is now locked until it is the round being asked
+for. It used to be locked only while `waiting`, and `waiting` is reached only
+once the baseline is complete — so an athlete who had not filled their baseline
+was offered all six days and could answer the post-intervention round before
+the intervention.
+
+**All three days in one sitting.** `/recall/all` is the same instrument asked a
+second way, for an athlete who sits down on a Sunday with three days to
+remember rather than filling one each evening. Three tabs, one form, and the
+round comes from the window rather than from a route parameter — a parameter
+would let a link ask for the follow-up in week one. It is still **three rows
+and three saves**: a day is written as it is finished, because three upserts
+have no transaction across them and holding all three until the end means a
+blip after twenty minutes' typing costs all of it. The questions live in
+`RecallFields`, shared with the day-at-a-time screen, so the two cannot drift
+into collecting slightly different things.
+
+**The workbook's scales, on a link beside the control.** `RatingScale` showed
+1 to 10 and no adjective, and `URINE_WORDING` had four of eight levels, both
+with the same comment: the anchor text is not in this repository and inventing
+it would be inventing the instrument. The sheet's own RATING SCALE (1-10) and
+URINE COLOUR SCALE (1-8) blocks are now in hand, so `RATING_BANDS` and
+`URINE_SCALE` are transcriptions of them — the bands are the sheet's uneven
+1-3 / 4-6 / 7-8 / 9-10, and all eight hydration levels carry their colour name
+and their sentence. Two of the four levels that were already here were
+approximations the sheet corrects: level 3 read "Fine" and is *"Acceptable —
+keep drinking"*; level 5 read "Drink more today", which is level 4's wording,
+and is *"Mildly dehydrated — act now"* — the threshold `coach.ts` flags on, and
+the sheet agrees with it.
+
+They open from a *"What do the numbers mean?"* link, the way a clothing shop
+puts its size guide beside the dropdown: the table is one tap away and the form
+is still underneath when it closes. One link per section, because the sheet
+states a single 1-10 scale and every rating is read off it. **The eight swatch
+colours are still not here** — a colour name is the sheet's own text, an
+approximated hex is not, and matching against a wrong swatch produces a wrong
+reading rather than a vague one.
+
+**960 tests pass.**
 
 `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
@@ -366,20 +440,24 @@ To look at the app without a session:
 
 In demo mode the recall prompt shows the **follow-up** round as due. That is not
 a fixture contradicting the database: seed 0003 really does hold Theo's three
-baseline days, so the app has no business asking for them again. What the
-fixture supplies is a programme start date thirty days back, because **no team
-in the database has one** — it is the coach's to set and nobody has.
+baseline days, so the app has no business asking for them again. The fixture
+puts the programme's start thirty days back, which is also what seed 0004 now
+gives the squad — so the demo opens on a running programme. To see
+`/before-you-start`, move that date forward.
 
 ### Where things are
 
 | Path | What |
 |---|---|
-| `mobile/src/app/index.tsx` | Today |
+| `mobile/src/app/index.tsx` | The front door. The only screen that decides who sees what |
+| `mobile/src/app/today.tsx` | Today. Behind the programme gate |
+| `mobile/src/app/before-you-start.tsx` | The athlete's whole app before day one: the countdown and the three baseline days |
 | `mobile/src/app/welcome.tsx` | Consent gate, team code, claim an athlete. Takes `?code=` from a link |
 | `mobile/src/app/join/[code].tsx` | The invite link's landing: consent, then the PARTICIPANTS questionnaire |
 | `mobile/src/app/profile.tsx` | Athlete or coach. Measurements shown, never editable |
 | `mobile/src/app/recall/index.tsx` | The two rounds and which days are in |
 | `mobile/src/app/recall/[day].tsx` | One recall day. Every RECALL column but `est_calories` |
+| `mobile/src/app/recall/all.tsx` | All three days of a round, in one sitting. Still three saves |
 | `mobile/src/app/coach/account.tsx` | Coach sign-up and sign-in. Email and password |
 | `mobile/src/app/coach/team.tsx` | Create a team, the invite link, the programme start date |
 | `mobile/src/app/log/[slot].tsx` | Food logger |
@@ -392,7 +470,7 @@ in the database has one** — it is the coach's to set and nobody has.
 | `mobile/src/lib/targets.ts` | The carbohydrate bands. The deck's numbers, nothing else |
 | `mobile/src/lib/today.ts` | Day summary, slot roll-up, day type |
 | `mobile/src/lib/logger.ts` | Food search, portions, writes and slot ticks |
-| `mobile/src/lib/check-in.ts` | The DAILY LOG fields, limits, urine wording |
+| `mobile/src/lib/check-in.ts` | The DAILY LOG fields, limits, and the workbook's two scales |
 | `mobile/src/lib/advice.ts` | Rule evaluation. Pure — `now` is passed in, never read |
 | `mobile/src/lib/streak.ts` | Streak length, the seven-day strip, best run |
 | `mobile/src/lib/session.ts` | Training session times, as minutes since midnight |
@@ -411,6 +489,7 @@ in the database has one** — it is the coach's to set and nobody has.
 | `mobile/src/lib/consent.ts` | The gate's words, in one place, because two screens take consent |
 | `mobile/src/lib/recall.ts` | The RECALL fields, limits, parsing and writes |
 | `mobile/src/lib/recall-window.ts` | Which recall is due. Pure — every input is passed in |
+| `mobile/src/lib/programme.ts` | Whether the four weeks have started. Pure — the date and today are passed in |
 | `mobile/src/lib/recall-nutrition.ts` | The client half of the backend macro seam |
 | `mobile/src/lib/profile.ts` | Athlete and coach profiles |
 | `mobile/src/lib/errors.ts` | `messageOf` / `asError` — read before touching error handling |
@@ -418,6 +497,9 @@ in the database has one** — it is the coach's to set and nobody has.
 | `mobile/src/components/sidebar.tsx` | The slide-over panel and its button |
 | `mobile/src/components/app-sidebar.tsx` | The app's one menu, so no two screens differ |
 | `mobile/src/components/recall-prompt.tsx` | The card on Today that asks for a recall day |
+| `mobile/src/components/recall-fields.tsx` | The RECALL questions, shared by the one-day and three-day screens |
+| `mobile/src/components/programme-gate.tsx` | Nothing behind it renders until day one |
+| `mobile/src/components/scale-guide.tsx` | The workbook's two scales, on a link beside the control |
 | `mobile/src/components/check-box.tsx` | Shared by both consent gates |
 | `mobile/src/components/mascot.tsx` | The astronaut. Poses, motions, reduced-motion fallback |
 | `mobile/src/lib/mascot-copy.ts` | Every line the mascot can say. Read the note at the top |

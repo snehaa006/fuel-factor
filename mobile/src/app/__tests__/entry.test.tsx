@@ -2,9 +2,11 @@ import { render, screen } from '@testing-library/react-native';
 
 import Entry from '@/app/index';
 import { useAccount } from '@/lib/use-account';
+import { useProgramme } from '@/lib/use-programme';
 import type { Account } from '@/lib/account';
 
 jest.mock('@/lib/use-account');
+jest.mock('@/lib/use-programme');
 
 // A mock factory can only reach variables named mock*, so this one is.
 const mockRedirect = jest.fn();
@@ -16,12 +18,24 @@ jest.mock('expo-router', () => ({
 }));
 
 const mockUseAccount = useAccount as jest.MockedFunction<typeof useAccount>;
+const mockUseProgramme = useProgramme as jest.MockedFunction<typeof useProgramme>;
 
 const signedInAs = (account: Account) =>
   mockUseAccount.mockReturnValue({ status: 'ready', account, reload: jest.fn() });
 
+/** An athlete's squad, five days into the four weeks. */
+const programmeOpen = () =>
+  mockUseProgramme.mockReturnValue({
+    status: 'ready',
+    programme: { status: 'open', startsOn: '2026-11-01', day: 5, of: 28 },
+    name: 'Theo',
+    teamName: 'Jakarta U16',
+    reload: jest.fn(),
+  });
+
 beforeEach(() => {
   jest.clearAllMocks();
+  programmeOpen();
 });
 
 /**
@@ -47,10 +61,40 @@ describe('where the app opens', () => {
     expect(mockRedirect).toHaveBeenCalledWith('/welcome');
   });
 
-  it('sends an athlete to their day', async () => {
+  it('sends an athlete whose programme is running to their day', async () => {
     signedInAs({ role: 'athlete', participantId: 'p-theo', email: 'theo@example.test' });
     await render(<Entry />);
     expect(mockRedirect).toHaveBeenCalledWith('/today');
+  });
+
+  it('sends an athlete whose programme has not started to their baseline recall', async () => {
+    // The three recall days are the thing that has to happen before day one,
+    // and the rest of the app is a day of the intervention. An athlete who
+    // joins a week early gets the recall and nothing else.
+    signedInAs({ role: 'athlete', participantId: 'p-theo', email: 'theo@example.test' });
+    mockUseProgramme.mockReturnValue({
+      status: 'ready',
+      programme: { status: 'before', startsOn: '2026-12-01', daysUntil: 9 },
+      name: 'Theo',
+      teamName: 'Jakarta U16',
+      reload: jest.fn(),
+    });
+    await render(<Entry />);
+    expect(mockRedirect).toHaveBeenCalledWith('/before-you-start');
+    expect(mockRedirect).not.toHaveBeenCalledWith('/today');
+  });
+
+  it('holds a team with no first day to the recall rather than guessing one', async () => {
+    signedInAs({ role: 'athlete', participantId: 'p-theo', email: 'theo@example.test' });
+    mockUseProgramme.mockReturnValue({
+      status: 'ready',
+      programme: { status: 'no-date' },
+      name: 'Theo',
+      teamName: 'Jakarta U16',
+      reload: jest.fn(),
+    });
+    await render(<Entry />);
+    expect(mockRedirect).toHaveBeenCalledWith('/before-you-start');
   });
 
   it('decides nothing while it is still asking', async () => {

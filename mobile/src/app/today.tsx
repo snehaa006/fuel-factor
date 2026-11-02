@@ -9,6 +9,7 @@ import { FuelRing } from '@/components/fuel-ring';
 import { MascotBanner } from '@/components/mascot-banner';
 import { MealTimeline } from '@/components/meal-timeline';
 import { NudgeCard } from '@/components/nudge-card';
+import { ProgrammeGate } from '@/components/programme-gate';
 import { PushButton } from '@/components/push-button';
 import { RecallPrompt } from '@/components/recall-prompt';
 import { SessionTimes } from '@/components/session-times';
@@ -33,7 +34,7 @@ import { useTheme } from '@/theme';
  * handed. Routing by role happens at `/` now, and this screen is only ever
  * reached as the athlete it belongs to.
  */
-export default function Today() {
+function TodayScreen() {
   const router = useRouter();
   const state = useToday();
   const recall = useRecallStatus();
@@ -259,3 +260,15 @@ const styles = StyleSheet.create({
   streak: { width: '100%' },
   dq: { gap: 4 },
 });
+
+/**
+ * Today belongs to the four weeks, so it opens with them. Before day one
+ * the athlete has the baseline recall and nothing else.
+ */
+export default function Today() {
+  return (
+    <ProgrammeGate>
+      <TodayScreen />
+    </ProgrammeGate>
+  );
+}

@@ -26,6 +26,16 @@ export type AppSidebarProps = {
   subtitle?: string;
   /** Which route is showing, so the menu can mark it. */
   current?: string;
+  /**
+   * The programme has not started yet.
+   *
+   * The menu then lists only what exists before day one: the baseline recall,
+   * the profile and the way out. Today, Learn, Team and Progress are left off
+   * rather than shown greyed, for the reason "Coach" was left off this menu
+   * for an athlete -- an item that walks somebody to a door and reads them
+   * the rule is the app asking them to try it.
+   */
+  beforeStart?: boolean;
   testID?: string;
 };
 
@@ -35,17 +45,30 @@ export function AppSidebar({
   title,
   subtitle,
   current,
+  beforeStart = false,
   testID = 'sidebar',
 }: AppSidebarProps) {
   const router = useRouter();
 
   const items: SidebarItem[] = [
     { key: 'profile', label: 'Profile', onPress: () => router.push('/profile') },
-    { key: 'today', label: 'Today', onPress: () => router.replace('/today') },
-    { key: 'recall', label: 'Food recall', onPress: () => router.push('/recall') },
-    { key: 'learn', label: 'Learn', onPress: () => router.push('/learn') },
-    { key: 'team', label: 'Team', onPress: () => router.push('/team') },
-    { key: 'progress', label: 'Progress', onPress: () => router.push('/progress') },
+    ...(beforeStart
+      ? [
+          {
+            key: 'before',
+            label: 'Before you start',
+            detail: 'Your three baseline recall days',
+            onPress: () => router.replace('/before-you-start'),
+          },
+          { key: 'recall', label: 'Food recall', onPress: () => router.push('/recall') },
+        ]
+      : [
+          { key: 'today', label: 'Today', onPress: () => router.replace('/today') },
+          { key: 'recall', label: 'Food recall', onPress: () => router.push('/recall') },
+          { key: 'learn', label: 'Learn', onPress: () => router.push('/learn') },
+          { key: 'team', label: 'Team', onPress: () => router.push('/team') },
+          { key: 'progress', label: 'Progress', onPress: () => router.push('/progress') },
+        ]),
     {
       key: 'sign-out',
       label: 'Sign out',

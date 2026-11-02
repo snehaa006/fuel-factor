@@ -8,6 +8,7 @@ const coachSql = read('supabase/migrations/20261101000001_coach_accounts.sql');
 const joinSql = read('supabase/migrations/20261101000002_join_team.sql');
 const recallSql = read('supabase/migrations/20261101000003_recall_entry.sql');
 const revokeSql = read('supabase/migrations/20261101000004_coach_code_really_revoked.sql');
+const startSql = read('supabase/migrations/20261102000001_programme_start_required.sql');
 
 /**
  * One migration with every comment dropped.
@@ -289,5 +290,44 @@ describe('the recall can be written, and the computed figures cannot', () => {
     expect(recallSql).toMatch(
       /revoke all on function public\.compute_recall_nutrition\(uuid\) from public, anon/
     );
+  });
+});
+
+describe('the programme needs a first day', () => {
+  it('refuses to create a team without one', () => {
+    // Everything the squad sees is counted from it: the follow-up recall four
+    // weeks later, and the day logging opens at all.
+    const fn = /create or replace function public\.create_team[\s\S]*?\n\$\$;/.exec(startSql)?.[0] ?? '';
+    expect(code(fn)).toMatch(/if p_starts_on is null then[\s\S]*?raise exception/);
+  });
+
+  it('refuses to clear one afterwards', () => {
+    // A squad mid-programme whose start date vanished would be locked
+    // straight back out of logging, and nothing in the app could put it back.
+    const fn =
+      /create or replace function public\.set_programme_start[\s\S]*?\n\$\$;/.exec(startSql)?.[0] ?? '';
+    expect(code(fn)).toMatch(/if p_starts_on is null then[\s\S]*?raise exception/);
+    expect(fn).toMatch(/move it rather than clearing it/);
+  });
+
+  it('still only lets a coach set it, and only for their own squad', () => {
+    // A function that accepts a team id has to be trusted to check it; one
+    // that reads the caller's own membership cannot be pointed elsewhere.
+    const fn =
+      /create or replace function public\.set_programme_start[\s\S]*?\n\$\$;/.exec(startSql)?.[0] ?? '';
+    expect(fn).toContain("tm.role = 'coach'");
+    expect(code(fn)).not.toMatch(/p_team_id/);
+  });
+
+  it('leaves the column nullable rather than inventing a date for old teams', () => {
+    // `teams` already holds rows created before this, the seeded squad among
+    // them. A NOT NULL would have to make up a date for each of them.
+    expect(code(startSql)).not.toMatch(/alter column programme_starts_on set not null/);
+  });
+
+  it('keeps the signature every grant was written against', () => {
+    // `create or replace` with a changed argument list would leave the old
+    // function, and its grants, in place beside the new one.
+    expect(startSql).toContain('create or replace function public.create_team(p_name text, p_starts_on date default null)');
   });
 });

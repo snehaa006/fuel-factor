@@ -9,7 +9,14 @@ import {
 import { messageOf } from './errors';
 import { fetchProfile } from './profile';
 import { recallWindow, type RecallWindow } from './recall-window';
-import { fetchRecall, fetchRecalls, saveRecall, type RecallDay, type RecallEntry } from './recall';
+import {
+  fetchRecall,
+  fetchRecallEntries,
+  fetchRecalls,
+  saveRecall,
+  type RecallDay,
+  type RecallEntry,
+} from './recall';
 import { computeNutrition, type RecallNutrition } from './recall-nutrition';
 import { todayIso } from './today';
 
@@ -208,6 +215,119 @@ export function useRecallForm(dayNumber: number): RecallFormController {
   );
 
   return { ...state, save, saving, saveError };
+}
+
+export type RecallRoundState =
+  | { status: 'loading' }
+  | { status: 'needs-onboarding' }
+  | {
+      status: 'ready';
+      /** The answer on record for each day of the round. Missing days are absent. */
+      entries: Record<number, RecallEntry>;
+      /** Day numbers saved, whether on record already or saved just now. */
+      savedDays: number[];
+    }
+  | { status: 'error'; message: string };
+
+export type RecallRoundController = RecallRoundState & {
+  save: (dayNumber: number, entry: RecallEntry) => Promise<void>;
+  /** The day currently being written, or null. One save at a time. */
+  savingDay: number | null;
+  saveError: string | null;
+};
+
+/**
+ * A whole round of three days, for filling them in one sitting.
+ *
+ * Still three rows and three saves: a day is saved as it is finished, so a
+ * refused write loses the day being typed and not the two already in. Doing
+ * it the other way -- hold all three and write them at the end -- means a
+ * network blip at the end of twenty minutes' typing costs all of it, and
+ * there is no transaction to be had across three upserts anyway.
+ *
+ * `est_calories` is not written here either. `saveRecall` is the one writer.
+ */
+export function useRecallRound(dayNumbers: readonly number[]): RecallRoundController {
+  const key = dayNumbers.join(',');
+  const [state, setState] = useState<RecallRoundState>(() =>
+    USE_FIXTURE ? { status: 'ready', entries: {}, savedDays: [] } : { status: 'loading' }
+  );
+  const [savingDay, setSavingDay] = useState<number | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [participantId, setParticipantId] = useState<string | null>(
+    USE_FIXTURE ? DEMO_PROFILE.participantId : null
+  );
+
+  useEffect(() => {
+    if (USE_FIXTURE) return;
+    let active = true;
+
+    async function load() {
+      try {
+        const profile = await fetchProfile();
+        if (!active) return;
+        if (profile === null || profile.kind !== 'athlete') {
+          setState({ status: 'needs-onboarding' });
+          return;
+        }
+        setParticipantId(profile.participantId);
+
+        const days = key === '' ? [] : key.split(',').map(Number);
+        const entries = await fetchRecallEntries(profile.participantId, days);
+        if (!active) return;
+        setState({ status: 'ready', entries, savedDays: Object.keys(entries).map(Number) });
+      } catch (error) {
+        if (active) setState({ status: 'error', message: messageOf(error) });
+      }
+    }
+
+    load();
+    return () => {
+      active = false;
+    };
+    // The day numbers are a fresh array on every render; the joined key is
+    // what actually changes when the round does.
+  }, [key]);
+
+  const save = useCallback(
+    async (dayNumber: number, entry: RecallEntry) => {
+      if (savingDay !== null) return;
+      setSavingDay(dayNumber);
+      setSaveError(null);
+      try {
+        if (!USE_FIXTURE) {
+          if (participantId === null) throw new Error('No athlete is claimed on this device.');
+          const recallId = await saveRecall(participantId, dayNumber, entry);
+          // The figures are the backend's answer and a failure there must not
+          // lose a saved day, so it is reported and the day stays saved.
+          try {
+            await computeNutrition(recallId);
+          } catch (error) {
+            setSaveError(messageOf(error));
+          }
+        }
+        setState((current) =>
+          current.status === 'ready'
+            ? {
+                ...current,
+                entries: { ...current.entries, [dayNumber]: entry },
+                savedDays: current.savedDays.includes(dayNumber)
+                  ? current.savedDays
+                  : [...current.savedDays, dayNumber],
+              }
+            : current
+        );
+      } catch (error) {
+        setSaveError(messageOf(error));
+        throw error;
+      } finally {
+        setSavingDay(null);
+      }
+    },
+    [participantId, savingDay]
+  );
+
+  return { ...state, save, savingDay, saveError };
 }
 
 /** A blank answer. Built fresh each time, so no screen shares a draft. */

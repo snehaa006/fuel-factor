@@ -14,6 +14,11 @@ deliberately carry different bundles.
 | **Web / coach dashboard**, <https://fuel-factor--step14.expo.app> | step 14 | **real database** |
 | **Supabase** `nprvrlpkdrgckzceyryc` | 15 migrations | live |
 
+Step 15 adds a sixteenth, `20261102000001_programme_start_required.sql`, which
+is **not applied yet** — it makes the programme's first day required on
+`create_team` and un-clearable afterwards. Everything else below describes the
+step-14 deployment.
+
 The split is on purpose. The two phone surfaces get passed around, so they show
 the fixture under stand-in names and write nothing. The web build talks to the
 real database, and both sign-ins work against it today -- an athlete can make
