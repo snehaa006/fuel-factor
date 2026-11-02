@@ -20,6 +20,14 @@ migrations live). The second adds `match` to `day_type` and lets an athlete,
 or their coach, write `assessments` rows -- the Week 0 / Week 4 form at
 `/assessments` and `/coach/assessments`.
 
+**Food database.** `20261103000002_food_database.sql` (applied) and seed
+`supabase/seed/0009_tkpi_foods.sql` (loaded) put the programme's Indonesian
+composition table in `food_items`: 1,346 foods, per-100 g calories, protein,
+fat and carbohydrate, five gram portions each. The daily log searches it on the
+server; the recall has a picker under each meal, and `compute_recall_nutrition`
+now adds up what was picked (`recall_items`). The seed is keyed on `tkpi_id`
+and can be re-run safely.
+
 **Assessments testing mode.** `OPEN_BOTH_FOR_TESTING` in
 `mobile/src/lib/assessments.ts` opens the Week 4 form from day one. Set it to
 `false` before the real programme runs, and Week 4 opens on day 22.

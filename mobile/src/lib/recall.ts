@@ -1,5 +1,6 @@
 import { asError } from './errors';
 import { supabase } from './supabase';
+import { macrosFor, type Macros } from './food';
 import type { Enums, Tables, TablesInsert } from './database.types';
 
 /**
@@ -65,7 +66,43 @@ export type RecallEntry = {
   recovery: number | null;
   urine_colour: number | null;
   notes: string | null;
+  /**
+   * Foods picked from the food database, meal by meal. Not a column of the
+   * RECALL sheet: they live in `recall_items` and are what the day's figures
+   * are calculated from. Absent means "not loaded", and a save then leaves
+   * whatever is stored alone.
+   */
+  foods?: RecallFood[];
 };
+
+/** One food picked for one meal of a recall day. */
+export type RecallFood = {
+  meal: MealField;
+  portionId: string;
+  foodName: string;
+  portionLabel: string;
+  quantity: number;
+  /** The portion's figures at this quantity. */
+  macros: Macros;
+};
+
+/** What the foods picked add up to, or null for a figure any of them lacks. */
+export function totalMacros(foods: RecallFood[]): Macros | null {
+  if (foods.length === 0) return null;
+  const sum = (key: keyof Macros) =>
+    foods.some((f) => f.macros[key] === null)
+      ? null
+      : Math.round(foods.reduce((a, f) => a + (f.macros[key] ?? 0), 0) * 10) / 10;
+  return { kcal: sum('kcal'), carbs_g: sum('carbs_g'), protein_g: sum('protein_g'), fat_g: sum('fat_g') };
+}
+
+/** A meal's free text with a picked food added, so the written record keeps up. */
+export function appendFood(text: string | null, food: string): string {
+  const current = (text ?? '').trim();
+  if (current === '') return food;
+  if (current.toLowerCase().includes(food.toLowerCase())) return current;
+  return `${current}, ${food}`;
+}
 
 export const EMPTY_RECALL: RecallEntry = {
   recall_date: null,
@@ -289,10 +326,12 @@ export async function saveRecall(
   dayNumber: number,
   entry: RecallEntry
 ): Promise<string> {
+  // The picked foods are not a column of `recalls`; saveRecallFoods writes them.
+  const { foods: _foods, ...columns } = entry;
   const row: TablesInsert<'recalls'> = {
     participant_id: participantId,
     day_number: dayNumber,
-    ...entry,
+    ...columns,
   };
 
   const { data, error } = await supabase
@@ -303,4 +342,86 @@ export async function saveRecall(
 
   if (error) throw asError(error);
   return data.id;
+}
+
+type RecallItemRow = {
+  meal: string;
+  quantity: number;
+  food_portion_id: string;
+  recalls: { day_number: number } | null;
+  food_portions: {
+    label: string;
+    kcal: number | null;
+    carbs_g: number | null;
+    protein_g: number | null;
+    fat_g: number | null;
+    food_items: { name_id: string } | null;
+  } | null;
+};
+
+/** The foods picked for these recall days, keyed by day number. */
+export async function fetchRecallFoods(
+  participantId: string,
+  dayNumbers: readonly number[]
+): Promise<Record<number, RecallFood[]>> {
+  if (dayNumbers.length === 0) return {};
+  const { data, error } = await supabase
+    .from('recall_items')
+    .select(
+      'meal, quantity, food_portion_id, recalls!inner(day_number, participant_id), food_portions(label, kcal, carbs_g, protein_g, fat_g, food_items(name_id))'
+    )
+    .eq('recalls.participant_id', participantId)
+    .in('recalls.day_number', [...dayNumbers])
+    .order('created_at')
+    .returns<RecallItemRow[]>();
+
+  if (error) throw asError(error);
+
+  const byDay: Record<number, RecallFood[]> = {};
+  for (const row of data ?? []) {
+    const day = row.recalls?.day_number;
+    const portion = row.food_portions;
+    if (day === undefined || portion === null) continue;
+    const quantity = Number(row.quantity);
+    (byDay[day] ??= []).push({
+      meal: row.meal as MealField,
+      portionId: row.food_portion_id,
+      foodName: portion.food_items?.name_id ?? 'Food',
+      portionLabel: portion.label,
+      quantity,
+      macros: macrosFor(
+        {
+          kcal: portion.kcal,
+          carbs_g: portion.carbs_g,
+          protein_g: portion.protein_g,
+          fat_g: portion.fat_g,
+        } as Tables<'food_portions'>,
+        quantity
+      ),
+    });
+  }
+  return byDay;
+}
+
+/**
+ * Replace the foods picked for one saved recall day.
+ *
+ * Delete and re-insert, because the form edits the whole list at once and a
+ * day holds a handful of rows. Row level security limits both to the
+ * athlete's own days.
+ */
+export async function saveRecallFoods(recallId: string, foods: RecallFood[]): Promise<void> {
+  const cleared = await supabase.from('recall_items').delete().eq('recall_id', recallId);
+  if (cleared.error) throw asError(cleared.error);
+  if (foods.length === 0) return;
+
+  const inserted = await supabase.from('recall_items').insert(
+    foods.map((f) => ({
+      recall_id: recallId,
+      meal: f.meal,
+      food_portion_id: f.portionId,
+      quantity: f.quantity,
+    }))
+  );
+  if (inserted.error) throw asError(inserted.error);
 }

@@ -8,7 +8,13 @@ import { PushButton } from '@/components/push-button';
 import { MascotBanner } from '@/components/mascot-banner';
 import { messageOf } from '@/lib/errors';
 import { SAVE_FAILED_CUE } from '@/lib/mascot-copy';
-import { GUIDANCE_LABEL, type FoodPortion, type FoodWithPortions } from '@/lib/food';
+import {
+  GUIDANCE_LABEL,
+  macroLine,
+  macrosFor,
+  type FoodPortion,
+  type FoodWithPortions,
+} from '@/lib/food';
 import {
   QUANTITIES,
   addLogItem,
@@ -37,10 +43,10 @@ function LogMealForm() {
   const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
 
-  const foods = useFoods();
+  const [query, setQuery] = useState('');
+  const foods = useFoods(query);
   const participantId = useParticipantId();
 
-  const [query, setQuery] = useState('');
   const [chosen, setChosen] = useState<FoodWithPortions | null>(null);
   const [portion, setPortion] = useState<FoodPortion | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
@@ -113,7 +119,7 @@ function LogMealForm() {
         <TextInput
           value={query}
           onChangeText={setQuery}
-          placeholder="nasi, pisang, oat…"
+          placeholder="Search 1,300+ foods: nasi, telur, pisang…"
           placeholderTextColor={colors['ink-faint']}
           autoCorrect={false}
           accessibilityLabel="Search foods"
@@ -169,12 +175,19 @@ function LogMealForm() {
               >
                 <View style={styles.rowBetween}>
                   <Text style={[typography['heading-m'], { color: colors.ink }]}>{food.name_id}</Text>
-                  <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-                    {GUIDANCE_LABEL[food.guidance as keyof typeof GUIDANCE_LABEL]}
-                  </Text>
+                  {food.guidance !== null && (
+                    <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
+                      {GUIDANCE_LABEL[food.guidance as keyof typeof GUIDANCE_LABEL]}
+                    </Text>
+                  )}
                 </View>
                 {food.name_en && (
                   <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>{food.name_en}</Text>
+                )}
+                {defaultPortion(food) !== null && food.tkpi_id !== null && (
+                  <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
+                    per 100 g: {macroLine(macrosFor(food.food_portions.find((p) => p.is_default) ?? defaultPortion(food)!))}
+                  </Text>
                 )}
                 {food.guidance_note && (
                   <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>{food.guidance_note}</Text>
@@ -249,7 +262,7 @@ function LogMealForm() {
                         ? ''
                         : summary.unknown
                           ? 'No carbohydrate figure for this yet — it will still be logged.'
-                          : `${Math.round(summary.carbs_g ?? 0)} g carbs`}
+                          : macroLine(summary)}
                     </Text>
                   </View>
                 )}

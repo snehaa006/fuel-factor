@@ -10,7 +10,7 @@ describe('searchFoods', () => {
   });
 
   it('matches the Indonesian name', () => {
-    expect(names(searchFoods(DEMO_FOODS, 'nasi'))).toEqual(['Nasi putih', 'Nasi merah']);
+    expect(names(searchFoods(DEMO_FOODS, 'nasi'))).toEqual(['Nasi putih', 'Nasi merah', 'Nasi']);
   });
 
   it('matches the English name, because the squad uses both', () => {
@@ -104,8 +104,16 @@ describe('the demo food fixture', () => {
     expect(withoutCarbs.map((f) => f.name_id)).toEqual(['Pepaya / mangga', 'Mie instan']);
   });
 
-  it('carries no protein or fat anywhere, because the deck gives neither', () => {
-    const portions: FoodPortion[] = DEMO_FOODS.flatMap((f) => f.food_portions);
+  it('carries no protein or fat for the deck’s foods, because the deck gives neither', () => {
+    const portions: FoodPortion[] = DEMO_FOODS.filter((f) => f.tkpi_id === null).flatMap(
+      (f) => f.food_portions
+    );
     expect(portions.every((p) => p.protein_g === null && p.fat_g === null)).toBe(true);
+  });
+
+  it('gives composition-table foods every figure, per 100 g by default', () => {
+    const nasi = DEMO_FOODS.find((f) => f.tkpi_id === 921)!;
+    const hundred = nasi.food_portions.find((p) => p.is_default)!;
+    expect(hundred).toMatchObject({ label: '100 g', kcal: 180, carbs_g: 39.8, protein_g: 3, fat_g: 0.3 });
   });
 });

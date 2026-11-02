@@ -1,16 +1,23 @@
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { DayTypeSwitch } from '@/components/day-type-switch';
+import { FoodPicker, type PickedFood } from '@/components/food-picker';
 import { RatingScale } from '@/components/rating-scale';
 import { ScaleGuideLink, type Scale } from '@/components/scale-guide';
 import { UrineScale } from '@/components/urine-scale';
+import { macroLine, macrosFor } from '@/lib/food';
 import {
+  appendFood,
   parseText,
+  totalMacros,
   RECALL_LIMITS,
   RECALL_MEALS,
   RECALL_RATINGS,
+  type MealField,
   type RecallDraft,
   type RecallEntry,
+  type RecallFood,
 } from '@/lib/recall';
 import { todayIso } from '@/lib/today';
 import { useTheme } from '@/theme';
@@ -53,6 +60,31 @@ export function RecallFields({
 
   const set = <K extends keyof RecallEntry>(key: K, value: RecallEntry[K]) =>
     onChange({ ...draft, entry: { ...draft.entry, [key]: value } });
+
+  // Which meal's food picker is open. One at a time keeps the form short.
+  const [picking, setPicking] = useState<MealField | null>(null);
+  const foods = draft.entry.foods ?? [];
+  const totals = totalMacros(foods);
+
+  function addFood(meal: MealField, picked: PickedFood) {
+    const words = `${picked.food.name_id} ${picked.portion.label}${picked.quantity === 1 ? '' : ` ×${picked.quantity}`}`;
+    const food: RecallFood = {
+      meal,
+      portionId: picked.portion.id,
+      foodName: picked.food.name_id,
+      portionLabel: picked.portion.label,
+      quantity: picked.quantity,
+      macros: macrosFor(picked.portion, picked.quantity),
+    };
+    onChange({
+      ...draft,
+      entry: { ...draft.entry, foods: [...foods, food], [meal]: appendFood(draft.entry[meal], words) },
+    });
+  }
+
+  function removeFood(index: number) {
+    onChange({ ...draft, entry: { ...draft.entry, foods: foods.filter((_, i) => i !== index) } });
+  }
 
   const label = (text: string) => (
     <Text style={[typography.label, { color: colors['ink-muted'] }]}>{text.toUpperCase()}</Text>
@@ -137,8 +169,70 @@ export function RecallFields({
                 testID={`${testPrefix}-${meal.field}`}
                 style={[...inputStyle, styles.multiline]}
               />
+
+              {foods.map((food, index) =>
+                food.meal !== meal.field ? null : (
+                  <View
+                    key={`${food.portionId}-${index}`}
+                    testID={`${testPrefix}-${meal.field}-food-${index}`}
+                    style={[styles.foodRow, { backgroundColor: colors['pisang-tint'], borderRadius: radius['radius-md'], padding: spacing['space-2'] }]}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={[typography['body-m'], { color: colors.ink }]}>
+                        {food.foodName} · {food.portionLabel}
+                        {food.quantity === 1 ? '' : ` ×${food.quantity}`}
+                      </Text>
+                      <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
+                        {macroLine(food.macros) || 'No figures for this food yet'}
+                      </Text>
+                    </View>
+                    <Pressable
+                      onPress={() => removeFood(index)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Remove ${food.foodName}`}
+                      testID={`${testPrefix}-${meal.field}-food-${index}-remove`}
+                      hitSlop={10}
+                    >
+                      <Text style={[typography.label, { color: colors['cabai-deep'] }]}>REMOVE</Text>
+                    </Pressable>
+                  </View>
+                )
+              )}
+
+              {picking === meal.field ? (
+                <FoodPicker
+                  onAdd={(picked) => addFood(meal.field, picked)}
+                  onClose={() => setPicking(null)}
+                  testID={`${testPrefix}-${meal.field}-picker`}
+                />
+              ) : (
+                <Pressable
+                  onPress={() => setPicking(meal.field)}
+                  accessibilityRole="button"
+                  testID={`${testPrefix}-${meal.field}-add-food`}
+                >
+                  <Text style={[typography.label, { color: colors['air-deep'] }]}>
+                    + ADD FROM FOOD DATABASE
+                  </Text>
+                </Pressable>
+              )}
             </View>
           ))}
+
+          {totals !== null && (
+            <View
+              testID={`${testPrefix}-food-totals`}
+              style={{ backgroundColor: colors['surface-raised'], borderRadius: radius['radius-lg'], padding: spacing['space-3'], gap: 2 }}
+            >
+              <Text style={[typography.label, { color: colors['ink-muted'] }]}>FROM THE FOODS PICKED</Text>
+              <Text style={[typography['heading-m'], { color: colors.ink }]}>
+                {macroLine(totals) || 'Not enough figures to add up'}
+              </Text>
+              <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
+                The day’s figures are worked out from these when you save.
+              </Text>
+            </View>
+          )}
           {/* No food is called good or bad here, and none is suggested.
               The athlete records what happened. */}
           <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
@@ -248,4 +342,5 @@ export function RecallFields({
 const styles = StyleSheet.create({
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 },
   multiline: { minHeight: 88, textAlignVertical: 'top' },
+  foodRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 });
