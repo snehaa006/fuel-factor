@@ -1,33 +1,32 @@
 import { asError, messageOf } from './errors';
 import { supabase } from './supabase';
 
+/**
+ * The team code half of getting in: who is on a squad, and claiming one.
+ *
+ * There used to be a `signIn()` here that signed the device in anonymously,
+ * on the argument that a squad of 14 to 16 year olds should not carry a
+ * credential each. The argument held; the implementation did not.
+ *
+ * - An anonymous session is one app install's storage. A reinstalled or lost
+ *   phone took the claim with it and `claim_participant` then refused the new
+ *   device with "already claimed on another device" -- correctly, because
+ *   that is exactly what it looked like from the database's side.
+ * - Anonymous sign-ins are switched off on this Supabase project and only its
+ *   owner can turn them on, so every athlete screen only ever ran against the
+ *   fixture. Email and password is on by default.
+ *
+ * Athletes sign in with an account now (`account.ts`), and the team code kept
+ * the job it was always good at: finding the squad and the right name on its
+ * roster. Nothing in the database changed for it -- `claim_participant` asks
+ * for `auth.uid()` and never cared where the session came from.
+ */
+
 export type RosterEntry = {
   participant_code: string;
   name: string;
   claimed: boolean;
 };
-
-/**
- * Sign this device in.
- *
- * Anonymous, because the athletes are 14 to 16 and a squad does not want a
- * password each. Identity comes from the team code and the athlete they claim;
- * the session only exists so row level security has a user to answer about.
- *
- * Returns null if the project has anonymous sign-ins switched off, which is a
- * setting rather than a failure, so the caller can say so plainly.
- */
-export async function signIn(): Promise<string | null> {
-  const { data: existing } = await supabase.auth.getSession();
-  if (existing.session) return existing.session.user.id;
-
-  const { data, error } = await supabase.auth.signInAnonymously();
-  if (error) {
-    if (error.code === 'anonymous_provider_disabled') return null;
-    throw asError(error);
-  }
-  return data.session?.user.id ?? null;
-}
 
 /** Who is in the team behind this code, and who is still free to claim. */
 export async function teamRoster(joinCode: string): Promise<RosterEntry[]> {

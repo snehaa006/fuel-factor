@@ -43,24 +43,67 @@ export const RATINGS: { field: RatingField; label: string }[] = [
 ];
 
 /**
- * What the tracker's own scale says about a urine reading.
+ * The workbook's urine colour scale, all eight levels.
  *
- * Only the levels the programme has actually worded are here. The rest are
- * absent rather than guessed: this is a measuring instrument, and inventing a
- * description for level 7 would be inventing the instrument.
+ * Four of these used to be absent and the comment here said why: this is a
+ * measuring instrument, and inventing a description for level 7 would be
+ * inventing the instrument. The workbook's own URINE COLOUR SCALE (1-8) sheet
+ * is now in hand, so none of it is invented — `colour` and `meaning` are its
+ * two columns, transcribed.
  *
- * The eight swatch colours are not here at all for the same reason, and a
- * colour matters more than a word — matching against an approximated swatch
- * produces a wrong reading, not a vague one.
+ * Two of the four levels that *were* here were approximations and are
+ * corrected by the sheet: level 3 read 'Fine' and is "Acceptable — keep
+ * drinking"; level 5 read 'Drink more today', which is level 4's wording, and
+ * is "Mildly dehydrated — act now". That last one is the threshold
+ * `DEHYDRATED_AT` in coach.ts flags on, and the sheet agrees with it.
+ *
+ * The eight swatch colours are still not here. A colour name is the sheet's
+ * own text; an approximated hex is not, and matching against a wrong swatch
+ * produces a wrong reading rather than a vague one. The athlete matches
+ * against the printed chart and taps the number.
  */
-export const URINE_WORDING: Partial<Record<number, string>> = {
-  3: 'Fine',
-  4: 'Drink more today',
-  5: 'Drink more today',
-  6: 'Dehydrated — drink immediately',
-};
+export const URINE_SCALE: { level: number; colour: string; meaning: string }[] = [
+  { level: 1, colour: 'Very pale yellow', meaning: 'Well hydrated — great' },
+  { level: 2, colour: 'Pale yellow', meaning: 'Hydrated — keep going' },
+  { level: 3, colour: 'Yellow', meaning: 'Acceptable — keep drinking' },
+  { level: 4, colour: 'Medium yellow', meaning: 'Drink more today' },
+  { level: 5, colour: 'Dark yellow', meaning: 'Mildly dehydrated — act now' },
+  { level: 6, colour: 'Amber', meaning: 'Dehydrated — drink immediately' },
+  { level: 7, colour: 'Orange', meaning: 'Significantly dehydrated — flag this' },
+  { level: 8, colour: 'Dark brown', meaning: 'Severely dehydrated — seek help' },
+];
 
-export const URINE_LEVELS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
+/** What the scale says about a reading, keyed by level. Derived, never typed twice. */
+export const URINE_WORDING: Partial<Record<number, string>> = Object.fromEntries(
+  URINE_SCALE.map(({ level, meaning }) => [level, meaning])
+);
+
+export const URINE_LEVELS = URINE_SCALE.map(({ level }) => level);
+
+/**
+ * The workbook's 1-10 rating scale, in the four bands it is written in.
+ *
+ * The same story as the urine scale: `RatingScale` showed the ends and no
+ * adjective because the anchor text was not in this repository, and the
+ * sheet's RATING SCALE (1-10) block now is. The bands are the sheet's own —
+ * 1-3, 4-6, 7-8, 9-10 — and not an even split, which is why they are listed
+ * rather than computed.
+ *
+ * These apply to every 1-10 rating the programme collects: the daily log's
+ * five and the recall's two. The sheet states one scale, not seven.
+ */
+export const RATING_BANDS: { from: number; to: number; meaning: string }[] = [
+  { from: 1, to: 3, meaning: 'Exhausted / No focus / Barely functional' },
+  { from: 4, to: 6, meaning: 'Average. Got through it. Normal for hard training week.' },
+  { from: 7, to: 8, meaning: 'Good. Solid session. This is the daily goal.' },
+  { from: 9, to: 10, meaning: 'Excellent. Everything clicked. Note what you ate and replicate it.' },
+];
+
+/** The band a rating falls in, or null when there is no rating. */
+export function ratingBand(value: number | null): (typeof RATING_BANDS)[number] | null {
+  if (value === null) return null;
+  return RATING_BANDS.find((band) => value >= band.from && value <= band.to) ?? null;
+}
 
 /** The column bounds, straight from the migration's check constraints. */
 export const LIMITS = {

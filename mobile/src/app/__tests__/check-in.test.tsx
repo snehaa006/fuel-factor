@@ -1,11 +1,13 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 import CheckInScreen from '@/app/check-in';
 import { saveCheckIn } from '@/lib/check-in';
 import { ensureDailyLog } from '@/lib/logger';
 import { useParticipantId } from '@/lib/use-foods';
+import { useProgramme } from '@/lib/use-programme';
 
 jest.mock('@/lib/use-foods');
+jest.mock('@/lib/use-programme');
 jest.mock('@/lib/check-in', () => ({
   ...jest.requireActual('@/lib/check-in'),
   saveCheckIn: jest.fn(),
@@ -16,14 +18,39 @@ jest.mock('@/lib/logger', () => ({
 }));
 
 const mockBack = jest.fn();
-jest.mock('expo-router', () => ({ useRouter: () => ({ back: mockBack, push: jest.fn() }) }));
+const mockRedirect = jest.fn();
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ back: mockBack, push: jest.fn() }),
+  Redirect: ({ href }: { href: string }) => {
+    mockRedirect(href);
+    return null;
+  },
+}));
 
 const mockParticipant = useParticipantId as jest.MockedFunction<typeof useParticipantId>;
 const mockEnsure = ensureDailyLog as jest.MockedFunction<typeof ensureDailyLog>;
 const mockSave = saveCheckIn as jest.MockedFunction<typeof saveCheckIn>;
 
+const mockUseProgramme = useProgramme as jest.MockedFunction<typeof useProgramme>;
+
+/** A squad five days into the four weeks, which is when these screens exist. */
+function programmeOpen() {
+  mockUseProgramme.mockReturnValue({
+    status: 'ready',
+    programme: { status: 'open', startsOn: '2026-11-01', day: 5, of: 28 },
+    name: 'Theo',
+    teamName: 'Jakarta U16',
+    reload: jest.fn(),
+  });
+}
+
+// Each render gets a fresh root; without this the trees accumulate and a
+// later lookup searches one that was never populated.
+afterEach(cleanup);
+
 beforeEach(() => {
   jest.clearAllMocks();
+  programmeOpen();
   mockParticipant.mockReturnValue('p1');
   mockEnsure.mockResolvedValue('log-1');
   mockSave.mockResolvedValue(undefined);
@@ -46,6 +73,29 @@ async function submitWith(answer: () => void) {
   await waitFor(() => expect(mockSave).toHaveBeenCalled());
   await waitFor(() => expect(screen.getByTestId('submit')).not.toHaveTextContent(/Saving/));
 }
+
+describe('before the programme starts', () => {
+  it('does not render the form at all', async () => {
+    // A check-in writes a DAILY LOG row, and a DAILY LOG row is a day of the
+    // intervention. There are none before day one.
+    mockUseProgramme.mockReturnValue({
+      status: 'ready',
+      programme: { status: 'before', startsOn: '2026-12-01', daysUntil: 9 },
+      name: 'Theo',
+      teamName: 'Jakarta U16',
+      reload: jest.fn(),
+    });
+    await render(<CheckInScreen />);
+    expect(mockRedirect).toHaveBeenCalledWith('/before-you-start');
+    expect(screen.queryByTestId('submit')).toBeNull();
+  });
+
+  it('opens once the first day has arrived', async () => {
+    await render(<CheckInScreen />);
+    expect(mockRedirect).not.toHaveBeenCalled();
+    expect(screen.getByTestId('submit')).toBeTruthy();
+  });
+});
 
 describe('the form', () => {
   it('shows every field the sheet asks for', async () => {

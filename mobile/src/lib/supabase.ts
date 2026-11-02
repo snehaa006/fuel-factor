@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 import 'react-native-url-polyfill/auto';
 
+import { DEFAULT_SUPABASE_PUBLISHABLE_KEY, DEFAULT_SUPABASE_URL } from './supabase-config';
 import type { Database } from './database.types';
 
 /**
@@ -23,16 +24,31 @@ import type { Database } from './database.types';
 
 let client: SupabaseClient<Database> | null = null;
 
+/**
+ * The environment first, the committed default second.
+ *
+ * `EXPO_PUBLIC_*` wins wherever it is set, so a `.env` still points a dev
+ * build at a local Supabase. When nothing sets it the app falls back to
+ * `supabase-config.ts` rather than to an error, which is the whole point of
+ * that file: a bundle published without the environment exported used to
+ * open on "Missing EXPO_PUBLIC_SUPABASE_URL" at the team-code gate.
+ */
+function configuredUrl(): string | undefined {
+  return process.env.EXPO_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+}
+
+function configuredKey(): string | undefined {
+  return process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY || DEFAULT_SUPABASE_PUBLISHABLE_KEY;
+}
+
 /** Whether the app has been given somewhere to talk to. */
 export function isConfigured(): boolean {
-  return Boolean(
-    process.env.EXPO_PUBLIC_SUPABASE_URL && process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-  );
+  return Boolean(configuredUrl() && configuredKey());
 }
 
 function connect(): SupabaseClient<Database> {
-  const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
-  const key = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const url = configuredUrl();
+  const key = configuredKey();
 
   if (!url || !key) {
     throw new Error(

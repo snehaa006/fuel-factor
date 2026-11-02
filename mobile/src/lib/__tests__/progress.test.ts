@@ -85,20 +85,24 @@ describe('change', () => {
 });
 
 describe('urineNote', () => {
-  it('uses the tracker’s own wording', () => {
+  it('uses the workbook’s own wording', () => {
     expect(urineNote(6)).toBe('Dehydrated — drink immediately');
-    expect(urineNote(3)).toBe('Fine');
+    expect(urineNote(3)).toBe('Acceptable — keep drinking');
   });
 
   it('rounds to a printed level', () => {
-    expect(urineNote(5.4)).toBe('Drink more today');
+    expect(urineNote(5.4)).toBe('Mildly dehydrated — act now');
   });
 
-  it('says nothing for a level the programme has not worded', () => {
-    // Levels 1, 2, 7 and 8 have no wording in the workbook. Inventing one
-    // would be inventing the instrument.
-    expect(urineNote(7)).toBeNull();
-    expect(urineNote(1)).toBeNull();
+  it('words every level, because the workbook’s scale does', () => {
+    // These four were null while the sheet's URINE COLOUR SCALE block was not
+    // in this repository. It is now, so an average that rounds to 7 reads as
+    // the instrument reads it rather than as nothing at all.
+    expect(urineNote(7)).toBe('Significantly dehydrated — flag this');
+    expect(urineNote(1)).toBe('Well hydrated — great');
+  });
+
+  it('says nothing when there is no average to word', () => {
     expect(urineNote(null)).toBeNull();
   });
 });

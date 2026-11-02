@@ -120,10 +120,10 @@ describe('createTeam', () => {
     // join code is a stranger reading a roster of named minors.
     mockRpc.mockResolvedValue({ data: [teamRow], error: null });
 
-    const team = await createTeam('Jakarta U16', null);
+    const team = await createTeam('Jakarta U16', '2026-11-10');
     expect(mockRpc).toHaveBeenCalledWith('create_team', {
       p_name: 'Jakarta U16',
-      p_starts_on: null,
+      p_starts_on: '2026-11-10',
     });
     expect(Object.keys(mockRpc.mock.calls[0][1])).not.toContain('p_join_code');
     expect(Object.keys(mockRpc.mock.calls[0][1])).not.toContain('p_coach_code');
@@ -151,7 +151,9 @@ describe('createTeam', () => {
       data: null,
       error: { message: 'creating a team needs an account with an email, not an anonymous session' },
     });
-    await expect(createTeam('Jakarta U16')).rejects.toThrow(/needs an account with an email/);
+    await expect(createTeam('Jakarta U16', '2026-11-10')).rejects.toThrow(
+      /needs an account with an email/
+    );
   });
 });
 
@@ -181,9 +183,14 @@ describe('setProgrammeStart', () => {
     expect(Object.keys(mockRpc.mock.calls[0][1])).not.toContain('p_team_id');
   });
 
-  it('can clear the date', async () => {
-    mockRpc.mockResolvedValue({ data: null, error: null });
-    await setProgrammeStart(null);
-    expect(mockRpc).toHaveBeenCalledWith('set_programme_start', { p_starts_on: null });
+  it('shows the database’s own sentence when the date is refused', async () => {
+    // Clearing it is gone: a squad mid-programme whose start date vanished
+    // would be locked straight back out of logging, and nothing in the app
+    // could put it back.
+    mockRpc.mockResolvedValue({
+      data: null,
+      error: { message: 'the programme needs a first day; move it rather than clearing it' },
+    });
+    await expect(setProgrammeStart('2026-11-10')).rejects.toThrow(/needs a first day/);
   });
 });

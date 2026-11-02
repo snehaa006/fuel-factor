@@ -1,11 +1,14 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { ScaleGuideLink } from '@/components/scale-guide';
 import { URINE_LEVELS, URINE_WORDING } from '@/lib/check-in';
 import { useTheme } from '@/theme';
 
 export type UrineScaleProps = {
   value: number | null;
   onChange: (value: number) => void;
+  /** Opens the workbook's eight-level table. Omitted, no link is drawn. */
+  onShowGuide?: () => void;
   testID?: string;
 };
 
@@ -21,7 +24,7 @@ export type UrineScaleProps = {
  * When the dietitian supplies the eight values they become colour tokens and
  * each cell gets its fill. Nothing else here changes.
  */
-export function UrineScale({ value, onChange, testID }: UrineScaleProps) {
+export function UrineScale({ value, onChange, onShowGuide, testID }: UrineScaleProps) {
   const { colors, radius, spacing, typography } = useTheme();
   const wording = value === null ? null : URINE_WORDING[value];
 
@@ -66,6 +69,17 @@ export function UrineScale({ value, onChange, testID }: UrineScaleProps) {
       >
         {wording ?? 'Match against the chart in your workbook, then tap the number.'}
       </Text>
+
+      {/* The chart itself, one tap away, the way a shop puts its size guide
+          beside the dropdown. The eight colours stay the printed chart's; this
+          is its wording. */}
+      {onShowGuide !== undefined && (
+        <ScaleGuideLink
+          scale="urine"
+          onPress={onShowGuide}
+          testID={testID ? `${testID}-guide` : undefined}
+        />
+      )}
     </View>
   );
 }

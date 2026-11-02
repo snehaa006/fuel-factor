@@ -5,7 +5,10 @@ import {
   COUNTERS,
   LIMITS,
   RATINGS,
+  RATING_BANDS,
+  ratingBand,
   URINE_LEVELS,
+  URINE_SCALE,
   URINE_WORDING,
   clampCounter,
   hasAnyAnswer,
@@ -72,17 +75,62 @@ describe('the urine scale', () => {
     expect(URINE_LEVELS).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
   });
 
-  it('carries the tracker’s own wording where the programme has given it', () => {
+  it('carries the workbook’s own wording, level for level', () => {
     expect(URINE_WORDING[6]).toBe('Dehydrated — drink immediately');
-    expect(URINE_WORDING[5]).toBe('Drink more today');
+    expect(URINE_WORDING[5]).toBe('Mildly dehydrated — act now');
+    expect(URINE_WORDING[4]).toBe('Drink more today');
   });
 
-  it('invents no wording for the levels the programme has not worded', () => {
-    // This is a measuring instrument. A description for level 7 would be the
-    // app writing the instrument.
-    for (const level of [1, 2, 7, 8]) {
-      expect(`level ${level}: ${URINE_WORDING[level] ?? 'none'}`).toBe(`level ${level}: none`);
+  it('words every level, because the workbook does', () => {
+    // Four of these were absent while the sheet's URINE COLOUR SCALE (1-8)
+    // block was not in this repository. It is, so none of this is the app
+    // writing the instrument -- it is the instrument, transcribed.
+    for (const level of URINE_LEVELS) {
+      expect(`level ${level}: ${URINE_WORDING[level] ?? 'none'}`).not.toBe(`level ${level}: none`);
     }
+  });
+
+  it('pairs each level with the colour the athlete matches against', () => {
+    expect(URINE_SCALE).toHaveLength(8);
+    expect(URINE_SCALE[0]).toEqual({
+      level: 1,
+      colour: 'Very pale yellow',
+      meaning: 'Well hydrated — great',
+    });
+    expect(URINE_SCALE[7]).toEqual({
+      level: 8,
+      colour: 'Dark brown',
+      meaning: 'Severely dehydrated — seek help',
+    });
+  });
+
+  it('agrees with the threshold the coach dashboard flags on', () => {
+    // coach.ts flags a reading of 5 or worse and tells the coach the scale
+    // "calls 5 or worse act now". The sheet is where that comes from.
+    expect(URINE_WORDING[5]).toContain('act now');
+  });
+});
+
+describe('the 1-10 rating scale', () => {
+  it('carries the workbook’s four bands, which are not an even split', () => {
+    expect(RATING_BANDS.map((b) => [b.from, b.to])).toEqual([
+      [1, 3],
+      [4, 6],
+      [7, 8],
+      [9, 10],
+    ]);
+  });
+
+  it('covers every rating the columns allow and overlaps nowhere', () => {
+    for (let value = LIMITS.rating.min; value <= LIMITS.rating.max; value += 1) {
+      expect(RATING_BANDS.filter((b) => value >= b.from && value <= b.to)).toHaveLength(1);
+    }
+  });
+
+  it('reads a rating back in the sheet’s own words', () => {
+    expect(ratingBand(2)?.meaning).toBe('Exhausted / No focus / Barely functional');
+    expect(ratingBand(8)?.meaning).toBe('Good. Solid session. This is the daily goal.');
+    expect(ratingBand(null)).toBeNull();
   });
 });
 

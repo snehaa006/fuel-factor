@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -15,7 +15,7 @@ import { CheckBox } from '@/components/check-box';
 import { Mascot } from '@/components/mascot';
 import { PushButton } from '@/components/push-button';
 import { DEMO_COACH_TEAM } from '@/lib/__fixtures__/today';
-import { signIn } from '@/lib/auth';
+
 import {
   CONSENT_CHECKBOX,
   CONSENT_FORM_NOTE,
@@ -26,6 +26,7 @@ import {
 } from '@/lib/consent';
 import { messageOf } from '@/lib/errors';
 import { normaliseCode } from '@/lib/invite';
+import { useAccount } from '@/lib/use-account';
 import {
   AGE_BANDS,
   EMPTY_QUESTIONNAIRE,
@@ -41,9 +42,9 @@ import { WELCOME_CUE } from '@/lib/mascot-copy';
 import { useTheme } from '@/theme';
 
 /**
- * Development flag, as everywhere else in this app. Anonymous sign-ins are
- * still switched off on this project, so without it this screen can only ever
- * show its own spinner and the invite flow cannot be demonstrated at all.
+ * Development flag, as everywhere else in this app. Without it this screen
+ * needs a real session and a real team row, so the invite flow could not be
+ * demonstrated from the fixture at all.
  */
 const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
 
@@ -86,23 +87,22 @@ export default function Join() {
   const [loading, setLoading] = useState(!USE_FIXTURE);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [signInBlocked, setSignInBlocked] = useState(false);
+  const account = useAccount();
 
   // A session has to exist before the code can be resolved: `team_by_code` is
   // granted to `authenticated` and nothing else, which is what stops a
-  // stranger probing codes against a roster of named minors.
+  // stranger probing codes against a roster of named minors. The session is
+  // an account now rather than an anonymous device, so an invite link opened
+  // by somebody with no account goes to the door first and comes back here
+  // with the code intact -- see the redirect below.
+  const signedIn = account.status === 'ready' && account.account.role !== 'signed-out';
+
   useEffect(() => {
-    if (USE_FIXTURE) return;
+    if (USE_FIXTURE || !signedIn) return;
     let active = true;
 
     async function start() {
       try {
-        const userId = await signIn();
-        if (!active) return;
-        if (userId === null) {
-          setSignInBlocked(true);
-          return;
-        }
         const team = await teamByCode(joinCode);
         if (!active) return;
         if (team === null) {
@@ -121,7 +121,7 @@ export default function Join() {
     return () => {
       active = false;
     };
-  }, [joinCode]);
+  }, [joinCode, signedIn]);
 
   function setMeasurement(field: MeasurementField, text: string) {
     setMeasurementText((current) => ({ ...current, [field]: text }));
@@ -168,7 +168,14 @@ export default function Join() {
     },
   ];
 
-  if (loading) {
+  // An invite link opened by somebody with no account. The code travels with
+  // them, so they come back here after signing in rather than being dropped
+  // at a team-code box with a link they have already used.
+  if (!USE_FIXTURE && account.status === 'ready' && account.account.role === 'signed-out') {
+    return <Redirect href={{ pathname: '/sign-in', params: { joinCode } }} />;
+  }
+
+  if (loading || (!USE_FIXTURE && !signedIn)) {
     return (
       <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
         <ActivityIndicator color={colors.pisang} />
@@ -179,25 +186,6 @@ export default function Join() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
       <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-6'] }]}>
-        {signInBlocked && (
-          <View
-            testID="join-sign-in-blocked"
-            style={{
-              backgroundColor: colors['cabai-tint'],
-              borderRadius: radius['radius-lg'],
-              padding: spacing['space-4'],
-              gap: 2,
-            }}
-          >
-            <Text style={[typography.label, { color: colors['cabai-deep'] }]}>
-              SIGN-IN UNAVAILABLE
-            </Text>
-            <Text style={[typography['body-s'], { color: colors.ink, marginTop: 4 }]}>
-              Anonymous sign-ins are switched off for this project. Turn them on in Supabase under
-              Authentication → Sign In / Providers.
-            </Text>
-          </View>
-        )}
 
         {step === 'consent' && (
           <View style={{ gap: spacing['space-4'] }}>
@@ -230,7 +218,7 @@ export default function Join() {
             <PushButton
               label="Continue"
               fullWidth
-              disabled={!consented || signInBlocked || teamName === null}
+              disabled={!consented || teamName === null}
               testID="join-continue"
               onPress={() => setStep('about-you')}
             />

@@ -1,31 +1,40 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 import Join from '@/app/join/[code]';
-import { signIn } from '@/lib/auth';
 import { joinTeam, teamByCode } from '@/lib/join';
+import { useAccount } from '@/lib/use-account';
+import type { Account } from '@/lib/account';
 
-jest.mock('@/lib/auth');
 jest.mock('@/lib/join', () => ({
   ...jest.requireActual('@/lib/join'),
   joinTeam: jest.fn(),
   teamByCode: jest.fn(),
 }));
+jest.mock('@/lib/use-account');
 
 const mockReplace = jest.fn();
+const mockRedirect = jest.fn();
 let mockParams: { code?: string } = { code: 'ABC234' };
 jest.mock('expo-router', () => ({
   useRouter: () => ({ replace: mockReplace, push: jest.fn(), back: jest.fn() }),
   useLocalSearchParams: () => mockParams,
+  Redirect: ({ href }: { href: unknown }) => {
+    mockRedirect(href);
+    return null;
+  },
 }));
 
-const mockSignIn = signIn as jest.MockedFunction<typeof signIn>;
 const mockTeamByCode = teamByCode as jest.MockedFunction<typeof teamByCode>;
 const mockJoinTeam = joinTeam as jest.MockedFunction<typeof joinTeam>;
+const mockUseAccount = useAccount as jest.MockedFunction<typeof useAccount>;
+
+const signedInAs = (account: Account) =>
+  mockUseAccount.mockReturnValue({ status: 'ready', account, reload: jest.fn() });
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockParams = { code: 'ABC234' };
-  mockSignIn.mockResolvedValue('user-1');
+  signedInAs({ role: 'unlinked', email: 'athlete@example.com' });
   mockTeamByCode.mockResolvedValue({ name: 'Jakarta U16', programmeStartsOn: null });
   mockJoinTeam.mockResolvedValue('participant-uuid');
 });
@@ -59,14 +68,6 @@ describe('the invite link lands here', () => {
     mockTeamByCode.mockResolvedValue(null);
     await render(<Join />);
     await waitFor(() => expect(screen.getByTestId('join-error')).toHaveTextContent(/No team/));
-  });
-
-  it('will not walk on without a session to read the code with', async () => {
-    // Anonymous sign-ins are still switched off on this project, and
-    // `team_by_code` is granted to `authenticated` and nothing else.
-    mockSignIn.mockResolvedValue(null);
-    await render(<Join />);
-    await waitFor(() => expect(screen.getByTestId('join-sign-in-blocked')).toBeTruthy());
   });
 });
 
@@ -209,5 +210,23 @@ describe('the questionnaire', () => {
     // supabase-js rejects with a plain object, so String(e) would be
     // [object Object] without messageOf.
     expect(screen.getByTestId('join-error')).not.toHaveTextContent(/\[object/);
+  });
+});
+
+describe('an invite link opened without an account', () => {
+  it('goes to the sign-in carrying the code', async () => {
+    // Dropping them at a bare sign-in would lose the link they just tapped.
+    signedInAs({ role: 'signed-out' });
+    await render(<Join />);
+    expect(mockRedirect).toHaveBeenCalledWith({
+      pathname: '/sign-in',
+      params: { joinCode: 'ABC234' },
+    });
+  });
+
+  it('asks the database nothing until there is a session to ask with', async () => {
+    signedInAs({ role: 'signed-out' });
+    await render(<Join />);
+    expect(mockTeamByCode).not.toHaveBeenCalled();
   });
 });

@@ -1,0 +1,274 @@
+import { Redirect, useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useRef, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { AppSidebar } from '@/components/app-sidebar';
+import { DayTypeSwitch } from '@/components/day-type-switch';
+import { FuelRing } from '@/components/fuel-ring';
+import { MascotBanner } from '@/components/mascot-banner';
+import { MealTimeline } from '@/components/meal-timeline';
+import { NudgeCard } from '@/components/nudge-card';
+import { ProgrammeGate } from '@/components/programme-gate';
+import { PushButton } from '@/components/push-button';
+import { RecallPrompt } from '@/components/recall-prompt';
+import { SessionTimes } from '@/components/session-times';
+import { SidebarButton } from '@/components/sidebar';
+import { StreakChip } from '@/components/streak-chip';
+import { StreakStrip } from '@/components/streak-strip';
+import { topNudges } from '@/lib/advice';
+import { dayCue } from '@/lib/mascot-copy';
+import { hasSession, nowMinutes } from '@/lib/session';
+import { bestStreak, loggedToday, recentDays, streakLength } from '@/lib/streak';
+import { useRecallStatus } from '@/lib/use-recall';
+import { useToday } from '@/lib/use-today';
+import { useTheme } from '@/theme';
+
+/**
+ * The athlete's day.
+ *
+ * It lived at `/` and was the first thing the app rendered to anybody. That is
+ * what made the two halves feel like one undivided app: a coach who signed in
+ * landed here, on an athlete's meals and streak, because a coach can read
+ * their squad's participant rows and the screen took the first one it was
+ * handed. Routing by role happens at `/` now, and this screen is only ever
+ * reached as the athlete it belongs to.
+ */
+function TodayScreen() {
+  const router = useRouter();
+  const state = useToday();
+  const recall = useRecallStatus();
+  const { colors, spacing, typography } = useTheme();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Coming back from the logger, the day has changed underneath this screen.
+  // The first focus is the mount, which has just loaded, so it is skipped.
+  const mounted = useRef(false);
+  const { reload } = state;
+  useFocusEffect(
+    useCallback(() => {
+      if (mounted.current) reload();
+      mounted.current = true;
+    }, [reload])
+  );
+
+  const message = (title: string, detail: string) => (
+    <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
+      <View style={{ padding: spacing['space-6'], gap: spacing['space-2'], alignItems: 'center' }}>
+        <Text style={[typography['heading-l'], { color: colors.ink, textAlign: 'center' }]}>{title}</Text>
+        <Text style={[typography['body-m'], { color: colors['ink-muted'], textAlign: 'center' }]}>
+          {detail}
+        </Text>
+      </View>
+    </SafeAreaView>
+  );
+
+  if (state.status === 'loading') {
+    return (
+      <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
+        <ActivityIndicator color={colors.pisang} />
+      </SafeAreaView>
+    );
+  }
+
+  // Reached directly without an athlete behind the session -- a deep link, or
+  // a restored route after signing out. `/` sorts out which gate that means.
+  if (state.status === 'needs-onboarding') {
+    return <Redirect href="/" />;
+  }
+
+  if (state.status === 'error') {
+    return message('Could not load today', state.message);
+  }
+
+  const { data, rules, date } = state;
+  const { summary } = data;
+  const streak = streakLength(data.activeDates, date);
+  const best = bestStreak(data.activeDates, date);
+  const week = recentDays(data.activeDates, date);
+  const now = nowMinutes();
+  const nudges = topNudges(summary, rules, now);
+  // Counts slots filled, never what filled them.
+  const cue = dayCue(summary.slots.filter((slot) => slot.logged).length, summary.slots.length);
+
+  return (
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
+      <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-4'] }]}>
+        <View style={styles.header}>
+          <View style={styles.title}>
+            <SidebarButton onPress={() => setMenuOpen(true)} testID="menu" />
+            <View>
+              <Text style={[typography.label, { color: colors['ink-muted'] }]}>TODAY</Text>
+              <Text style={[typography['display-l'], { color: colors.ink }]}>
+                {data.participantName}
+              </Text>
+            </View>
+          </View>
+          <StreakChip days={streak} lit={loggedToday(data.activeDates, date)} testID="streak" />
+        </View>
+
+        {/* The chip gives the number, the strip gives its shape: a gap two
+            days back is visible here and invisible in a count. */}
+        <View
+          style={[
+            styles.streak,
+            {
+              backgroundColor: colors['surface-raised'],
+              borderRadius: 16,
+              padding: spacing['space-4'],
+              marginTop: spacing['space-4'],
+              gap: spacing['space-3'],
+            },
+          ]}
+        >
+          <StreakStrip days={week} testID="streak-strip" />
+          {best > streak && (
+            <Text
+              testID="streak-best"
+              style={[typography['body-s'], { color: colors['ink-muted'], textAlign: 'center' }]}
+            >
+              Best so far: {best} days
+            </Text>
+          )}
+        </View>
+
+        {recall.status === 'ready' && (
+          <View style={{ marginTop: spacing['space-6'] }}>
+            <RecallPrompt
+              window={recall.window}
+              onPress={() =>
+                router.push(
+                  recall.window.status === 'due' ? `/recall/${recall.window.dayNumber}` : '/recall'
+                )
+              }
+              testID="recall-prompt"
+            />
+          </View>
+        )}
+
+        <View style={{ marginTop: spacing['space-6'] }}>
+          <MascotBanner
+            pose={cue.pose}
+            message={cue.message}
+            eyebrow={cue.eyebrow}
+            motion={cue.motion}
+            testID="day-mascot"
+          />
+        </View>
+
+        <View style={{ marginTop: spacing['space-6'] }}>
+          <DayTypeSwitch value={summary.dayType} onChange={state.changeDayType} testID="day-type" />
+        </View>
+
+        {/* A training day, or any day that already has a session recorded.
+            The second half matters: switching to Rest must not strand a
+            session on the row with no way left to clear it. */}
+        {(summary.dayType === 'training' || hasSession(summary.session)) && (
+          <View style={{ marginTop: spacing['space-4'] }}>
+            <SessionTimes
+              value={summary.session}
+              onChange={state.changeSession}
+              now={now}
+              testID="session"
+            />
+          </View>
+        )}
+
+        <View style={{ marginTop: spacing['space-8'], alignItems: 'center' }}>
+          <FuelRing
+            eaten={summary.carbsEaten}
+            band={summary.band}
+            itemsWithoutFigures={summary.itemsWithoutFigures}
+            testID="fuel-ring"
+          />
+        </View>
+
+        {nudges.length > 0 && (
+          <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>
+            {nudges.map((nudge, i) => (
+              <NudgeCard key={nudge.code} nudge={nudge} testID={i === 0 ? 'nudge' : `nudge-${i}`} />
+            ))}
+          </View>
+        )}
+
+        <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>
+          <Text style={[typography['heading-l'], { color: colors.ink }]}>Meals</Text>
+          <MealTimeline
+            slots={summary.slots}
+            onPressSlot={(s) => router.push(`/log/${s.slot}`)}
+            testID="timeline"
+          />
+        </View>
+
+        {/* The sheet names a DQ Score /12 and states no formula, so the app
+            shows the slot and leaves the number to the dietitian. */}
+        <View
+          style={[
+            styles.dq,
+            {
+              backgroundColor: colors['kecap-tint'],
+              borderRadius: 16,
+              padding: spacing['space-4'],
+              marginTop: spacing['space-8'],
+            },
+          ]}
+        >
+          <Text style={[typography.label, { color: colors['ink-muted'] }]}>DIET QUALITY SCORE</Text>
+          <Text testID="dq-score" style={[typography['heading-m'], { color: colors['kecap-deep'] }]}>
+            {summary.dqScore === null ? 'Not scored yet' : `${summary.dqScore} / 12`}
+          </Text>
+        </View>
+
+        <View style={{ marginTop: spacing['space-12'], gap: spacing['space-3'] }}>
+          <PushButton
+            label="Log a meal"
+            fullWidth
+            testID="log-meal"
+            onPress={() =>
+              router.push(`/log/${(summary.slots.find((s) => !s.logged) ?? summary.slots[0]).slot}`)
+            }
+          />
+          <PushButton
+            label="Evening check-in"
+            variant="success"
+            fullWidth
+            testID="check-in"
+            onPress={() => router.push('/check-in')}
+          />
+          {/* Learn, Team, Progress and the coach dashboard were four more
+              ghost slabs here. They are in the menu now: this screen is about
+              today, and four of its six buttons went somewhere else. */}
+        </View>
+      </ScrollView>
+
+      <AppSidebar
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        title={data.participantName}
+        current="today"
+      />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1 },
+  centre: { alignItems: 'center', justifyContent: 'center' },
+  content: { paddingBottom: 48 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  title: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  streak: { width: '100%' },
+  dq: { gap: 4 },
+});
+
+/**
+ * Today belongs to the four weeks, so it opens with them. Before day one
+ * the athlete has the baseline recall and nothing else.
+ */
+export default function Today() {
+  return (
+    <ProgrammeGate>
+      <TodayScreen />
+    </ProgrammeGate>
+  );
+}

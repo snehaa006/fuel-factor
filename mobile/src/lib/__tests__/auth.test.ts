@@ -1,59 +1,21 @@
-import { claimParticipant, ClaimError, claimedParticipantId, signIn, teamRoster } from '@/lib/auth';
+import { claimParticipant, ClaimError, claimedParticipantId, teamRoster } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
 jest.mock('@/lib/supabase', () => ({
   supabase: {
-    auth: { getSession: jest.fn(), signInAnonymously: jest.fn() },
+    auth: { getSession: jest.fn() },
     rpc: jest.fn(),
     from: jest.fn(),
   },
 }));
 
-const auth = supabase.auth as unknown as {
-  getSession: jest.Mock;
-  signInAnonymously: jest.Mock;
-};
+const auth = supabase.auth as unknown as { getSession: jest.Mock };
 const rpc = supabase.rpc as unknown as jest.Mock;
 const from = supabase.from as unknown as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
   auth.getSession.mockResolvedValue({ data: { session: null } });
-});
-
-describe('signIn', () => {
-  it('reuses a session the device already has', async () => {
-    auth.getSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } });
-    expect(await signIn()).toBe('u1');
-    expect(auth.signInAnonymously).not.toHaveBeenCalled();
-  });
-
-  it('signs in anonymously when there is none', async () => {
-    auth.signInAnonymously.mockResolvedValue({ data: { session: { user: { id: 'u2' } } }, error: null });
-    expect(await signIn()).toBe('u2');
-  });
-
-  it('collects no credential of any kind', async () => {
-    auth.signInAnonymously.mockResolvedValue({ data: { session: { user: { id: 'u2' } } }, error: null });
-    await signIn();
-    expect(auth.signInAnonymously).toHaveBeenCalledWith();
-  });
-
-  it('reports the provider being switched off as a setting, not a crash', async () => {
-    auth.signInAnonymously.mockResolvedValue({
-      data: {},
-      error: { code: 'anonymous_provider_disabled', message: 'Anonymous sign-ins are disabled' },
-    });
-    expect(await signIn()).toBeNull();
-  });
-
-  it('still throws on a real failure', async () => {
-    auth.signInAnonymously.mockResolvedValue({
-      data: {},
-      error: { code: 'over_request_rate_limit', message: 'slow down' },
-    });
-    await expect(signIn()).rejects.toMatchObject({ message: 'slow down' });
-  });
 });
 
 describe('teamRoster', () => {

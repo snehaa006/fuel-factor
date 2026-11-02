@@ -4,8 +4,25 @@
     {
       "name": "fuel-factor-web-demo",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "mobile", "run", "web:demo"],
+      "runtimeArgs": [
+        "--prefix",
+        "mobile",
+        "run",
+        "web:demo"
+      ],
       "port": 8095,
+      "autoPort": false
+    },
+    {
+      "name": "fuel-factor-web-live",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "mobile",
+        "run",
+        "web:live"
+      ],
+      "port": 8096,
       "autoPort": false
     }
   ]

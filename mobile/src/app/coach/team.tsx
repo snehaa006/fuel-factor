@@ -77,8 +77,8 @@ export default function CoachTeamScreen() {
       <View style={{ marginTop: spacing['space-2'], gap: spacing['space-4'] }}>
         <Text style={[typography['display-l'], { color: colors.ink }]}>Your squad</Text>
         <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-          Creating a team needs a coach account with an email. The squad still joins from a link
-          with no password.
+          Creating a team needs a coach account with an email. Your squad make their own
+          accounts and join with the code from your link.
         </Text>
         <PushButton
           label="Coach sign-in"
@@ -92,7 +92,7 @@ export default function CoachTeamScreen() {
 
   if (state.status === 'no-team') {
     const dateTyped = startsOn.trim();
-    const dateOk = dateTyped === '' || isIsoDate(dateTyped);
+    const dateOk = isIsoDate(dateTyped);
 
     return frame(
       <View style={{ marginTop: spacing['space-2'], gap: spacing['space-4'] }}>
@@ -124,7 +124,7 @@ export default function CoachTeamScreen() {
 
         <View style={{ gap: spacing['space-2'] }}>
           <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-            FIRST DAY OF THE PROGRAMME — OPTIONAL
+            FIRST DAY OF THE PROGRAMME
           </Text>
           <TextInput
             value={startsOn}
@@ -146,11 +146,24 @@ export default function CoachTeamScreen() {
             ]}
           />
           <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-            {/* Said here because every recall prompt is counted from it. */}
-            The squad fills their three baseline recall days before this date, and the app asks
-            again {PROGRAMME_WEEKS} weeks after it. You can set it later.
+            {/* Asked once, and not optional, because the whole app is counted
+                from it: the follow-up recall, and the day logging opens. */}
+            Until this day the squad sees their three baseline recall days and nothing else.
+            Logging, the ring and the streak open on it, and the app asks for the recall again{' '}
+            {PROGRAMME_WEEKS} weeks later. You can move it afterwards.
           </Text>
-          {!dateOk && (
+          <Pressable
+            onPress={() => setStartsOn(todayIso())}
+            accessibilityRole="button"
+            accessibilityLabel="Start today"
+            testID="team-start-today"
+            hitSlop={8}
+          >
+            <Text style={[typography['body-s'], styles.link, { color: colors['air-deep'] }]}>
+              Starting today? Use {todayIso()}
+            </Text>
+          </Pressable>
+          {dateTyped !== '' && !dateOk && (
             <Text testID="team-start-error" style={[typography['body-s'], { color: colors['cabai-deep'] }]}>
               That is not a date. Use YYYY-MM-DD, like {todayIso()}.
             </Text>
@@ -169,7 +182,7 @@ export default function CoachTeamScreen() {
           disabled={name.trim() === '' || !dateOk || state.busy}
           testID="team-create"
           onPress={() => {
-            state.create(name, dateTyped === '' ? null : dateTyped).catch(() => {
+            state.create(name, dateTyped).catch(() => {
               // Reported through actionError by the hook.
             });
           }}
@@ -265,9 +278,17 @@ export default function CoachTeamScreen() {
         startsOn={team.programmeStartsOn}
         busy={state.busy}
         onSet={(date) => {
-          state.setStart(date).catch(() => {});
+          state.setStart(date).catch(() => {
+            // Reported through actionError by the hook.
+          });
         }}
       />
+
+      {state.actionError !== null && (
+        <Text testID="team-action-error" style={[typography['body-s'], { color: colors['cabai-deep'] }]}>
+          {state.actionError}
+        </Text>
+      )}
 
       <PushButton
         label="Open the dashboard"
@@ -280,7 +301,18 @@ export default function CoachTeamScreen() {
   );
 }
 
-/** Day one of the four weeks: set it, move it, or clear it. */
+/**
+ * Day one of the four weeks: set it, or move it.
+ *
+ * Clearing it is gone, and the database refuses it too. A squad mid-programme
+ * whose start date vanished would be locked straight back out of logging,
+ * with no screen anywhere able to put it back except this one.
+ *
+ * `startsOn` is still nullable because teams created before the date was
+ * required exist and the app will not invent one for them. Those read as not
+ * set, and their athletes see the baseline recall and nothing else until a
+ * coach fills this in.
+ */
 function ProgrammeStart({
   startsOn,
   busy,
@@ -288,20 +320,20 @@ function ProgrammeStart({
 }: {
   startsOn: string | null;
   busy: boolean;
-  onSet: (date: string | null) => void;
+  onSet: (date: string) => void;
 }) {
   const { colors, radius, spacing, typography } = useTheme();
   const [draft, setDraft] = useState(startsOn ?? '');
   const typed = draft.trim();
-  const ok = typed === '' || isIsoDate(typed);
+  const ok = isIsoDate(typed);
 
   return (
     <View style={{ gap: spacing['space-2'] }}>
       <Text style={[typography['heading-l'], { color: colors.ink }]}>The four weeks</Text>
       <Text testID="team-programme" style={[typography['body-m'], { color: colors['ink-muted'] }]}>
         {startsOn === null
-          ? 'Not set. The squad can still fill their baseline recall; the follow-up needs a date to count from.'
-          : `Day one is ${startsOn}. The follow-up recall opens ${PROGRAMME_WEEKS} weeks later.`}
+          ? 'Not set yet, so your squad can only fill their three baseline recall days. Logging opens on the day you set here.'
+          : `Day one is ${startsOn}. Logging opened that morning and the follow-up recall opens ${PROGRAMME_WEEKS} weeks later.`}
       </Text>
       <TextInput
         value={draft}
@@ -325,11 +357,11 @@ function ProgrammeStart({
       <View style={{ flexDirection: 'row', gap: spacing['space-2'] }}>
         <View style={{ flex: 1 }}>
           <PushButton
-            label={busy ? 'Saving…' : 'Save the date'}
+            label={busy ? 'Saving…' : startsOn === null ? 'Set the date' : 'Move the date'}
             fullWidth
             disabled={!ok || busy || typed === (startsOn ?? '')}
             testID="team-programme-save"
-            onPress={() => onSet(typed === '' ? null : typed)}
+            onPress={() => onSet(typed)}
           />
         </View>
         <View style={{ flex: 1 }}>
@@ -347,7 +379,7 @@ function ProgrammeStart({
           />
         </View>
       </View>
-      {!ok && (
+      {typed !== '' && !ok && (
         <Text testID="team-programme-error" style={[typography['body-s'], { color: colors['cabai-deep'] }]}>
           That is not a date. Use YYYY-MM-DD.
         </Text>
@@ -360,4 +392,5 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   centre: { alignItems: 'center', justifyContent: 'center' },
   content: { paddingBottom: 48 },
+  link: { textDecorationLine: 'underline' },
 });

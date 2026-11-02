@@ -1,8 +1,9 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CredentialFields } from '@/components/credential-fields';
 import { PushButton } from '@/components/push-button';
 import { signInCoach, signUpCoach } from '@/lib/coach-auth';
 import { messageOf } from '@/lib/errors';
@@ -20,13 +21,13 @@ type Mode = 'sign-in' | 'sign-up';
  * team from an anonymous session owns it from one app install's storage, and
  * loses it on reinstall with nothing to prove it was theirs.
  *
- * This is also the only provider switched on for this project today, so it is
- * the one screen here that can be exercised against the live database while
- * anonymous sign-ins stay off.
+ * Athletes have their own door at `/sign-in`, on this same provider. What
+ * keeps the two apart is not the credential any more but what the account
+ * owns: a coach owns a team, an athlete claims a name on one.
  */
 export default function CoachAccount() {
   const router = useRouter();
-  const { colors, radius, spacing, typography } = useTheme();
+  const { colors, spacing, typography } = useTheme();
 
   const [mode, setMode] = useState<Mode>('sign-in');
   const [email, setEmail] = useState('');
@@ -54,42 +55,13 @@ export default function CoachAccount() {
       } else {
         await signInCoach(email, password);
       }
-      router.replace('/coach/team');
+      router.replace('/coach');
     } catch (e) {
       setError(messageOf(e));
     } finally {
       setBusy(false);
     }
   }
-
-  const field = (
-    label: string,
-    value: string,
-    onChangeText: (next: string) => void,
-    extra: Partial<React.ComponentProps<typeof TextInput>>,
-    testID: string
-  ) => (
-    <View style={{ gap: spacing['space-2'] }}>
-      <Text style={[typography.label, { color: colors['ink-muted'] }]}>{label.toUpperCase()}</Text>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        accessibilityLabel={label}
-        placeholderTextColor={colors['ink-faint']}
-        testID={testID}
-        style={[
-          typography['body-l'],
-          {
-            backgroundColor: colors['surface-sunken'],
-            borderRadius: radius['radius-lg'],
-            color: colors.ink,
-            padding: spacing['space-4'],
-          },
-        ]}
-        {...extra}
-      />
-    </View>
-  );
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
@@ -107,38 +79,19 @@ export default function CoachAccount() {
             { color: colors['ink-muted'], marginBottom: spacing['space-6'] },
           ]}
         >
-          Coaches sign in with an email so a team survives a new phone. The squad never needs a
-          password — they join from a link.
+          Coaches sign in with an email so a team survives a new phone. Your squad sign in to
+          their own accounts, then join with the code from your link.
         </Text>
 
-        <View style={{ gap: spacing['space-4'] }}>
-          {field(
-            'Email',
-            email,
-            setEmail,
-            {
-              autoCapitalize: 'none',
-              autoCorrect: false,
-              keyboardType: 'email-address',
-              placeholder: 'you@school.sch.id',
-              textContentType: 'emailAddress',
-            },
-            'account-email'
-          )}
-          {field(
-            'Password',
-            password,
-            setPassword,
-            {
-              autoCapitalize: 'none',
-              autoCorrect: false,
-              secureTextEntry: true,
-              placeholder: mode === 'sign-up' ? 'At least 6 characters' : '',
-              textContentType: mode === 'sign-up' ? 'newPassword' : 'password',
-            },
-            'account-password'
-          )}
-        </View>
+        <CredentialFields
+          email={email}
+          onChangeEmail={setEmail}
+          password={password}
+          onChangePassword={setPassword}
+          newAccount={mode === 'sign-up'}
+          emailPlaceholder="you@school.sch.id"
+          testIDPrefix="account"
+        />
 
         {notice !== null && (
           <Text

@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ProgrammeGate } from '@/components/programme-gate';
+import { ScaleGuide, ScaleGuideLink, type Scale } from '@/components/scale-guide';
 import { PushButton } from '@/components/push-button';
 import { RatingScale } from '@/components/rating-scale';
 import { Stepper } from '@/components/stepper';
@@ -33,7 +35,7 @@ import { useTheme } from '@/theme';
  * Every field can be left blank. Not answered is stored as null, never as
  * zero, so a blank never reads as a measurement of nothing.
  */
-export default function CheckInScreen() {
+function CheckInForm() {
   const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
   const participantId = useParticipantId();
@@ -42,6 +44,7 @@ export default function CheckInScreen() {
   const [fluidText, setFluidText] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [guide, setGuide] = useState<Scale | null>(null);
 
   function set<K extends keyof CheckIn>(field: K, value: CheckIn[K]) {
     setCheckIn((current) => ({ ...current, [field]: value }));
@@ -140,6 +143,7 @@ export default function CheckInScreen() {
           <UrineScale
             value={checkIn.urine_colour ?? null}
             onChange={(v) => set('urine_colour', v)}
+            onShowGuide={() => setGuide('urine')}
             testID="urine"
           />
         )}
@@ -148,6 +152,13 @@ export default function CheckInScreen() {
           'How you felt',
           `1 to ${LIMITS.rating.max}.`,
           <View style={{ gap: spacing['space-4'] }}>
+            {/* One link for all five, because the workbook states a single
+                1-10 scale and every rating here is read off it. */}
+            <ScaleGuideLink
+              scale="rating"
+              onPress={() => setGuide('rating')}
+              testID="rating-guide"
+            />
             {RATINGS.map(({ field, label }) => (
               <RatingScale
                 key={field}
@@ -213,6 +224,8 @@ export default function CheckInScreen() {
           onPress={submit}
         />
       </View>
+
+      <ScaleGuide scale={guide} onClose={() => setGuide(null)} />
     </SafeAreaView>
   );
 }
@@ -222,3 +235,15 @@ const styles = StyleSheet.create({
   content: { paddingBottom: 24 },
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });
+
+/**
+ * The evening check-in writes a DAILY LOG row, and a DAILY LOG row is a
+ * day of the intervention. There are none before day one.
+ */
+export default function CheckInScreen() {
+  return (
+    <ProgrammeGate>
+      <CheckInForm />
+    </ProgrammeGate>
+  );
+}

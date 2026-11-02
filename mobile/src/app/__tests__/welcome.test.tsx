@@ -1,32 +1,48 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 import Welcome from '@/app/welcome';
-import { claimParticipant, signIn, teamRoster } from '@/lib/auth';
+import { signOut } from '@/lib/account';
+import { claimParticipant, teamRoster } from '@/lib/auth';
 import { teamByCode } from '@/lib/join';
+import { useAccount } from '@/lib/use-account';
+import type { Account } from '@/lib/account';
 
 jest.mock('@/lib/auth');
 jest.mock('@/lib/join');
+jest.mock('@/lib/account');
+jest.mock('@/lib/use-account');
 
 // A mock factory can only reach variables named mock*, so these are.
 const mockReplace = jest.fn();
 const mockPush = jest.fn();
+const mockRedirect = jest.fn();
 let mockParams: { code?: string } = {};
 jest.mock('expo-router', () => ({
   useRouter: () => ({ replace: mockReplace, push: mockPush }),
   // The gate is also where an invite link lands when its holder is already on
   // the squad's roster, so it reads a code off the route.
   useLocalSearchParams: () => mockParams,
+  Redirect: ({ href }: { href: string }) => {
+    mockRedirect(href);
+    return null;
+  },
 }));
 
-const mockSignIn = signIn as jest.MockedFunction<typeof signIn>;
 const mockRoster = teamRoster as jest.MockedFunction<typeof teamRoster>;
 const mockClaim = claimParticipant as jest.MockedFunction<typeof claimParticipant>;
 const mockTeamByCode = teamByCode as jest.MockedFunction<typeof teamByCode>;
+const mockUseAccount = useAccount as jest.MockedFunction<typeof useAccount>;
+const mockSignOut = signOut as jest.MockedFunction<typeof signOut>;
+
+const signedInAs = (account: Account) =>
+  mockUseAccount.mockReturnValue({ status: 'ready', account, reload: jest.fn() });
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockParams = {};
-  mockSignIn.mockResolvedValue('user-1');
+  // The gate is only ever reached by an account with no athlete behind it.
+  signedInAs({ role: 'unlinked', email: 'athlete@example.com' });
+  mockSignOut.mockResolvedValue(undefined);
   mockTeamByCode.mockResolvedValue({ name: 'Jakarta U16', programmeStartsOn: null });
   mockRoster.mockResolvedValue([
     { participant_code: 'JA-01', name: 'Jacob', claimed: true },
@@ -151,7 +167,7 @@ describe('claiming an athlete', () => {
   it('goes to Today once claimed', async () => {
     await reachRoster();
     fireEvent.press(screen.getByTestId('athlete-T-01'));
-    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/'));
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/today'));
   });
 
   it('will not let an athlete already on another device be taken', async () => {
@@ -177,21 +193,31 @@ describe('claiming an athlete', () => {
   });
 });
 
-describe('when anonymous sign-ins are switched off', () => {
-  it('says which setting it is rather than failing silently', async () => {
-    mockSignIn.mockResolvedValue(null);
+describe('the account behind the claim', () => {
+  it('names the account an athlete is about to be tied to', async () => {
+    // The claim is the one thing here a phone cannot undo, so which account
+    // is making it is shown rather than assumed.
     await render(<Welcome />);
-    await waitFor(() => expect(screen.getByTestId('sign-in-blocked')).toBeTruthy());
-    expect(screen.getByTestId('sign-in-blocked')).toHaveTextContent(/Authentication → Sign In \/ Providers/);
+    expect(screen.getByTestId('signed-in-as')).toHaveTextContent(/athlete@example\.com/);
   });
 
-  it('does not let the athlete walk on into a lookup that cannot succeed', async () => {
-    mockSignIn.mockResolvedValue(null);
+  it('offers a way out to somebody signed in as the wrong person', async () => {
     await render(<Welcome />);
-    await waitFor(() => expect(screen.getByTestId('sign-in-blocked')).toBeTruthy());
-    fireEvent.press(screen.getByTestId('consent-checkbox'));
-    await waitFor(() =>
-      expect(screen.getByTestId('consent-continue').props.accessibilityState.disabled).toBe(true)
-    );
+    fireEvent.press(screen.getByTestId('welcome-sign-out'));
+    await waitFor(() => expect(mockSignOut).toHaveBeenCalled());
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/sign-in'));
+  });
+
+  it('hands an athlete who already claimed a name back to the router', async () => {
+    signedInAs({ role: 'athlete', participantId: 'p-theo', email: 'theo@example.com' });
+    await render(<Welcome />);
+    expect(mockRedirect).toHaveBeenCalledWith('/');
+    expect(screen.queryByTestId('consent-checkbox')).toBeNull();
+  });
+
+  it('hands a visitor with no account back to the router', async () => {
+    signedInAs({ role: 'signed-out' });
+    await render(<Welcome />);
+    expect(mockRedirect).toHaveBeenCalledWith('/');
   });
 });

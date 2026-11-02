@@ -24,8 +24,8 @@ export type CoachTeamState =
 
 export type CoachTeamController = CoachTeamState & {
   reload: () => void;
-  create: (name: string, startsOn: string | null) => Promise<void>;
-  setStart: (startsOn: string | null) => Promise<void>;
+  create: (name: string, startsOn: string) => Promise<void>;
+  setStart: (startsOn: string) => Promise<void>;
   busy: boolean;
   actionError: string | null;
 };
@@ -81,7 +81,7 @@ export function useCoachTeam(): CoachTeamController {
   }, [nonce]);
 
   const create = useCallback(
-    async (name: string, startsOn: string | null) => {
+    async (name: string, startsOn: string) => {
       if (busy || USE_FIXTURE) return;
       setBusy(true);
       setActionError(null);
@@ -99,7 +99,7 @@ export function useCoachTeam(): CoachTeamController {
   );
 
   const setStart = useCallback(
-    async (startsOn: string | null) => {
+    async (startsOn: string) => {
       if (busy || USE_FIXTURE) return;
       setBusy(true);
       setActionError(null);

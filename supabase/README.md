@@ -46,7 +46,7 @@ on `daily_logs`, and the export never sees it.
 | Lessons for weeks 2 to 4 | Only week 1 has been written. A week with no `lesson_cards` rows shows locked, so seeding a week is all it takes to unlock it. |
 | `recall_nutrition.kcal`, `carbs_g`, `protein_g`, `fat_g` | `compute_recall_nutrition` computes nothing yet and says so in `method` and `note`. Turning a recall's free text into grams needs the Jakarta composition tables; this database has carbohydrate for seven foods and no protein or fat for any. A zero would assert an athlete ate none. |
 | `recalls.est_calories` | Still the sheet's hand-typed estimate. The app never writes it: replacing it with a computed figure is a decision about a column the export reads, not a side effect of the stub. |
-| `teams.programme_starts_on` | Null until a coach sets it. Every recall prompt is counted from it, and the app never guesses a date nobody chose. |
+| `teams.programme_starts_on` | Required of every team created since `20261102000001`, and only movable after that — `create_team` refuses a null and `set_programme_start` refuses to clear one. The column stays nullable because teams predating that migration exist and the app will not invent a date for them; it reads a null as "not set yet" and holds those athletes to their baseline recall. Everything is counted from this date: the follow-up recall four weeks later, and the day logging opens at all. |
 
 ## The two codes, and why one of them is revoked
 
