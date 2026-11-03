@@ -106,7 +106,7 @@ export default function CoachTeamScreen() {
           <TextInput
             value={name}
             onChangeText={setName}
-            placeholder="Jakarta U16"
+            placeholder="Your team's name"
             placeholderTextColor={colors['ink-faint']}
             accessibilityLabel="Team name"
             testID="team-name"
