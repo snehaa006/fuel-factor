@@ -55,9 +55,9 @@ export type Database = {
         Relationships: [{ foreignKeyName: 'daily_logs_participant_id_fkey'; columns: ['participant_id']; isOneToOne: false; referencedRelation: 'participants'; referencedColumns: ['id'] }];
       };
       food_items: {
-        Row: { category: string | null; created_at: string; guidance: string; guidance_note: string | null; id: string; is_pork: boolean; name_en: string | null; name_id: string; source: string };
-        Insert: { category?: string | null; created_at?: string; guidance: string; guidance_note?: string | null; id?: string; is_pork?: boolean; name_en?: string | null; name_id: string; source: string };
-        Update: { category?: string | null; created_at?: string; guidance?: string; guidance_note?: string | null; id?: string; is_pork?: boolean; name_en?: string | null; name_id?: string; source?: string };
+        Row: { category: string | null; created_at: string; guidance: string | null; guidance_note: string | null; id: string; is_pork: boolean; name_en: string | null; name_id: string; source: string; tkpi_id: number | null };
+        Insert: { category?: string | null; created_at?: string; guidance?: string | null; guidance_note?: string | null; id?: string; is_pork?: boolean; name_en?: string | null; name_id: string; source: string; tkpi_id?: number | null };
+        Update: { category?: string | null; created_at?: string; guidance?: string | null; guidance_note?: string | null; id?: string; is_pork?: boolean; name_en?: string | null; name_id?: string; source?: string; tkpi_id?: number | null };
         Relationships: [];
       };
       food_portions: {
@@ -109,6 +109,15 @@ export type Database = {
         Insert: { activities?: string | null; breakfast?: string | null; created_at?: string; day_number: number; day_type?: Database['public']['Enums']['day_type'] | null; dinner?: string | null; energy?: number | null; est_calories?: number | null; fluid_ml?: number | null; id?: string; lunch?: string | null; notes?: string | null; participant_id: string; recall_date?: string | null; recovery?: number | null; sleep_hours?: number | null; supplements?: string | null; updated_at?: string; urine_colour?: number | null };
         Update: { activities?: string | null; breakfast?: string | null; created_at?: string; day_number?: number; day_type?: Database['public']['Enums']['day_type'] | null; dinner?: string | null; energy?: number | null; est_calories?: number | null; fluid_ml?: number | null; id?: string; lunch?: string | null; notes?: string | null; participant_id?: string; recall_date?: string | null; recovery?: number | null; sleep_hours?: number | null; supplements?: string | null; updated_at?: string; urine_colour?: number | null };
         Relationships: [{ foreignKeyName: 'recalls_participant_id_fkey'; columns: ['participant_id']; isOneToOne: false; referencedRelation: 'participants'; referencedColumns: ['id'] }];
+      };
+      recall_items: {
+        Row: { created_at: string; food_portion_id: string; id: string; meal: string; quantity: number; recall_id: string };
+        Insert: { created_at?: string; food_portion_id: string; id?: string; meal: string; quantity?: number; recall_id: string };
+        Update: { created_at?: string; food_portion_id?: string; id?: string; meal?: string; quantity?: number; recall_id?: string };
+        Relationships: [
+          { foreignKeyName: 'recall_items_recall_id_fkey'; columns: ['recall_id']; isOneToOne: false; referencedRelation: 'recalls'; referencedColumns: ['id'] },
+          { foreignKeyName: 'recall_items_food_portion_id_fkey'; columns: ['food_portion_id']; isOneToOne: false; referencedRelation: 'food_portions'; referencedColumns: ['id'] }
+        ];
       };
       recall_nutrition: {
         // App tier. What the food database made of one recall day; never
@@ -231,7 +240,7 @@ export type Database = {
     };
     Enums: {
       badge_criterion: 'days_logged' | 'streak' | 'challenges_done';
-      day_type: 'training' | 'rest';
+      day_type: 'training' | 'match' | 'rest';
       meal_slot: 'breakfast' | 'pre_training' | 'lunch' | 'post_training' | 'dinner' | 'evening_snack';
       nutrition_method: 'not_computed' | 'food_database';
       team_role: 'athlete' | 'coach';
@@ -251,7 +260,7 @@ export const Constants = {
   public: {
     Enums: {
       badge_criterion: ['days_logged', 'streak', 'challenges_done'],
-      day_type: ['training', 'rest'],
+      day_type: ['training', 'match', 'rest'],
       meal_slot: ['breakfast', 'pre_training', 'lunch', 'post_training', 'dinner', 'evening_snack'],
       nutrition_method: ['not_computed', 'food_database'],
       team_role: ['athlete', 'coach'],

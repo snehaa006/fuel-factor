@@ -1,17 +1,28 @@
-import { CARB_G_PER_KG, carbBand, positionInBand } from '@/lib/targets';
+import { CARB_G_PER_KG, carbBand, hasSessionDay, positionInBand } from '@/lib/targets';
 
 describe('carbohydrate bands', () => {
   it('uses the Week 1 deck’s own per-kilogram figures', () => {
     expect(CARB_G_PER_KG).toEqual({
       training: { min: 5, max: 7 },
+      match: { min: 6, max: 8 },
       rest: { min: 3, max: 4 },
     });
   });
 
   it('offers no band the deck did not give', () => {
-    // 6-8 g/kg for game days exists in the deck, but day_type has no "game",
-    // so there must be no third entry here either.
-    expect(Object.keys(CARB_G_PER_KG)).toEqual(['training', 'rest']);
+    // One band per Day Type the tracker carries: Training, Match, Rest.
+    expect(Object.keys(CARB_G_PER_KG)).toEqual(['training', 'match', 'rest']);
+  });
+
+  it('gives a match day the deck’s game-day band', () => {
+    expect(carbBand(68, 'match')).toEqual({ min: 408, max: 544 });
+  });
+
+  it('treats training and match as days with a session, and rest as not', () => {
+    expect(hasSessionDay('training')).toBe(true);
+    expect(hasSessionDay('match')).toBe(true);
+    expect(hasSessionDay('rest')).toBe(false);
+    expect(hasSessionDay(null)).toBe(false);
   });
 
   it('computes Theo’s training band from the 68 kg both tabs agree on', () => {

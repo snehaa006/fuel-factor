@@ -1,5 +1,5 @@
 import { asError } from './errors';
-import { carbsFor, type FoodPortion, type FoodWithPortions } from './food';
+import { carbsFor, macrosFor, type FoodPortion, type FoodWithPortions } from './food';
 import { supabase } from './supabase';
 import type { TablesUpdate } from './database.types';
 import type { MealSlot } from './today';
@@ -73,8 +73,8 @@ export const QUANTITIES = [0.5, 1, 1.5, 2, 3] as const;
 export function portionSummary(portion: FoodPortion, quantity: number) {
   const carbs = carbsFor(portion, quantity);
   return {
+    ...macrosFor(portion, quantity),
     carbs_g: carbs,
-    kcal: portion.kcal === null ? null : Number(portion.kcal) * quantity,
     /** The programme has supplied nothing for this portion yet. */
     unknown: carbs === null,
   };

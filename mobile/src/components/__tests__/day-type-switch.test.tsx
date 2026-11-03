@@ -3,13 +3,18 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { DayTypeSwitch } from '@/components/day-type-switch';
 
 describe('DayTypeSwitch', () => {
-  it('offers training and rest, and no third option', async () => {
-    // The deck gives a game-day band, but the tracker's Day Type column holds
-    // only these two and the app does not add a value to their schema.
+  it('offers training, match and rest, as the tracker’s Day Type column does', async () => {
     await render(<DayTypeSwitch value="training" testID="switch" />);
     expect(screen.getByTestId('switch-training')).toBeTruthy();
+    expect(screen.getByTestId('switch-match')).toBeTruthy();
     expect(screen.getByTestId('switch-rest')).toBeTruthy();
-    expect(screen.queryByText(/game/i)).toBeNull();
+  });
+
+  it('reports a match day', async () => {
+    const onChange = jest.fn();
+    await render(<DayTypeSwitch value="training" onChange={onChange} testID="switch" />);
+    fireEvent.press(screen.getByTestId('switch-match'));
+    expect(onChange).toHaveBeenCalledWith('match');
   });
 
   it('marks the selected day type for a screen reader', async () => {

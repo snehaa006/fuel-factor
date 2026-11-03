@@ -1,4 +1,13 @@
-import { carbsFor, suggestable, GUIDANCE_LABEL, type FoodPortion, type FoodWithPortions } from '@/lib/food';
+import {
+  carbsFor,
+  GUIDANCE_LABEL,
+  macroLine,
+  macrosFor,
+  searchTerm,
+  suggestable,
+  type FoodPortion,
+  type FoodWithPortions,
+} from '@/lib/food';
 
 const portion = (over: Partial<FoodPortion> = {}): FoodPortion => ({
   id: 'p', food_id: 'f', label: '200g cooked', grams: 200, kcal: 260, carbs_g: 57,
@@ -8,7 +17,7 @@ const portion = (over: Partial<FoodPortion> = {}): FoodPortion => ({
 
 const food = (over: Partial<FoodWithPortions> = {}): FoodWithPortions => ({
   id: 'f', name_id: 'Nasi putih', name_en: 'White rice', category: 'carbohydrate',
-  guidance: 'eat_daily', guidance_note: null, is_pork: false, source: 'week-1-deck',
+  guidance: 'eat_daily', guidance_note: null, is_pork: false, source: 'week-1-deck', tkpi_id: null,
   created_at: '2026-10-31T00:00:00Z', food_portions: [portion()], ...over,
 });
 
@@ -43,5 +52,22 @@ describe('guidance labels', () => {
     for (const word of ['bad', 'avoid', 'never', 'unhealthy', 'junk']) {
       expect(`label says "${word}": ${labels.includes(word)}`).toBe(`label says "${word}": false`);
     }
+  });
+});
+
+describe('the composition-table helpers', () => {
+  it('scales every figure by the quantity, and keeps a missing one missing', () => {
+    const p = portion({ kcal: 180, carbs_g: 39.8, protein_g: 3, fat_g: null });
+    expect(macrosFor(p, 2)).toEqual({ kcal: 360, carbs_g: 79.6, protein_g: 6, fat_g: null });
+  });
+
+  it('prints what is known and leaves out what is not', () => {
+    expect(macroLine({ kcal: 360, carbs_g: 79.6, protein_g: 6, fat_g: null })).toBe(
+      '360 kcal · 80 g carbs · 6 g protein'
+    );
+  });
+
+  it('strips characters that are filter syntax from a search', () => {
+    expect(searchTerm(' nasi, (goreng)* ')).toBe('nasi goreng');
   });
 });
