@@ -12,6 +12,7 @@ const DOMAIN_LABEL: Record<string, string> = {
   carbohydrate: 'CARBOHYDRATE',
   hydration: 'HYDRATION',
   timing: 'TIMING',
+  protein: 'PROTEIN',
 };
 
 /**
@@ -25,7 +26,14 @@ const DOMAIN_TINT: Record<string, { fill: ColorToken; label: ColorToken }> = {
   carbohydrate: { fill: 'pisang-tint', label: 'pisang-deep' },
   hydration: { fill: 'air-tint', label: 'air-deep' },
   timing: { fill: 'daun-tint', label: 'daun-deep' },
+  protein: { fill: 'kecap-tint', label: 'kecap-deep' },
 };
+
+/** "Week 2 material" from 'week-2-deck'; plain "Programme material" otherwise. */
+export function materialLabel(source: string | undefined): string {
+  const week = source ? /^week-(\d)-deck$/.exec(source)?.[1] : undefined;
+  return week ? `Week ${week} material` : 'Programme material';
+}
 
 /**
  * One advice card, carrying a sentence the programme wrote.
@@ -64,7 +72,7 @@ export function NudgeCard({ nudge, testID }: NudgeCardProps) {
           testID={testID ? `${testID}-unreviewed` : undefined}
           style={[typography['body-s'], { color: colors['ink-muted'] }]}
         >
-          Week 1 material · awaiting dietitian review
+          {materialLabel(nudge.source)} · awaiting dietitian review
         </Text>
       )}
     </View>

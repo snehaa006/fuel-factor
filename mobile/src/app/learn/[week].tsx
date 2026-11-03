@@ -2,13 +2,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CarbChallengeCard } from '@/components/carb-challenge-card';
+import { MealChallengeCard } from '@/components/meal-challenge-card';
 import { ChallengePhoto } from '@/components/challenge-photo';
 import { LessonCard } from '@/components/lesson-card';
 import { PushButton } from '@/components/push-button';
 import { todayIso } from '@/lib/today';
-import { CARB_CHALLENGE_WEEK } from '@/lib/carb-challenge';
-import { useCarbChallenge } from '@/lib/use-carb-challenge';
+import { deckWeek } from '@/lib/food';
+import { useMealChallenge } from '@/lib/use-meal-challenge';
 import { useParticipantId } from '@/lib/use-foods';
 import { useWeek } from '@/lib/use-learn';
 import { useTheme } from '@/theme';
@@ -28,7 +28,7 @@ export default function Week() {
   const { colors, spacing, typography } = useTheme();
 
   const state = useWeek(weekNumber, participantId);
-  const carb = useCarbChallenge();
+  const checked = useMealChallenge(Number.isInteger(weekNumber) ? weekNumber : undefined);
   const today = todayIso();
 
   // Derived, not stored: a route param that is not a number is known at
@@ -67,7 +67,9 @@ export default function Week() {
     );
   }
 
-  const { detail, foods } = state;
+  const { detail } = state;
+  // Each week's food card is that week's deck's table, not the whole database.
+  const foods = state.foods.filter((f) => deckWeek(f.source) === weekNumber);
   const done = detail.completedOn === today;
 
   return (
@@ -98,14 +100,14 @@ export default function Week() {
           ))}
         </View>
 
-        {/* Week 1's challenge is checkable from the log, so it is checked
-            here, beside the tap that records what the athlete says. */}
-        {weekNumber === CARB_CHALLENGE_WEEK && carb.status === 'ready' && (
+        {/* A challenge the log can answer is checked here, beside the tap
+            that records what the athlete says. */}
+        {checked.status === 'ready' && checked.week !== null && (
           <View style={{ marginTop: spacing['space-6'] }}>
-            <CarbChallengeCard
-              week={carb.week}
+            <MealChallengeCard
+              week={checked.week}
               challenge={detail.week.challenge}
-              testID="carb-challenge"
+              testID="meal-challenge"
             />
           </View>
         )}

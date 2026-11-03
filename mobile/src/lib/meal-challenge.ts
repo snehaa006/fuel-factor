@@ -1,67 +1,87 @@
 import { asError } from './errors';
+import { hasNutrient, type Nutrient } from './nutrients';
 import { daysBetween } from './recall-window';
 import { supabase } from './supabase';
 import type { IsoDate } from './streak';
-import type { MealSlot } from './today';
+import { toLoggedItem, type LoggedItem, type MealSlot } from './today';
 
 /**
- * Week 1's challenge, checked against what was actually logged.
+ * Each week's challenge, checked against what was actually logged.
  *
- * The deck's challenge, in its own words: **"Add One Carb to Every Meal.
- * Don't change what you're eating — just add ... One addition per meal, three
- * meals a day, every day this week."** The Learn screen has always carried a
- * "Mark the challenge done" tap, which records what the athlete says. This
- * reads the daily log instead and answers the same question from the food:
- * on each day of week 1, did breakfast, lunch and dinner each have a
- * carbohydrate in them -- and did that hold for all seven days?
+ * The Learn screen has always carried a "Mark the challenge done" tap, which
+ * records what the athlete says. This reads the daily log instead and answers
+ * the same question from the food. Derived on read, like the streak and the
+ * badges: nothing is stored, so there is no completion flag to drift from the
+ * log it was read off.
  *
- * Derived on read, like the streak and the badges. Nothing is stored, so
- * there is no completion flag to drift from the log it was read off.
+ * A week has a challenge here only when its deck states one the log can
+ * answer. Both so far are "add one X to every meal":
  *
- * Two readings here are the app's and are flagged in the handoff for Sofia:
+ *   **Week 1** -- "Add One Carb to Every Meal ... One addition per meal, three
+ *   meals a day, every day this week." Read as breakfast, lunch and dinner,
+ *   all three. (That reading is the app's; see the handoff.)
  *
- *   **Which meals.** "Three meals a day" is read as the sheet's breakfast,
- *   lunch and dinner slots. Pre-training, post-training and the evening snack
- *   are extra and never required -- a rest day has no post-training meal.
+ *   **Week 2** -- "Add One Protein Source to Every Meal ... three meals
+ *   minimum ... did I hit protein at 3 or more meals today?" The deck's own
+ *   slide lays the meals out as Breakfast, Lunch, Post-training snack and
+ *   Dinner, so three of those four wins the day.
  *
- *   **What counts as a carb.** A portion whose carbohydrate figure is above
- *   zero, or -- where the deck gives no figure -- a food from the deck's own
- *   "Best Carbohydrate Sources in Jakarta" table, because the deck put it in
- *   that table. A free-text item the database cannot match counts for
- *   nothing either way: the app cannot see what it was.
+ * What counts as the nutrient: a portion whose figure for it is above zero,
+ * or -- where the deck gives no figure -- a food from that week's own table
+ * of sources, because the deck put it there. A zero figure wins over the
+ * table. A free-text item counts for nothing either way: the app cannot see
+ * what it was.
  */
 
-/** "Three meals a day": the sheet's three main slots. */
-export const CHALLENGE_MEALS: readonly MealSlot[] = ['breakfast', 'lunch', 'dinner'];
+export type { Nutrient };
 
-/** The challenge belongs to week 1 of the programme. */
-export const CARB_CHALLENGE_WEEK = 1;
-
-/** The deck's own sentence, printed under the tracker. */
-export const CARB_CHALLENGE_RULE =
-  'One addition per meal, three meals a day, every day this week.';
-
-/** Every food in the Week 1 deck sits in its carbohydrate-sources table. */
-const DECK_CARB_TABLE = 'week-1-deck';
-
-export type ChallengeItem = {
-  slot: MealSlot;
-  /** The portion's carbohydrate times the quantity; null where the deck gives no figure. */
-  carbs_g: number | null;
-  /** The food comes from the deck's carbohydrate-sources table. False for free text. */
-  deckCarbSource: boolean;
+export type ChallengeSpec = {
+  week: number;
+  nutrient: Nutrient;
+  /** The meals the deck counts, in the sheet's order. */
+  meals: readonly MealSlot[];
+  /** How many of them a day needs. */
+  mealsNeeded: number;
+  /** The deck's own sentence, printed under the tracker. */
+  rule: string;
+  /** The challenge as the deck titles it, for when no row is to hand. */
+  title: string;
 };
+
+export const CHALLENGES: Readonly<Record<number, ChallengeSpec>> = {
+  1: {
+    week: 1,
+    nutrient: 'carb',
+    meals: ['breakfast', 'lunch', 'dinner'],
+    mealsNeeded: 3,
+    rule: 'One addition per meal, three meals a day, every day this week.',
+    title: 'Add one carb to every meal',
+  },
+  2: {
+    week: 2,
+    nutrient: 'protein',
+    meals: ['breakfast', 'lunch', 'post_training', 'dinner'],
+    mealsNeeded: 3,
+    rule: 'One protein add per meal, every day, three meals minimum.',
+    title: 'Add one protein source to every meal',
+  },
+};
+
+export type ChallengeItem = Pick<
+  LoggedItem,
+  'slot' | 'carbs_g' | 'protein_g' | 'carbSource' | 'proteinSource'
+>;
 
 export type ChallengeLog = { date: IsoDate; items: ChallengeItem[] };
 
-export type MealCheck = { slot: MealSlot; logged: boolean; carb: boolean };
+export type MealCheck = { slot: MealSlot; logged: boolean; hit: boolean };
 
 export type ChallengeDayStatus =
-  /** All three meals had a carb. */
+  /** Enough meals carried the nutrient. */
   | 'done'
-  /** A day that is over without all three. */
+  /** A day that is over without enough. */
   | 'missed'
-  /** Today, and not all three yet. Still winnable. */
+  /** Today, and not enough yet. Still winnable. */
   | 'today'
   /** Not reached yet. */
   | 'upcoming';
@@ -70,13 +90,14 @@ export type ChallengeDay = {
   date: IsoDate;
   initial: string;
   meals: MealCheck[];
-  carbMeals: number;
+  /** Meals that carried the nutrient. */
+  hits: number;
   status: ChallengeDayStatus;
   isToday: boolean;
 };
 
 export type ChallengeWeek = {
-  weekNumber: number;
+  spec: ChallengeSpec;
   startsOn: IsoDate;
   endsOn: IsoDate;
   /** Where today sits against the week. */
@@ -100,17 +121,14 @@ function addDays(date: IsoDate, days: number): IsoDate {
   return new Date(Date.parse(`${date}T00:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
 }
 
-/** Whether one logged item puts a carbohydrate in its meal. */
-export function countsAsCarb(item: ChallengeItem): boolean {
-  if (item.carbs_g !== null) return item.carbs_g > 0;
-  return item.deckCarbSource;
-}
+/** Whether one logged item puts the nutrient in its meal. */
+export const counts = hasNutrient;
 
-/** The three meals of one day, checked. */
-export function checkMeals(items: ChallengeItem[]): MealCheck[] {
-  return CHALLENGE_MEALS.map((slot) => {
+/** The challenge's meals for one day, checked. */
+export function checkMeals(items: ChallengeItem[], spec: ChallengeSpec): MealCheck[] {
+  return spec.meals.map((slot) => {
     const inSlot = items.filter((i) => i.slot === slot);
-    return { slot, logged: inSlot.length > 0, carb: inSlot.some(countsAsCarb) };
+    return { slot, logged: inSlot.length > 0, hit: inSlot.some((i) => counts(i, spec.nutrient)) };
   });
 }
 
@@ -136,9 +154,9 @@ export function challengeWeek(
   logs: ChallengeLog[],
   programmeStartsOn: IsoDate,
   today: IsoDate,
-  weekNumber = CARB_CHALLENGE_WEEK
+  spec: ChallengeSpec
 ): ChallengeWeek {
-  const dates = weekDates(programmeStartsOn, weekNumber);
+  const dates = weekDates(programmeStartsOn, spec.week);
   const byDate = new Map<IsoDate, ChallengeItem[]>();
   for (const log of logs) {
     byDate.set(log.date, [...(byDate.get(log.date) ?? []), ...log.items]);
@@ -146,12 +164,12 @@ export function challengeWeek(
 
   const days = dates.map<ChallengeDay>((date) => {
     const future = date > today;
-    const meals = checkMeals(future ? [] : (byDate.get(date) ?? []));
-    const carbMeals = meals.filter((m) => m.carb).length;
-    const allThree = carbMeals === CHALLENGE_MEALS.length;
+    const meals = checkMeals(future ? [] : (byDate.get(date) ?? []), spec);
+    const hits = meals.filter((m) => m.hit).length;
+    const won = hits >= spec.mealsNeeded;
     const status: ChallengeDayStatus = future
       ? 'upcoming'
-      : allThree
+      : won
         ? 'done'
         : date === today
           ? 'today'
@@ -160,7 +178,7 @@ export function challengeWeek(
       date,
       initial: INITIALS[new Date(`${date}T00:00:00Z`).getUTCDay()],
       meals,
-      carbMeals,
+      hits,
       status,
       isToday: date === today,
     };
@@ -180,7 +198,7 @@ export function challengeWeek(
   const doneDays = days.filter((d) => d.status === 'done').length;
 
   return {
-    weekNumber,
+    spec,
     startsOn,
     endsOn,
     phase,
@@ -194,14 +212,7 @@ export function challengeWeek(
 
 type LogRow = {
   log_date: string;
-  log_items: {
-    slot: MealSlot;
-    quantity: number | string;
-    food_portions: {
-      carbs_g: number | string | null;
-      food_items: { source: string } | null;
-    } | null;
-  }[];
+  log_items: Parameters<typeof toLoggedItem>[0][];
 };
 
 /**
@@ -212,7 +223,7 @@ type LogRow = {
 export async function fetchChallengeLogs(
   programmeStartsOn: IsoDate,
   today: IsoDate,
-  weekNumber = CARB_CHALLENGE_WEEK
+  weekNumber: number
 ): Promise<ChallengeLog[]> {
   const dates = weekDates(programmeStartsOn, weekNumber);
   const until = today < dates[6] ? today : dates[6];
@@ -220,7 +231,9 @@ export async function fetchChallengeLogs(
 
   const { data, error } = await supabase
     .from('daily_logs')
-    .select('log_date, log_items(slot, quantity, food_portions(carbs_g, food_items(source)))')
+    .select(
+      'log_date, log_items(slot, quantity, free_text, food_portions(*, food_items(name_id, category, source)))'
+    )
     .gte('log_date', dates[0])
     .lte('log_date', until)
     .returns<LogRow[]>();
@@ -229,14 +242,6 @@ export async function fetchChallengeLogs(
 
   return (data ?? []).map((row) => ({
     date: row.log_date,
-    items: (row.log_items ?? []).map((item) => {
-      const portion = item.food_portions;
-      const carbs = portion?.carbs_g;
-      return {
-        slot: item.slot,
-        carbs_g: carbs === null || carbs === undefined ? null : Number(carbs) * Number(item.quantity),
-        deckCarbSource: portion?.food_items?.source === DECK_CARB_TABLE,
-      };
-    }),
+    items: (row.log_items ?? []).map(toLoggedItem),
   }));
 }

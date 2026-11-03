@@ -434,7 +434,7 @@ testing a month in one sitting.
 
 **The challenge is checked, not only ticked.** The deck's challenge is *"Add
 One Carb to Every Meal ... One addition per meal, three meals a day, every day
-this week."* `carb-challenge.ts` reads week 1's daily logs and, for each of the
+this week."* `carb-challenge.ts` (now `meal-challenge.ts`) reads week 1's daily logs and, for each of the
 seven days, asks whether breakfast, lunch and dinner each had a carbohydrate in
 them. A day is won with all three; the week is won with seven. The card shows
 seven columns of B/L/D pips, a tick or a cross per finished day, the streak,
@@ -479,7 +479,50 @@ simulated one. It used to be "30 days before today", which moved with the
 machine and kept the demo on day 31 wherever it went. Travel back 30 days in
 `npm run web:demo` to stand on day one.
 
-**1002 tests pass.**
+**Step 17** — Week 2: protein and micronutrients, from Sofia's WEEK 2 Drive
+folder (the PDF deck and seven slides, 2 November).
+
+**It arrived as rows, as the design always said it would.** Seeds
+`0009`–`0011` hold the week 2 challenge, four advice rules, the deck's
+protein table and twelve lesson cards. No migration: every card is a kind the
+screen already draws. Seeding them is what unlocks week 2 on Learn.
+**They are not on the live project yet** — they were run against a local
+Postgres 16 after every migration and the eight earlier seeds and read back
+cleanly.
+
+**Protein has figures now, so the app counts it.** The week 2 table gives
+protein for six foods (telur, tempe, ayam dada, ikan kembung, Greek yogurt,
+canned tuna); tahu and susu are named in its challenge with no figure and are
+logged as protein sources without one. `LoggedItem` carries `protein_g` and
+whether its food is a deck carb source or a deck protein source;
+`toLoggedItem` decides that from the food's `source` and `category`, in one
+place for Today and the challenges. The logger shows whichever figure the
+programme has given — carbs, protein, both, or that it has neither.
+
+**From week 2, Today shows protein against the deck's band.** 1.6–2.2 g/kg
+a day — 109–150 g for Theo's 68 kg — as a bar with the band drawn as a band,
+under the carb ring. One band for every day, because the deck gives no
+training/rest split. It passes no verdict, and says when items with no figure
+make the total a floor.
+
+**Four protein rules, from week 2 only.** Breakfast logged with no protein;
+lunch or dinner logged with no protein; post-training logged with no protein;
+and dinner over 35 g — the top of the deck's "25–35g per meal" sweet spot,
+past which it says surplus is burned as fuel. That last one is the first rule
+that reads a computed figure rather than a plain event. None fires in week 1:
+an athlete is not graded on a lesson they have not had. `evaluate` takes the
+programme week; Today gets it from the challenge hook.
+
+**The challenge tracker is general now** (`meal-challenge.ts`, renamed from
+`carb-challenge.ts`): a spec per week. Week 2's is the deck's own wording —
+protein at **3 or more** of breakfast, lunch, post-training and dinner, the
+four meals its challenge slide lays out. Today shows whichever week is
+running; Learn shows each week's.
+
+**Each nudge card names its week.** It used to say "Week 1 material" on every
+card whatever its source; it reads the rule's `source` now.
+
+**1049 tests pass.**
 
 `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
@@ -542,8 +585,10 @@ gives the squad — so the demo opens on a running programme. To see
 | `mobile/src/lib/programme.ts` | Whether the four weeks have started. Pure — the date and today are passed in |
 | `mobile/src/lib/clock.ts` | The time machine's simulated date. `todayIso()` reads it. No Supabase import, on purpose |
 | `mobile/src/components/time-machine.tsx` | The floating pill and the month calendar |
-| `mobile/src/lib/carb-challenge.ts` | Week 1's challenge checked against the log. Pure apart from one fetch |
-| `mobile/src/components/carb-challenge-card.tsx` | The seven B/L/D columns and the status line |
+| `mobile/src/lib/meal-challenge.ts` | Each week's challenge checked against the log, one spec per week. Pure apart from one fetch |
+| `mobile/src/components/meal-challenge-card.tsx` | Seven columns of meal pips and the status line |
+| `mobile/src/lib/nutrients.ts` | Whether an item counts as a carb or a protein. Import-free, because the advice engine uses it |
+| `mobile/src/components/protein-bar.tsx` | Today's protein against the week 2 band |
 | `mobile/src/lib/recall-nutrition.ts` | The client half of the backend macro seam |
 | `mobile/src/lib/profile.ts` | Athlete and coach profiles |
 | `mobile/src/lib/errors.ts` | `messageOf` / `asError` — read before touching error handling |
@@ -659,7 +704,37 @@ and what step 16 checks. The seven WhatsApp slides and the team message in the
 same Drive folder say *"Eat breakfast. Every. Single. Day."* and ask for a
 photo of it. The carb challenge contains the breakfast one — a won day needs a
 carb at breakfast — but they are not the same challenge. Ask Sofia which one
-week 1 is.
+week 1 is. **The week 2 deck all but answers it:** *"This is different from
+last week's breakfast habit — this is about the whole day."* So the challenge
+the squad was actually set in week 1 looks like the breakfast one, and the
+carb wording in the PDF is the one that did not go out. If Sofia confirms,
+week 1's spec in `CHALLENGES` becomes breakfast-only and the row in
+`weekly_challenges` changes with it.
+
+**The week 2 deck names four athletes, and Learn names none.** One athlete's
+calories on a training day ("−66%"), one's protein flagged "critically low"
+with a paragraph built around him, and two who "eat near-zero vegetables".
+The Learn screen is the whole squad's, and a named 14–16 year old's diet does
+not belong on it, so those sentences were left out and a test fails if any
+roster name reaches a week 2 seed. The group figures beside them were kept.
+If Sofia wants individual flags in the app, they belong on that athlete's own
+screen, not in a lesson.
+
+**The week 2 protein band is the deck's "for teen male athletes".** The deck
+is headed MALE ATHLETES. Every athlete in the study is male; a squad with
+girls in it would need Sofia's own figure, and the app would be wrong for them
+today.
+
+**Two of the week 2 deck's own numbers disagree.** Greek yogurt is 200 g =
+20 g in the table and 17 g in a sentence; telur is 3 eggs = 18 g in the table,
+and a slide says "2 telur rebus + 1 pisang = 18g protein". The table's figures
+are seeded. And the logger's quantities are 0.5–3 portions, so one egg (a
+third of the deck's "3 eggs") cannot be logged exactly — ask Sofia for a
+per-egg figure.
+
+**Week 2's challenge counts post-training, week 1's does not.** That is the
+decks' own difference: week 2's slide lists Breakfast, Lunch, Post-training
+snack and Dinner and asks for 3 or more; week 1 says three meals a day.
 
 **"Three meals a day" is read as breakfast, lunch and dinner.** Pre-training,
 post-training and the evening snack never count for or against a day; a rest
@@ -1056,7 +1131,7 @@ The roster seed has everything else the tracker holds.
 
 The DQ Score /12 formula · **the eight urine swatch colours** · serving and fluid
 targets · the anchor text for the five 1–10 scales (they ship with no adjectives) ·
-weeks 2–4 themes, challenges and lesson content · whether `game` becomes a third
+weeks 3–4 themes, challenges and lesson content · a per-egg protein figure · whether `game` becomes a third
 day type · whether sleep hours and supplements belong on the daily log · whether the
 refuel rule should fire on a Rest day · whether a coach should see challenge photos ·
 whether diet quality should become a second axis on the leaderboard once the DQ

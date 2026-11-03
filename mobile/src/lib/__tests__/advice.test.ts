@@ -243,3 +243,55 @@ describe('the advice engine', () => {
     });
   });
 });
+
+describe('the week 2 protein rules', () => {
+  const eggs: LoggedItem = { slot: 'breakfast', quantity: 1, carbs_g: null, protein_g: 18, name: 'Telur', proteinSource: true };
+  const nasiLunch: LoggedItem = { slot: 'lunch', quantity: 1, carbs_g: 57, protein_g: null, name: 'Nasi putih', carbSource: true };
+  const tempeLunch: LoggedItem = { slot: 'lunch', quantity: 1, carbs_g: null, protein_g: 19, name: 'Tempe', proteinSource: true };
+  const day = (items: LoggedItem[]) => summariseDay({ ...log, breakfast: true }, items, 68);
+  const codes = (items: LoggedItem[], week: number) =>
+    evaluate(day(items), DEMO_RULES, NOON, week).map((n) => n.code);
+
+  it('says nothing about protein in week 1, before it is taught', () => {
+    expect(codes([oats, nasiLunch], 1).filter((c) => c.includes('protein'))).toEqual([]);
+  });
+
+  it('from week 2, flags a breakfast with no protein in it', () => {
+    expect(codes([oats, tempeLunch], 2)).toEqual(['no_protein_breakfast']);
+  });
+
+  it('flags a lunch or dinner with no protein in it', () => {
+    expect(codes([eggs, nasiLunch], 2)).toEqual(['no_protein_in_meal']);
+  });
+
+  it('counts tahu, which the deck names but gives no figure for', () => {
+    const tahu: LoggedItem = { slot: 'lunch', quantity: 1, carbs_g: null, protein_g: null, name: 'Tahu', proteinSource: true };
+    expect(codes([eggs, tahu], 2)).toEqual([]);
+  });
+
+  it('says nothing about a meal that has not been logged', () => {
+    expect(codes([eggs], 2)).toEqual([]);
+  });
+
+  it('flags a post-training entry with no protein', () => {
+    const pisang: LoggedItem = { slot: 'post_training', quantity: 1, carbs_g: 27, protein_g: null, name: 'Pisang', carbSource: true };
+    expect(codes([eggs, tempeLunch, pisang], 2)).toEqual(['post_training_no_protein']);
+  });
+
+  it('flags dinner past the deck’s 35 g a meal, and not at it', () => {
+    const chicken = (q: number): LoggedItem => ({
+      slot: 'dinner', quantity: q, carbs_g: null, protein_g: 24 * q, name: 'Ayam dada', proteinSource: true,
+    });
+    // 24 g sits inside the 25-35 g sweet spot's ceiling; 36 g and 48 g are past it.
+    expect(codes([eggs, tempeLunch, chicken(1)], 2)).toEqual([]);
+    expect(codes([eggs, tempeLunch, chicken(1.5)], 2)).toEqual(['protein_piled_at_dinner']);
+    expect(codes([eggs, tempeLunch, chicken(2)], 2)).toEqual(['protein_piled_at_dinner']);
+  });
+
+  it('carries the deck’s sentence through unedited', () => {
+    const [nudge] = evaluate(day([oats, tempeLunch]), DEMO_RULES, NOON, 2);
+    expect(nudge.message).toBe(
+      'Starting your day at 0g protein means an entire repair window is missed before training even begins.'
+    );
+  });
+});

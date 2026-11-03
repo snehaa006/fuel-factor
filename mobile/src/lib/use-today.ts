@@ -32,7 +32,7 @@ export type TodayController = TodayState & {
 async function loadRules(): Promise<AdviceRule[]> {
   const { data, error } = await supabase
     .from('advice_rules')
-    .select('code, domain, message_en, severity, reviewed_by')
+    .select('code, domain, message_en, severity, reviewed_by, source')
     .eq('active', true);
 
   if (error) throw error;

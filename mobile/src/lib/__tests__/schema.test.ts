@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { Constants } from '@/lib/database.types';
-import { DEMO_LESSON_CARDS } from '@/lib/__fixtures__/today';
+import { DEMO_LESSON_CARDS, DEMO_LESSON_CARDS_WEEK2, DEMO_RULES } from '@/lib/__fixtures__/today';
 
 const root = resolve(__dirname, '../../../..');
 const read = (p: string) => readFileSync(resolve(root, p), 'utf8');
@@ -285,5 +285,71 @@ describe('the Learn section carries the deck and nothing else', () => {
     // here would make a second place for a carbohydrate number to be wrong.
     expect(lessonSeed).not.toMatch(/carbs_g/);
     expect(lessonSeed).toContain("'foods'");
+  });
+});
+
+describe('week 2 carries its deck and nothing else', () => {
+  const programme = read('supabase/seed/0009_week2_programme.sql');
+  const foods = read('supabase/seed/0010_week2_foods.sql');
+  const lessons = read('supabase/seed/0011_week2_lessons.sql');
+  /** The SQL with its comments taken out, so only what is inserted is checked. */
+  const body = (sql: string) => sql.replace(/^\s*--.*$/gm, '');
+
+  it('seeds the week 2 challenge and nothing for weeks 3 or 4', () => {
+    expect(programme).toContain(
+      "values (2, 'Protein + Micronutrients', 'Add one protein source to every meal')"
+    );
+    const weeks = [...lessons.matchAll(/values \((\d), \d+, '/g)].map((m) => m[1]);
+    expect(new Set(weeks)).toEqual(new Set(['2']));
+  });
+
+  it('attributes every card, food and rule to the week 2 deck', () => {
+    for (const sql of [programme, foods, lessons]) {
+      const sources = [...body(sql).matchAll(/'(week-\d-deck|tkpi|sofia)'/g)].map((m) => m[1]);
+      expect(new Set(sources)).toEqual(new Set(['week-2-deck']));
+    }
+  });
+
+  it('names no athlete, although the deck does', () => {
+    // The deck names four of the squad, with one's calories and another's
+    // protein. Learn is the whole team's, so none of it is copied across.
+    for (const sql of [programme, foods, lessons].map(body)) {
+      expect(sql).not.toMatch(/Theo|Nathan|Jeongho|Jacob|Joel|Budi/);
+    }
+    for (const card of DEMO_LESSON_CARDS_WEEK2) {
+      expect(JSON.stringify(card)).not.toMatch(/Theo|Nathan|Jeongho|Jacob/);
+    }
+  });
+
+  it('ships no week 2 rule as reviewed', () => {
+    const columns = /insert into public\.advice_rules \(([^)]*)\)/.exec(programme)?.[1] ?? '';
+    expect(columns).not.toContain('reviewed_by');
+  });
+
+  it('keeps the demo rules in step with the seeded sentences', () => {
+    for (const code of ['no_protein_breakfast', 'no_protein_in_meal', 'protein_piled_at_dinner', 'post_training_no_protein']) {
+      const rule = DEMO_RULES.find((r) => r.code === code);
+      expect(rule).toBeDefined();
+      expect(programme.replace(/''/g, "'")).toContain(rule!.message_en);
+    }
+  });
+
+  it('gives week 2 foods protein and nothing else, because that is all the deck gives', () => {
+    const columns = /insert into public\.food_portions \(([^)]*)\)/.exec(foods)?.[1] ?? '';
+    expect(columns).toContain('protein_g');
+    expect(body(foods)).toMatch(/select f\.id, p\.label, p\.grams, null, null, p\.protein_g/);
+  });
+
+  it('keeps the demo fixture in step with the seed', () => {
+    const seeded = [...lessons.matchAll(/values \(2, \d+, '([a-z_]+)'/g)].map((m) => m[1]);
+    expect(DEMO_LESSON_CARDS_WEEK2.map((c) => c.kind)).toEqual(seeded);
+  });
+
+  it('draws every card with a kind the screen already knows', () => {
+    const allowed = /kind\s+text not null check \(kind in \(([^)]*)\)/s.exec(
+      read('supabase/migrations/20261031000007_lesson_cards.sql')
+    )?.[1];
+    const seeded = [...lessons.matchAll(/values \(2, \d+, '([a-z_]+)'/g)].map((m) => m[1]);
+    for (const kind of seeded) expect(allowed).toContain(`'${kind}'`);
   });
 });

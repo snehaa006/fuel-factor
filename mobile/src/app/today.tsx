@@ -4,12 +4,13 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppSidebar } from '@/components/app-sidebar';
-import { CarbChallengeCard } from '@/components/carb-challenge-card';
+import { MealChallengeCard } from '@/components/meal-challenge-card';
 import { DayTypeSwitch } from '@/components/day-type-switch';
 import { FuelRing } from '@/components/fuel-ring';
 import { MascotBanner } from '@/components/mascot-banner';
 import { MealTimeline } from '@/components/meal-timeline';
 import { NudgeCard } from '@/components/nudge-card';
+import { ProteinBar } from '@/components/protein-bar';
 import { ProgrammeGate } from '@/components/programme-gate';
 import { PushButton } from '@/components/push-button';
 import { RecallPrompt } from '@/components/recall-prompt';
@@ -21,7 +22,8 @@ import { topNudges } from '@/lib/advice';
 import { dayCue } from '@/lib/mascot-copy';
 import { hasSession, nowMinutes } from '@/lib/session';
 import { bestStreak, loggedToday, recentDays, streakLength } from '@/lib/streak';
-import { useCarbChallenge } from '@/lib/use-carb-challenge';
+import { PROTEIN_WEEK } from '@/lib/targets';
+import { useMealChallenge } from '@/lib/use-meal-challenge';
 import { useRecallStatus } from '@/lib/use-recall';
 import { useToday } from '@/lib/use-today';
 import { useTheme } from '@/theme';
@@ -43,7 +45,7 @@ function TodayScreen() {
   const { colors, spacing, typography } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [focusCount, setFocusCount] = useState(0);
-  const challenge = useCarbChallenge(focusCount);
+  const challenge = useMealChallenge(undefined, focusCount);
 
   // Coming back from the logger, the day has changed underneath this screen.
   // The first focus is the mount, which has just loaded, so it is skipped.
@@ -94,7 +96,10 @@ function TodayScreen() {
   const best = bestStreak(data.activeDates, date);
   const week = recentDays(data.activeDates, date);
   const now = nowMinutes();
-  const nudges = topNudges(summary, rules, now);
+  // Which week of the programme today is, so week 2's protein lesson and its
+  // advice arrive with week 2 and not before.
+  const programmeWeek = challenge.status === 'ready' ? challenge.programmeWeek : 1;
+  const nudges = topNudges(summary, rules, now, undefined, programmeWeek);
   // Counts slots filled, never what filled them.
   const cue = dayCue(summary.slots.filter((slot) => slot.logged).length, summary.slots.length);
 
@@ -139,13 +144,15 @@ function TodayScreen() {
           )}
         </View>
 
-        {/* Week 1's challenge, read off the meals rather than ticked. Shown
-            while week 1 is running; the Learn page keeps it afterwards. */}
-        {challenge.status === 'ready' && challenge.week.phase === 'running' && (
-          <View style={{ marginTop: spacing['space-6'] }}>
-            <CarbChallengeCard week={challenge.week} testID="carb-challenge" />
-          </View>
-        )}
+        {/* This week's challenge, read off the meals rather than ticked.
+            Shown while its week is running; Learn keeps it afterwards. */}
+        {challenge.status === 'ready' &&
+          challenge.week !== null &&
+          challenge.week.phase === 'running' && (
+            <View style={{ marginTop: spacing['space-6'] }}>
+              <MealChallengeCard week={challenge.week} testID="meal-challenge" />
+            </View>
+          )}
 
         {recall.status === 'ready' && (
           <View style={{ marginTop: spacing['space-6'] }}>
@@ -197,6 +204,17 @@ function TodayScreen() {
             testID="fuel-ring"
           />
         </View>
+
+        {programmeWeek >= PROTEIN_WEEK && (
+          <View style={{ marginTop: spacing['space-6'] }}>
+            <ProteinBar
+              eaten={summary.proteinEaten}
+              band={summary.proteinBand}
+              itemsWithoutFigures={summary.itemsWithoutProtein}
+              testID="protein-bar"
+            />
+          </View>
+        )}
 
         {nudges.length > 0 && (
           <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>

@@ -1,37 +1,40 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import {
-  CARB_CHALLENGE_RULE,
-  CHALLENGE_MEALS,
-  type ChallengeDay,
-  type ChallengeWeek,
-} from '@/lib/carb-challenge';
-import { SLOT_LABEL } from '@/lib/today';
+import type { ChallengeDay, ChallengeWeek } from '@/lib/meal-challenge';
+import { SLOT_LABEL, type MealSlot } from '@/lib/today';
 import { useTheme } from '@/theme';
 
-export type CarbChallengeCardProps = {
+export type MealChallengeCardProps = {
   week: ChallengeWeek;
   /** The week's challenge as the programme row words it. */
   challenge?: string | null;
   testID?: string;
 };
 
-const MEAL_INITIAL: Record<string, string> = { breakfast: 'B', lunch: 'L', dinner: 'D' };
+const MEAL_INITIAL: Partial<Record<MealSlot, string>> = {
+  breakfast: 'B',
+  lunch: 'L',
+  post_training: 'P',
+  dinner: 'D',
+};
+
+const NUTRIENT_WORD = { carb: 'a carb', protein: 'protein' } as const;
 
 /**
- * Week 1's challenge, read off the daily log.
+ * A week's challenge, read off the daily log.
  *
- * Seven columns, one per day of the programme week. Each has three pips --
- * breakfast, lunch, dinner -- lit when that meal had a carbohydrate logged in
- * it, and a day is won when all three are lit. The line underneath says how
- * the week stands: the streak while it is alive, and plainly when a day has
- * been missed and seven of seven is gone.
+ * Seven columns, one per day of the programme week. Each has a pip per meal
+ * the challenge counts, lit when that meal had the week's nutrient logged in
+ * it, and a tick once the day has enough. The line underneath says how the
+ * week stands: the streak while it is alive, and plainly when a day has been
+ * missed and seven of seven is gone.
  *
- * Like the streak strip, today is marked by size and a darker initial rather
- * than an outline, which survives both themes.
+ * Like the streak strip, today is marked by weight and a darker initial
+ * rather than an outline, which survives both themes.
  */
-export function CarbChallengeCard({ week, challenge, testID }: CarbChallengeCardProps) {
+export function MealChallengeCard({ week, challenge, testID }: MealChallengeCardProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const { spec } = week;
 
   return (
     <View
@@ -48,23 +51,27 @@ export function CarbChallengeCard({ week, challenge, testID }: CarbChallengeCard
     >
       <View style={{ gap: 2 }}>
         <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-          WEEK {week.weekNumber} CHALLENGE
+          WEEK {spec.week} CHALLENGE
         </Text>
         <Text style={[typography['heading-m'], { color: colors.ink }]}>
-          {challenge ?? 'Add one carb to every meal'}
+          {challenge ?? spec.title}
         </Text>
-        <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-          {CARB_CHALLENGE_RULE}
-        </Text>
+        <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>{spec.rule}</Text>
       </View>
 
       <View
         style={[styles.strip, { gap: spacing['space-1'] }]}
         accessibilityRole="text"
-        accessibilityLabel={`${week.doneDays} of 7 days with a carb at every meal`}
+        accessibilityLabel={`${week.doneDays} of 7 days with ${NUTRIENT_WORD[spec.nutrient]} at ${spec.mealsNeeded} meals`}
       >
         {week.days.map((day) => (
-          <DayColumn key={day.date} day={day} testID={testID ? `${testID}-${day.date}` : undefined} />
+          <DayColumn
+            key={day.date}
+            day={day}
+            nutrient={NUTRIENT_WORD[spec.nutrient]}
+            needed={spec.mealsNeeded}
+            testID={testID ? `${testID}-${day.date}` : undefined}
+          />
         ))}
       </View>
 
@@ -75,13 +82,23 @@ export function CarbChallengeCard({ week, challenge, testID }: CarbChallengeCard
         {statusLine(week)}
       </Text>
       <Text style={[typography['body-s'], { color: colors['ink-faint'], textAlign: 'center' }]}>
-        {CHALLENGE_MEALS.map((m) => `${MEAL_INITIAL[m]} ${SLOT_LABEL[m]}`).join(' · ')}
+        {spec.meals.map((m) => `${MEAL_INITIAL[m] ?? '?'} ${SLOT_LABEL[m]}`).join(' · ')}
       </Text>
     </View>
   );
 }
 
-function DayColumn({ day, testID }: { day: ChallengeDay; testID?: string }) {
+function DayColumn({
+  day,
+  nutrient,
+  needed,
+  testID,
+}: {
+  day: ChallengeDay;
+  nutrient: string;
+  needed: number;
+  testID?: string;
+}) {
   const { colors, radius, typography } = useTheme();
   const { isToday } = day;
 
@@ -97,7 +114,7 @@ function DayColumn({ day, testID }: { day: ChallengeDay; testID?: string }) {
   return (
     <View
       testID={testID}
-      accessibilityLabel={`${day.date}: ${day.carbMeals} of 3 meals with a carb, ${day.status}`}
+      accessibilityLabel={`${day.date}: ${nutrient} at ${day.hits} of ${needed} meals needed, ${day.status}`}
       style={styles.column}
     >
       <Text
@@ -116,7 +133,7 @@ function DayColumn({ day, testID }: { day: ChallengeDay; testID?: string }) {
               styles.pip,
               {
                 borderRadius: radius['radius-sm'],
-                backgroundColor: meal.carb
+                backgroundColor: meal.hit
                   ? colors.pisang
                   : day.status === 'upcoming'
                     ? colors['surface-sunken']
@@ -125,12 +142,9 @@ function DayColumn({ day, testID }: { day: ChallengeDay; testID?: string }) {
             ]}
           >
             <Text
-              style={[
-                styles.pipText,
-                { color: meal.carb ? colors['on-bright'] : colors['ink-faint'] },
-              ]}
+              style={[styles.pipText, { color: meal.hit ? colors['on-bright'] : colors['ink-faint'] }]}
             >
-              {MEAL_INITIAL[meal.slot]}
+              {MEAL_INITIAL[meal.slot] ?? '?'}
             </Text>
           </View>
         ))}
@@ -149,7 +163,9 @@ export function statusLine(week: ChallengeWeek): string {
   if (week.phase === 'over') return `Week over: ${tally}.`;
 
   const today = week.days.find((d) => d.status === 'today');
-  const left = today ? ` Today: ${today.carbMeals} of 3 meals so far.` : '';
+  const { mealsNeeded, meals } = week.spec;
+  const target = mealsNeeded === meals.length ? `${mealsNeeded}` : `${mealsNeeded}+`;
+  const left = today ? ` Today: ${today.hits} of ${target} meals so far.` : '';
   if (week.broken) return `${tally} so far. A day was missed, so keep the habit going.${left}`;
   const streak = week.streak > 0 ? ` ${week.streak}-day streak.` : '';
   return `${tally} so far.${streak}${left}`;

@@ -113,7 +113,7 @@ describe('the logger', () => {
     // would tell an athlete they ate none, which is not what the deck says.
     await render(<LogMeal />);
     await choose('f6');
-    expect(screen.getByTestId('macro-feedback')).toHaveTextContent(/No carbohydrate figure/);
+    expect(screen.getByTestId('macro-feedback')).toHaveTextContent(/No figure for this yet/);
     expect(screen.getByTestId('macro-feedback')).not.toHaveTextContent('0 g');
   });
 

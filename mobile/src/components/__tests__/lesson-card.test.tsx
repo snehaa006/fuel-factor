@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react-native';
 
-import { LessonCard, percentOf } from '@/components/lesson-card';
+import { foodFigure, LessonCard, percentOf } from '@/components/lesson-card';
 import type { LessonCard as Card } from '@/lib/learn';
 import { DEMO_FOODS } from '@/lib/__fixtures__/today';
 
@@ -163,5 +163,18 @@ describe('the timeline bar', () => {
 
   it('refuses a percentage outside the scale', () => {
     expect(percentOf('180%')).toBeNull();
+  });
+});
+
+describe('foodFigure', () => {
+  const portion = (carbs_g: number | null, protein_g: number | null) =>
+    ({ carbs_g, protein_g }) as Parameters<typeof foodFigure>[0];
+
+  it('names whichever figure the deck gave', () => {
+    expect(foodFigure(portion(57, null))).toBe('57g carbs');
+    expect(foodFigure(portion(null, 18))).toBe('18g protein');
+    expect(foodFigure(portion(27, 18))).toBe('27g carbs · 18g protein');
+    expect(foodFigure(portion(null, null))).toBeNull();
+    expect(foodFigure(undefined)).toBeNull();
   });
 });

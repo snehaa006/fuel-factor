@@ -11,7 +11,7 @@ import type { CoachTeam } from '../coach-auth';
 import type { AthleteProfile } from '../profile';
 import type { RecallDay } from '../recall';
 import type { RecallNutrition } from '../recall-nutrition';
-import type { ChallengeItem, ChallengeLog } from '../carb-challenge';
+import type { ChallengeItem, ChallengeLog } from '../meal-challenge';
 
 /**
  * The squad's names, or stand-ins for them.
@@ -50,8 +50,8 @@ export const DEMO_NAMES = {
  * 54 g, nasi putih 200 g cooked at 57 g.
  */
 export const DEMO_ITEMS: LoggedItem[] = [
-  { slot: 'breakfast', quantity: 1, carbs_g: 54, name: 'Oat' },
-  { slot: 'lunch', quantity: 1, carbs_g: 57, name: 'Nasi putih' },
+  { slot: 'breakfast', quantity: 1, carbs_g: 54, name: 'Oat', carbSource: true },
+  { slot: 'lunch', quantity: 1, carbs_g: 57, name: 'Nasi putih', carbSource: true },
 ];
 
 export const DEMO_RULES: AdviceRule[] = [
@@ -62,6 +62,7 @@ export const DEMO_RULES: AdviceRule[] = [
       'Eat breakfast every training day, even a pisang or roti with telur. No training on empty.',
     severity: 2,
     reviewed_by: null,
+    source: 'week-1-deck',
   },
   {
     code: 'no_carbs_in_slot',
@@ -69,6 +70,7 @@ export const DEMO_RULES: AdviceRule[] = [
     message_en: 'Nasi, ubi jalar or roti all count.',
     severity: 1,
     reviewed_by: null,
+    source: 'week-1-deck',
   },
   {
     code: 'urine_five_or_worse',
@@ -77,6 +79,7 @@ export const DEMO_RULES: AdviceRule[] = [
       'Losing 2% of your body weight to dehydration cuts sprint speed by about 10%.',
     severity: 2,
     reviewed_by: null,
+    source: 'week-1-deck',
   },
   {
     code: 'refuel_window_open',
@@ -85,6 +88,7 @@ export const DEMO_RULES: AdviceRule[] = [
       'Refuel within 30 minutes. Aim for roughly 3 parts carbohydrate to 1 part protein.',
     severity: 2,
     reviewed_by: null,
+    source: 'week-1-deck',
   },
   {
     code: 'pre_training_meal',
@@ -93,6 +97,44 @@ export const DEMO_RULES: AdviceRule[] = [
       'Eat a proper meal 2 to 3 hours before training. Rice, pasta, nasi campur, anything carb-heavy.',
     severity: 1,
     reviewed_by: null,
+    source: 'week-1-deck',
+  },
+  // Week 2's, mirroring supabase/seed/0009_week2_programme.sql.
+  {
+    code: 'no_protein_breakfast',
+    domain: 'protein',
+    message_en:
+      'Starting your day at 0g protein means an entire repair window is missed before training even begins.',
+    severity: 2,
+    reviewed_by: null,
+    source: 'week-2-deck',
+  },
+  {
+    code: 'no_protein_in_meal',
+    domain: 'protein',
+    message_en:
+      'Don\'t change what you\'re already eating — just add. Lunch has rice and veg? Add tempe or a boiled egg.',
+    severity: 1,
+    reviewed_by: null,
+    source: 'week-2-deck',
+  },
+  {
+    code: 'protein_piled_at_dinner',
+    domain: 'protein',
+    message_en:
+      'The body can only use 25–35g per meal for muscle protein synthesis. The goal is better-timed protein across the day, not a bigger dinner.',
+    severity: 1,
+    reviewed_by: null,
+    source: 'week-2-deck',
+  },
+  {
+    code: 'post_training_no_protein',
+    domain: 'timing',
+    message_en:
+      'Post-training in a hurry? 2 telur rebus + 1 pisang. Takes 30 seconds. That\'s your recovery window covered.',
+    severity: 2,
+    reviewed_by: null,
+    source: 'week-2-deck',
   },
 ];
 
@@ -193,6 +235,23 @@ function demoFood(
   };
 }
 
+/** A food from the Week 2 deck's protein table, as seed 0010 holds it. */
+function demoProtein(
+  id: string,
+  name_id: string,
+  name_en: string,
+  label: string,
+  protein_g: number | null,
+  guidance_note: string | null
+): FoodWithPortions {
+  const food = demoFood(id, name_id, name_en, 'protein', 'eat_daily', label, null, null, guidance_note);
+  return {
+    ...food,
+    source: 'week-2-deck',
+    food_portions: food.food_portions.map((p) => ({ ...p, protein_g })),
+  };
+}
+
 export const DEMO_FOODS: FoodWithPortions[] = [
   demoFood('f1', 'Nasi putih', 'White rice', 'carbohydrate', 'eat_daily', '200g cooked', 260, 57),
   demoFood('f2', 'Nasi merah', 'Brown rice', 'carbohydrate', 'eat_daily', '200g cooked', 220, 46, 'More fibre'),
@@ -201,6 +260,10 @@ export const DEMO_FOODS: FoodWithPortions[] = [
   demoFood('f5', 'Oat', 'Oats', 'carbohydrate', 'eat_daily', '80g dry', 300, 54, 'Slow-release'),
   demoFood('f6', 'Pepaya / mangga', 'Papaya / mango', 'fruit', 'eat_daily', '150g', null, null, 'Quick carbs and vitamins'),
   demoFood('f7', 'Mie instan', 'Instant noodles', 'carbohydrate', 'not_the_priority', '1 portion', null, null, 'Carbs yes, but high sodium and low nutrition'),
+  demoProtein('p1', 'Telur', 'Eggs', '3 eggs', 18, 'Leucine threshold reached. Cheapest complete protein'),
+  demoProtein('p2', 'Tempe', 'Tempeh', '100g', 19, 'Best local plant protein + iron'),
+  demoProtein('p3', 'Ayam dada', 'Chicken breast', '100g', 24, 'Complete amino acids'),
+  demoProtein('p4', 'Tahu', 'Tofu', '1 portion', null, null),
 ];
 
 /**
@@ -219,7 +282,13 @@ export const DEMO_WEEKS: Week[] = [
     challengeId: 'demo-ch1',
     unlocked: true,
   },
-  { weekNumber: 2, theme: null, challenge: null, challengeId: null, unlocked: false },
+  {
+    weekNumber: 2,
+    theme: 'Protein + Micronutrients',
+    challenge: 'Add one protein source to every meal',
+    challengeId: 'demo-ch2',
+    unlocked: true,
+  },
   { weekNumber: 3, theme: null, challenge: null, challengeId: null, unlocked: false },
   { weekNumber: 4, theme: null, challenge: null, challengeId: null, unlocked: false },
 ];
@@ -303,6 +372,90 @@ export const DEMO_LESSON_CARDS: LessonCard[] = [
     [null, null, 'Thomas DT, Erdman KA, Burke LM (2016). Academy of Nutrition and Dietetics position paper on nutrition and athletic performance. Journal of the Academy of Nutrition and Dietetics, 116(3), 501–528.'],
   ]),
 ];
+
+/**
+ * Week 2, mirroring supabase/seed/0011_week2_lessons.sql card for card. A
+ * test holds the kinds and their order to the seed's, as it does for week 1.
+ */
+export const DEMO_LESSON_CARDS_WEEK2: LessonCard[] = [
+  lesson('w2-1', 'intro', 'Build. Repair. Repeat.',
+    'You trained hard last week. Protein is what rebuilds what training breaks down. This week: learn how to actually use it.'),
+
+  lesson('w2-2', 'stats', 'Why it matters', null, [
+    ['Per kg bodyweight needed daily for teen male athletes', '1.6–2.2g', null],
+    ['Per meal to trigger muscle protein synthesis — the sweet spot', '25–35g', null],
+    ['Post-training window — muscles absorb protein fastest here', '30 min', null],
+    ['This group\'s actual calorie intake vs what training demands', '50–65%', null],
+  ]),
+
+  lesson('w2-3', 'stats', 'Before Protein — The Calorie Gap',
+    'This is the group average: 50–65% of calorie needs met on training days. Protein distribution matters — but not if total intake is this low. Adding protein at breakfast doesn\'t just fix the macro split — it closes part of this gap.', [
+      ['kcal the body needed to support training, repair, and growth', '~3,000', null],
+      ['Avg protein at dinner (most of the group)', '~90g', null],
+      ['Protein at breakfast (most days)', '0g', null],
+    ]),
+
+  lesson('w2-4', 'myth_fact', 'The Biggest Myth in Protein', null, [
+    ['THE MYTH', null, '"Eat as much protein as possible — more protein equals more muscle." This leads to piling 150g chicken at dinner, skipping breakfast entirely, and thinking the job is done.'],
+    ['THE FACT', null, 'The body can only use 25–35g per meal for muscle protein synthesis. Above that, surplus amino acids are burned as fuel — not stored as muscle. The goal is better-timed protein across the day, not a bigger dinner.'],
+  ]),
+
+  lesson('w2-5', 'process', 'What Protein Actually Does',
+    'The repair cycle runs 4 times a day - at every meal. Miss a meal = miss a repair window. Dinner only = 1 out of 4 windows used.', [
+      ['You Train', null, 'Micro-tears form in muscle fibres — the stimulus for growth'],
+      ['Amino Acids Arrive', null, 'From digested protein within 30–90 min'],
+      ['Leucine Triggers mTOR', null, '2.5g leucine switches on the repair signal'],
+      ['MPS Begins', null, 'New protein strands built — stronger than before'],
+      ['Recovery Complete', null, 'Only if protein + carbs + sleep all present'],
+    ]),
+
+  lesson('w2-6', 'timing', 'The Problem Isn\'t How Much — It\'s When', null, [
+    ['CURRENT PATTERN (MOST OF THIS GROUP)', null, 'Breakfast 0–10g\nLunch 20–30g\nDinner 60–90g ← everything here\nPost-Training 0g'],
+    ['OPTIMAL PATTERN', null, 'Breakfast 25–35g ← morning MPS\nLunch 25–35g\nDinner 25–35g\nPost-Training 20–25g ← recovery window'],
+  ], 'Areta et al. (2013). Spreading protein across 4 meals produces 25% more muscle protein synthesis than eating the same total in 1–2 sittings — even with identical gram counts. The body cannot store amino acids for later use.'),
+
+  lesson('w2-7', 'targets', 'Protein Targets', 'for 60–70 kg athlete', [
+    ['DAILY TARGET', '96–154g', '1.6–2.2g per kg · spread across 4 meals'],
+    ['PER MEAL SWEET SPOT', '25–35g', 'Above 35g per meal adds no extra MPS benefit'],
+    ['POST-TRAINING', '20–25g', 'Within 30 min · pair with 3:1 carbs'],
+    ['CURRENT GROUP RANGE', '64–134g', null],
+  ]),
+
+  lesson('w2-8', 'timing', 'Micronutrients — What Makes Protein Actually Work',
+    'Protein is the raw material. Micronutrients are the tools that convert it into muscle. Three are critically low in this group — and all three come from the same foods that fix the protein gap.', [
+      ['IRON — OXYGEN DELIVERY', null, 'Makes haemoglobin. Without it, oxygen delivery to working muscles drops — you fatigue earlier in the second half regardless of fitness. Low iron reduces VO₂max by 15–20%.\n\nFix: tempe, bayam, kangkung, ikan teri — pair with jeruk for 2× absorption'],
+      ['ZINC — THE MPS SWITCH', null, 'Cofactor for ribosomal protein assembly and testosterone synthesis. Without zinc, the mTOR pathway that protein triggers cannot complete the repair cycle. Teen boys lose zinc fastest during intense training.\n\nFix: daging sapi, tempe, kacang mete, telur'],
+      ['OMEGA-3 — RECOVERY SIGNAL', null, 'Reduces exercise-induced inflammation and improves the muscle\'s anabolic sensitivity to protein — the same protein dose produces more MPS when omega-3 status is adequate. Also improves decision-making during games.\n\nFix: ikan kembung, salmon, sarden — 2–3× per week'],
+      ['THE FOOD HACK', null, 'Tempe, ikan kembung, and telur give you protein AND iron AND zinc AND omega-3. You don\'t need to think about micronutrients separately. Add those three foods and you cover the most critical gaps.'],
+    ]),
+
+  lesson('w2-9', 'foods', 'Best Protein Sources in Jakarta', null),
+
+  lesson('w2-10', 'timing', 'Smart Combos — Complete Profile',
+    'Post-training in a hurry? 2 telur rebus + 1 pisang = 18g protein + 27g carbs. Costs Rp 6,000. Takes 30 seconds. That\'s your recovery window covered.', [
+      ['Tempe + nasi', null, 'Complete amino acid profile'],
+      ['Tahu + kacang tanah', null, 'Leucine + lysine pair'],
+      ['Roti gandum + 2 telur', null, 'Best breakfast combination'],
+      ['Greek yogurt + pisang', null, 'Post-training: protein + fast carbs'],
+      ['Gado-gado (tempe+telur+kacang)', null, 'One of Indonesia\'s most complete meals'],
+    ]),
+
+  lesson('w2-11', 'challenge', 'Add One Protein Source to Every Meal',
+    'Don\'t change what you\'re already eating — just add. Lunch has rice and veg? Add tempe or a boiled egg. Dinner already has chicken? Keep it and add tahu. Post-training is nothing? Add a glass of susu or 2 telur rebus. One protein add per meal, every day, three meals minimum. At the end of each day, ask yourself: did I hit protein at 3 or more meals today? Track it and report Sunday.'),
+
+  lesson('w2-12', 'references', 'References', null, [
+    [null, null, 'Areta JL et al. (2013). Timing and distribution of protein ingestion during prolonged recovery from resistance exercise. Journal of Physiology, 591(9).'],
+    [null, null, 'Moore DR et al. (2009). Ingested protein dose response of muscle and albumin protein synthesis after resistance exercise. AJCN, 89(1).'],
+    [null, null, 'Norton LE & Layman DK (2006). Leucine regulates translation initiation of protein synthesis in skeletal muscle. Journal of Nutrition.'],
+    [null, null, 'Thomas DT et al. (2016). Position of the Academy of Nutrition and Dietetics on nutrition and athletic performance. JADA, 116(3).'],
+  ]),
+];
+
+/** Each written week's cards, for the Learn screen in demo mode. */
+export const DEMO_LESSON_CARDS_BY_WEEK: Record<number, LessonCard[]> = {
+  1: DEMO_LESSON_CARDS,
+  2: DEMO_LESSON_CARDS_WEEK2,
+};
 
 /**
  * The team leaderboard, for the development flag.
@@ -566,27 +719,27 @@ export const DEMO_COACH_TEAM: CoachTeam = {
 };
 
 /**
- * Week 1 of the carb challenge, for the demo only.
+ * The week 1 and week 2 challenges, for the demo only.
  *
  * FIXTURE ONLY, for the same reason as the streak strip's days: these are
  * dated meals nobody logged, and writing them to `daily_logs` would be
- * fabricating collected data. The shape is five days won, one day with
- * dinner carb-less, and one with lunch skipped -- enough to show a done day,
- * a missed one and a streak that restarts.
+ * fabricating collected data. Each week has five days won and two not, in
+ * different places, so a done day, a missed one and a restarted streak all
+ * show.
  */
-export function demoChallengeLogs(programmeStartsOn: string): ChallengeLog[] {
+export function demoChallengeLogs(programmeStartsOn: string, week: number): ChallengeLog[] {
   const carb = (slot: ChallengeItem['slot']): ChallengeItem => ({
-    slot,
-    carbs_g: 57,
-    deckCarbSource: true,
+    slot, carbs_g: 57, protein_g: null, carbSource: true,
   });
   const noCarb = (slot: ChallengeItem['slot']): ChallengeItem => ({
-    slot,
-    carbs_g: 0,
-    deckCarbSource: false,
+    slot, carbs_g: 0, protein_g: null,
   });
+  const protein = (slot: ChallengeItem['slot']): ChallengeItem => ({
+    slot, carbs_g: null, protein_g: 19, proteinSource: true,
+  });
+
   const full = [carb('breakfast'), carb('lunch'), carb('dinner')];
-  const days: ChallengeItem[][] = [
+  const week1: ChallengeItem[][] = [
     full,
     full,
     [carb('breakfast'), carb('lunch'), noCarb('dinner')],
@@ -595,10 +748,24 @@ export function demoChallengeLogs(programmeStartsOn: string): ChallengeLog[] {
     [carb('breakfast'), carb('dinner')],
     full,
   ];
+  // Protein at three of the four meals wins a day; breakfast is the one
+  // most often missing, which is the deck's own finding about this group.
+  const three = [carb('breakfast'), protein('lunch'), protein('post_training'), protein('dinner')];
+  const four = [protein('breakfast'), protein('lunch'), protein('post_training'), protein('dinner')];
+  const week2: ChallengeItem[][] = [
+    three,
+    four,
+    [carb('breakfast'), protein('lunch'), carb('post_training'), protein('dinner')],
+    three,
+    four,
+    three,
+    [carb('breakfast'), carb('lunch'), protein('dinner')],
+  ];
+
+  const days = week === 1 ? week1 : week === 2 ? week2 : [];
+  const first = Date.parse(`${programmeStartsOn}T00:00:00Z`) + (week - 1) * 7 * 86_400_000;
   return days.map((items, i) => ({
-    date: new Date(Date.parse(`${programmeStartsOn}T00:00:00Z`) + i * 86_400_000)
-      .toISOString()
-      .slice(0, 10),
+    date: new Date(first + i * 86_400_000).toISOString().slice(0, 10),
     items,
   }));
 }

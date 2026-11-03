@@ -1,5 +1,5 @@
 import { asError } from './errors';
-import { carbsFor, type FoodPortion, type FoodWithPortions } from './food';
+import { carbsFor, proteinFor, type FoodPortion, type FoodWithPortions } from './food';
 import { supabase } from './supabase';
 import type { TablesUpdate } from './database.types';
 import type { MealSlot } from './today';
@@ -72,12 +72,23 @@ export const QUANTITIES = [0.5, 1, 1.5, 2, 3] as const;
  */
 export function portionSummary(portion: FoodPortion, quantity: number) {
   const carbs = carbsFor(portion, quantity);
+  const protein = proteinFor(portion, quantity);
   return {
     carbs_g: carbs,
+    protein_g: protein,
     kcal: portion.kcal === null ? null : Number(portion.kcal) * quantity,
-    /** The programme has supplied nothing for this portion yet. */
-    unknown: carbs === null,
+    /** The programme has supplied neither figure for this portion yet. */
+    unknown: carbs === null && protein === null,
   };
+}
+
+/** The line under the picker: whichever figures the programme has given. */
+export function macroLine(summary: ReturnType<typeof portionSummary>): string {
+  if (summary.unknown) return 'No figure for this yet — it will still be logged.';
+  const parts: string[] = [];
+  if (summary.carbs_g !== null) parts.push(`${Math.round(summary.carbs_g)} g carbs`);
+  if (summary.protein_g !== null) parts.push(`${Math.round(summary.protein_g)} g protein`);
+  return parts.join(' · ');
 }
 
 /**

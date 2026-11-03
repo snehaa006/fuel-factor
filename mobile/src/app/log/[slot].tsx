@@ -14,6 +14,7 @@ import {
   addLogItem,
   defaultPortion,
   ensureDailyLog,
+  macroLine,
   portionSummary,
   searchFoods,
 } from '@/lib/logger';
@@ -242,14 +243,11 @@ function LogMealForm() {
                       ))}
                     </View>
 
-                    {/* The deck gives carbohydrate for eight foods and nothing
-                        for the rest. A zero here would be a lie, so it says so. */}
+                    {/* Week 1's deck gives carbohydrate, week 2's gives protein,
+                        and some foods have neither. A zero here would be a lie,
+                        so it says so. */}
                     <Text testID="macro-feedback" style={[typography['body-l'], { color: colors['pisang-deep'] }]}>
-                      {summary === null
-                        ? ''
-                        : summary.unknown
-                          ? 'No carbohydrate figure for this yet — it will still be logged.'
-                          : `${Math.round(summary.carbs_g ?? 0)} g carbs`}
+                      {summary === null ? '' : macroLine(summary)}
                     </Text>
                   </View>
                 )}

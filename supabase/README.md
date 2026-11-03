@@ -230,6 +230,13 @@ schema, and ran after them.
 | `0006_week1_lessons.sql` | Week 1's lesson cards, built from the deck |
 | `0007_badges.sql` | The badge ladder. Names and thresholds are Theo's to change |
 | `0008_coach_code.sql` | The demo team's coach code. Separate from the join code on purpose |
+| `0009_week2_programme.sql` | Week 2's challenge and its 4 protein advice rules |
+| `0010_week2_foods.sql` | The Week 2 deck's protein table: 6 foods with protein figures, plus tahu and susu with none |
+| `0011_week2_lessons.sql` | Week 2's lesson cards. Seeding these is what unlocks week 2 on Learn |
+
+**0009–0011 are not on the live project yet.** They were applied against a
+local Postgres 16 with every migration and seed before them and read back
+cleanly; run them against `fuel-factor` in that order.
 
 `0003` is transcribed from the programme's tracker by way of
 `docs/PRODUCT-BRIEF.md` section 2. The meals eaten on those nine recall days are

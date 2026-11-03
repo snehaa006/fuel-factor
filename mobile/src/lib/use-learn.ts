@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { DEMO_FOODS, DEMO_LESSON_CARDS, DEMO_WEEKS } from './__fixtures__/today';
+import { DEMO_FOODS, DEMO_LESSON_CARDS_BY_WEEK, DEMO_WEEKS } from './__fixtures__/today';
 import { messageOf } from './errors';
 import { listFoods, type FoodWithPortions } from './food';
 import {
@@ -86,7 +86,7 @@ function fixtureWeek(weekNumber: number): WeekState {
     status: 'ready',
     detail: {
       week,
-      cards: week.unlocked ? DEMO_LESSON_CARDS : [],
+      cards: week.unlocked ? (DEMO_LESSON_CARDS_BY_WEEK[weekNumber] ?? []) : [],
       completedOn: null,
       photoPath: null,
     },
