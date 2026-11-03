@@ -524,6 +524,32 @@ running; Learn shows each week's.
 **Each nudge card names its week.** It used to say "Week 1 material" on every
 card whatever its source; it reads the rule's `source` now.
 
+**Step 18** — No seeded squad. Real data only (3 November).
+
+**The live project holds one team: Team Jakarta buddies** (join code
+`4YPUJR`, programme from 6 November), made by its coach in the app, with one
+athlete who joined by link. The seeded Jakarta U16 squad was deleted from the
+live database in one transaction: the team, its three unclaimed athletes
+(J-01, T-01, JA-01) and, by cascade, their one demo day with two meals, nine
+baseline recall rows and two Cooper runs. Nothing touched the real team: its
+coach, its athlete and his one recall are as they were. The baseline figures
+are still in the programme's Google tracker.
+
+**The seed files that made that squad are gone too** — `0003_baseline_roster`,
+`0004_team`, `0005_demo_today`, `0008_coach_code` — so a fresh project
+cannot grow it back. What remains in `supabase/seed/` is the programme's
+content alone: foods, lessons, advice rules, challenges and badges.
+
+Earlier steps below still mention the seeded squad, seed 0003's baseline and
+FUEL01, as history. **`npm run web:demo` still draws a demo squad** from
+`mobile/src/lib/__fixtures__/today.ts`; that is the offline preview and the
+test fixture, it never reaches the database.
+
+**Week 1 is taken from week 1's material only.** Its challenge stays the
+Week 1 PDF's "Add one carb to every meal", which is what `weekly_challenges`
+holds and what the tracker checks. Week 2's deck is not read as evidence
+about week 1.
+
 **1049 tests pass.**
 
 `cd mobile && npm run check` runs theme generation, typecheck,
@@ -706,12 +732,9 @@ and what step 16 checks. The seven WhatsApp slides and the team message in the
 same Drive folder say *"Eat breakfast. Every. Single. Day."* and ask for a
 photo of it. The carb challenge contains the breakfast one — a won day needs a
 carb at breakfast — but they are not the same challenge. Ask Sofia which one
-week 1 is. **The week 2 deck all but answers it:** *"This is different from
-last week's breakfast habit — this is about the whole day."* So the challenge
-the squad was actually set in week 1 looks like the breakfast one, and the
-carb wording in the PDF is the one that did not go out. If Sofia confirms,
-week 1's spec in `CHALLENGES` becomes breakfast-only and the row in
-`weekly_challenges` changes with it.
+week 1 is. **Settled 3 November: week 1 comes from week 1's material only**, and
+the PDF's carb challenge is the one the app uses. Nothing in week 2 is read as
+evidence about week 1.
 
 **The week 2 deck names four athletes, and Learn names none.** One athlete's
 calories on a training day ("−66%"), one's protein flagged "critically low"

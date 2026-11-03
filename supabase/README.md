@@ -224,12 +224,8 @@ schema, and ran after them.
 |---|---|
 | `0001_week1_foods.sql` | 15 foods from the Week 1 deck |
 | `0002_week1_programme.sql` | Week 1's challenge and 5 advice rules |
-| `0003_baseline_roster.sql` | The three footballers, their nine baseline urine readings, two Cooper runs |
-| `0004_team.sql` | The team they belong to. App tier |
-| `0005_demo_today.sql` | **Demo only.** A part-finished day for Theo, so the Today screen has something to draw |
 | `0006_week1_lessons.sql` | Week 1's lesson cards, built from the deck |
 | `0007_badges.sql` | The badge ladder. Names and thresholds are Theo's to change |
-| `0008_coach_code.sql` | The demo team's coach code. Separate from the join code on purpose |
 | `0009_week2_programme.sql` | Week 2's challenge and its 4 protein advice rules |
 | `0010_week2_foods.sql` | The Week 2 deck's protein table: 6 foods with protein figures, plus tahu and susu with none |
 | `0011_week2_lessons.sql` | Week 2's lesson cards. Seeding these is what unlocks week 2 on Learn |
@@ -238,18 +234,18 @@ schema, and ran after them.
 local Postgres 16 with every migration and seed before them and read back
 cleanly; run them against `fuel-factor` in that order.
 
-`0003` is transcribed from the programme's tracker by way of
-`docs/PRODUCT-BRIEF.md` section 2. The meals eaten on those nine recall days are
-deliberately absent: the tracker holds them as free text, that text is not in
-this repository, and writing plausible meals for three named minors into a
-research table would put invented food into the study's own record. They land
-when the tracker export does.
+**Seeds hold the programme's content and nothing else** — foods, lessons,
+advice rules, challenges and the badge ladder. No team and no athlete is
+seeded. The real squad is **Team Jakarta buddies** (join code `4YPUJR`),
+created by its coach in the app; its athletes join by link.
 
-`0005` is the one seed holding food nobody ate. Drop it with:
-
-```sql
-delete from public.daily_logs where log_date = current_date;
-```
+The seeded demo squad is gone, from this folder and from the live project
+(3 November). It was `0003_baseline_roster` (three footballers, nine baseline
+recall rows, two Cooper runs), `0004_team` (Jakarta U16, join code FUEL01),
+`0005_demo_today` (a part-finished day nobody ate) and `0008_coach_code`. The
+baseline figures it held are still in the programme's Google tracker; they
+were never this database's to keep, and an athlete's own baseline is the
+three-day recall they fill in the app.
 
 ## Onboarding: how a device becomes an athlete
 
