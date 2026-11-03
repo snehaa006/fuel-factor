@@ -1,0 +1,40 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm ci",
+  "buildCommand": "npx expo export --platform ios --platform android --no-bytecode --output-dir dist-native && node scripts/build-expo-go.mjs",
+  "outputDirectory": "public",
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "header", "key": "expo-platform", "value": "ios" }],
+      "destination": "/ios.json"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "header", "key": "expo-platform", "value": "android" }],
+      "destination": "/android.json"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/",
+      "has": [{ "type": "header", "key": "expo-platform" }],
+      "headers": [
+        { "key": "Content-Type", "value": "application/json" },
+        { "key": "expo-protocol-version", "value": "1" },
+        { "key": "expo-sfv-version", "value": "0" },
+        { "key": "Cache-Control", "value": "no-cache" }
+      ]
+    },
+    {
+      "source": "/(ios|android).json",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json" },
+        { "key": "expo-protocol-version", "value": "1" },
+        { "key": "expo-sfv-version", "value": "0" },
+        { "key": "Cache-Control", "value": "no-cache" }
+      ]
+    }
+  ]
+}
