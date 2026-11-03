@@ -1,5 +1,6 @@
 import { URINE_WORDING } from './check-in';
 import { asError } from './errors';
+import { followUpOpensOn } from './recall-window';
 import { supabase } from './supabase';
 import type { IsoDate } from './streak';
 
@@ -51,6 +52,12 @@ export type Progress = {
   metrics: Metric[];
   /** The Cooper run and anything else the ASSESSMENTS tab holds, pre vs post. */
   assessments: Assessment[];
+  /**
+   * Set while the post-programme tests are still in the future: the day the
+   * four weeks are up. Every `post` is withheld until then. Absent once it
+   * has arrived.
+   */
+  postOpensOn?: IsoDate;
 };
 
 export type Assessment = {
@@ -177,13 +184,14 @@ export function toMetrics(recalls: RecallRow[], logs: LogRow[]): Metric[] {
  * recall rows are the research tier and are read, never written: the app does
  * not fill in a study instrument.
  */
-export async function fetchProgress(since: IsoDate): Promise<Progress> {
+export async function fetchProgress(since: IsoDate, until: IsoDate): Promise<Progress> {
   const [recalls, logs, assessments] = await Promise.all([
     supabase.from('recalls').select('urine_colour, energy, fluid_ml, est_calories, breakfast'),
     supabase
       .from('daily_logs')
       .select('urine_colour, energy_am, fluid_ml, breakfast')
-      .gte('log_date', since),
+      .gte('log_date', since)
+      .lte('log_date', until),
     supabase.from('assessments').select('measure, unit, pre_value, post_value').order('measure'),
   ]);
 
@@ -199,5 +207,33 @@ export async function fetchProgress(since: IsoDate): Promise<Progress> {
       pre: a.pre_value,
       post: a.post_value,
     })),
+  };
+}
+
+/**
+ * Hold back the post-programme test results until the programme has got there.
+ *
+ * The ASSESSMENTS tab carries a pre and a post figure on one row and no date
+ * for either, so a post value is whatever the sheet holds now. In real life a
+ * post figure only exists once the four weeks are up -- the tests are re-run
+ * at the end, beside the follow-up recall. Showing it on day 3 is showing the
+ * future, which is exactly what the time machine would do when set back to
+ * week 1 after the results are in.
+ *
+ * So the date decides, the same date that opens the follow-up recall. With no
+ * programme date there is nothing to wait for and nothing is withheld.
+ */
+export function asOfDate(
+  progress: Progress,
+  programmeStartsOn: IsoDate | null,
+  today: IsoDate
+): Progress {
+  if (programmeStartsOn === null) return progress;
+  const opensOn = followUpOpensOn(programmeStartsOn);
+  if (today >= opensOn) return { ...progress, postOpensOn: undefined };
+  return {
+    ...progress,
+    postOpensOn: opensOn,
+    assessments: progress.assessments.map((a) => ({ ...a, post: null })),
   };
 }

@@ -4,6 +4,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppSidebar } from '@/components/app-sidebar';
+import { CarbChallengeCard } from '@/components/carb-challenge-card';
 import { DayTypeSwitch } from '@/components/day-type-switch';
 import { FuelRing } from '@/components/fuel-ring';
 import { MascotBanner } from '@/components/mascot-banner';
@@ -20,6 +21,7 @@ import { topNudges } from '@/lib/advice';
 import { dayCue } from '@/lib/mascot-copy';
 import { hasSession, nowMinutes } from '@/lib/session';
 import { bestStreak, loggedToday, recentDays, streakLength } from '@/lib/streak';
+import { useCarbChallenge } from '@/lib/use-carb-challenge';
 import { useRecallStatus } from '@/lib/use-recall';
 import { useToday } from '@/lib/use-today';
 import { useTheme } from '@/theme';
@@ -40,6 +42,8 @@ function TodayScreen() {
   const recall = useRecallStatus();
   const { colors, spacing, typography } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [focusCount, setFocusCount] = useState(0);
+  const challenge = useCarbChallenge(focusCount);
 
   // Coming back from the logger, the day has changed underneath this screen.
   // The first focus is the mount, which has just loaded, so it is skipped.
@@ -47,7 +51,10 @@ function TodayScreen() {
   const { reload } = state;
   useFocusEffect(
     useCallback(() => {
-      if (mounted.current) reload();
+      if (mounted.current) {
+        reload();
+        setFocusCount((n) => n + 1);
+      }
       mounted.current = true;
     }, [reload])
   );
@@ -131,6 +138,14 @@ function TodayScreen() {
             </Text>
           )}
         </View>
+
+        {/* Week 1's challenge, read off the meals rather than ticked. Shown
+            while week 1 is running; the Learn page keeps it afterwards. */}
+        {challenge.status === 'ready' && challenge.week.phase === 'running' && (
+          <View style={{ marginTop: spacing['space-6'] }}>
+            <CarbChallengeCard week={challenge.week} testID="carb-challenge" />
+          </View>
+        )}
 
         {recall.status === 'ready' && (
           <View style={{ marginTop: spacing['space-6'] }}>

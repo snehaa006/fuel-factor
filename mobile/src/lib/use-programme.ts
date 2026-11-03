@@ -34,7 +34,7 @@ export function useProgramme(): ProgrammeStatus & { reload: () => void } {
     const today = todayIso();
     return {
       status: 'ready',
-      programme: programmeState(demoProgrammeStart(today), today),
+      programme: programmeState(demoProgrammeStart(), today),
       name: DEMO_PROFILE.name,
       teamName: DEMO_PROFILE.teamName,
     };

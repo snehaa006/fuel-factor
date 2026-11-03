@@ -429,7 +429,57 @@ colours are still not here** — a colour name is the sheet's own text, an
 approximated hex is not, and matching against a wrong swatch produces a wrong
 reading rather than a vague one.
 
-**960 tests pass.**
+**Step 16** — The week 1 challenge read off the log, and a time machine for
+testing a month in one sitting.
+
+**The challenge is checked, not only ticked.** The deck's challenge is *"Add
+One Carb to Every Meal ... One addition per meal, three meals a day, every day
+this week."* `carb-challenge.ts` reads week 1's daily logs and, for each of the
+seven days, asks whether breakfast, lunch and dinner each had a carbohydrate in
+them. A day is won with all three; the week is won with seven. The card shows
+seven columns of B/L/D pips, a tick or a cross per finished day, the streak,
+and says plainly once a day has been missed. It sits on Today while week 1 is
+running and on Learn → Week 1 for good, above the old "Mark the challenge
+done" tap, which still records what the athlete *says*. Derived on read like
+the streak — no completion is written, so `challenges_done` on the badge
+ladder still counts only the tap.
+
+**The time machine.** `clock.ts` holds a simulated date and `todayIso()` asks
+it first, so every screen that already went through `todayIso()` — which was
+all of them — follows it: the logger and the check-in write to that day,
+Today draws it, the streak counts back from it, the programme gate opens or
+shuts on it, the leaderboard ranks the week before it, and **the recall asks
+for whichever round is due on it** — the baseline before day one, nothing in
+weeks 1–4, the follow-up from day 29. Only the date is simulated; the time of
+day stays real so the session-timing rules still have a clock. A pill floats
+at the bottom of every screen: ‹ and › step a day, the date opens a month
+calendar, and it turns `cabai` while travelling. The date survives a reload.
+The root `Stack` is keyed on it, so a jump remounts every screen and each
+loads its day from scratch, exactly as opening the app on that day would.
+
+It is on wherever `__DEV__` is (every `expo start`, `npm run web:live`
+included) or `EXPO_PUBLIC_TIME_MACHINE=1` is set, and **off in every EAS
+build profile**: a real athlete on a simulated date would log their breakfast
+into the wrong day of a research table. **Test with a test athlete, never a
+roster name** — the rows it writes are real `daily_logs` rows and the export
+will read them.
+
+**Travelling backwards had to stop reading the future.** Four reads had a
+lower bound and no upper one, harmless while today was always the latest day
+there could be: Today's streak dates (newest 120 — a month logged ahead would
+have pushed the past out of the limit), the badge stats, the coach dashboard
+and Progress. All four now stop at today. **Progress also withholds the post
+fitness-test figure until the follow-up opens** (`asOfDate`), because the
+ASSESSMENTS row carries pre and post with no date on either, and a post value
+on day 3 is a result from the future. It says *"re-tested after week 4, from
+<date>"* instead.
+
+**The demo's programme start is pinned to the real date**, not the
+simulated one. It used to be "30 days before today", which moved with the
+machine and kept the demo on day 31 wherever it went. Travel back 30 days in
+`npm run web:demo` to stand on day one.
+
+**1002 tests pass.**
 
 `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
@@ -490,6 +540,10 @@ gives the squad — so the demo opens on a running programme. To see
 | `mobile/src/lib/recall.ts` | The RECALL fields, limits, parsing and writes |
 | `mobile/src/lib/recall-window.ts` | Which recall is due. Pure — every input is passed in |
 | `mobile/src/lib/programme.ts` | Whether the four weeks have started. Pure — the date and today are passed in |
+| `mobile/src/lib/clock.ts` | The time machine's simulated date. `todayIso()` reads it. No Supabase import, on purpose |
+| `mobile/src/components/time-machine.tsx` | The floating pill and the month calendar |
+| `mobile/src/lib/carb-challenge.ts` | Week 1's challenge checked against the log. Pure apart from one fetch |
+| `mobile/src/components/carb-challenge-card.tsx` | The seven B/L/D columns and the status line |
 | `mobile/src/lib/recall-nutrition.ts` | The client half of the backend macro seam |
 | `mobile/src/lib/profile.ts` | Athlete and coach profiles |
 | `mobile/src/lib/errors.ts` | `messageOf` / `asError` — read before touching error handling |
@@ -598,6 +652,28 @@ looking, not of a setting. `EXPO_PUBLIC_DEMO_DATA=1` draws Today and Learn
 from a fixture meanwhile.
 
 ## Decisions I made that are really Sofia's or Theo's
+
+**Week 1 has two different challenges in Sofia's own material.** The PDF deck
+says *"Add One Carb to Every Meal"*, and that is what `weekly_challenges` holds
+and what step 16 checks. The seven WhatsApp slides and the team message in the
+same Drive folder say *"Eat breakfast. Every. Single. Day."* and ask for a
+photo of it. The carb challenge contains the breakfast one — a won day needs a
+carb at breakfast — but they are not the same challenge. Ask Sofia which one
+week 1 is.
+
+**"Three meals a day" is read as breakfast, lunch and dinner.** Pre-training,
+post-training and the evening snack never count for or against a day; a rest
+day has no post-training meal to miss. An athlete who eats their lunch in the
+pre-training slot loses the day. Ask Sofia whether pre-training should stand
+in for lunch on a training day.
+
+**What counts as "a carb" is the deck's own table.** A portion with a
+carbohydrate figure above zero counts; where the deck gives no figure, a food
+it lists under *"Best Carbohydrate Sources in Jakarta"* counts, because it put
+it there — which includes teh botol, keripik and kue from its "okay, but not
+the priority" column. A free-text item the database cannot match counts for
+nothing. Ask Sofia whether the "not the priority" foods should win a day.
+
 
 Each of these was the honest call with what we have. None should stay mine.
 

@@ -1,3 +1,4 @@
+import { simulatedDate } from './clock';
 import { asError } from './errors';
 import { carbsFor } from './food';
 import { NO_SESSION, parseTime, type TrainingSession } from './session';
@@ -113,8 +114,19 @@ export type TodayData = {
   activeDates: string[];
 };
 
-/** Today in the device's own timezone, as YYYY-MM-DD. */
-export function todayIso(now = new Date()): string {
+/**
+ * Today in the device's own timezone, as YYYY-MM-DD.
+ *
+ * Asked with no argument, it answers with the time machine's date when one is
+ * set (see `clock.ts`). Asked about a specific instant, it answers about that
+ * instant and nothing else, so tests stay pure.
+ */
+export function todayIso(now?: Date): string {
+  if (now === undefined) {
+    const simulated = simulatedDate();
+    if (simulated !== null) return simulated;
+    now = new Date();
+  }
   const offset = now.getTimezoneOffset() * 60_000;
   return new Date(now.getTime() - offset).toISOString().slice(0, 10);
 }
@@ -154,6 +166,9 @@ export async function fetchToday(date = todayIso()): Promise<TodayData | null> {
       .from('daily_logs')
       .select('log_date')
       .eq('participant_id', participant.id)
+      // Nothing after today. With the time machine set back a week, the days
+      // logged "later" must not light the strip or be counted by the limit.
+      .lte('log_date', date)
       .order('log_date', { ascending: false })
       .limit(120),
   ]);

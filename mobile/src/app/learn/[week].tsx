@@ -2,10 +2,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CarbChallengeCard } from '@/components/carb-challenge-card';
 import { ChallengePhoto } from '@/components/challenge-photo';
 import { LessonCard } from '@/components/lesson-card';
 import { PushButton } from '@/components/push-button';
 import { todayIso } from '@/lib/today';
+import { CARB_CHALLENGE_WEEK } from '@/lib/carb-challenge';
+import { useCarbChallenge } from '@/lib/use-carb-challenge';
 import { useParticipantId } from '@/lib/use-foods';
 import { useWeek } from '@/lib/use-learn';
 import { useTheme } from '@/theme';
@@ -25,6 +28,7 @@ export default function Week() {
   const { colors, spacing, typography } = useTheme();
 
   const state = useWeek(weekNumber, participantId);
+  const carb = useCarbChallenge();
   const today = todayIso();
 
   // Derived, not stored: a route param that is not a number is known at
@@ -93,6 +97,18 @@ export default function Week() {
             <LessonCard key={card.id} card={card} foods={foods} testID={`card-${card.kind}`} />
           ))}
         </View>
+
+        {/* Week 1's challenge is checkable from the log, so it is checked
+            here, beside the tap that records what the athlete says. */}
+        {weekNumber === CARB_CHALLENGE_WEEK && carb.status === 'ready' && (
+          <View style={{ marginTop: spacing['space-6'] }}>
+            <CarbChallengeCard
+              week={carb.week}
+              challenge={detail.week.challenge}
+              testID="carb-challenge"
+            />
+          </View>
+        )}
 
         {detail.week.challengeId !== null && (
           <View style={{ marginTop: spacing['space-6'], gap: spacing['space-2'] }}>

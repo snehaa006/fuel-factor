@@ -259,3 +259,32 @@ It is not deployed anywhere yet.
 `dev.snehaa006.fuelfactor`. Android installs and updates against that string,
 so changing it later makes a different app rather than an update. It was set
 when the first build was made and should not move.
+
+## Testing a month in one sitting: the time machine
+
+A pill at the bottom of every screen sets the date the app treats as today.
+‹ and › step one day; tapping the date opens a month calendar with a *Back to
+the real today* button. The pill turns orange-red while a date is simulated,
+and the date is remembered across reloads.
+
+Everything that asks "what day is it" follows it: meals and the check-in are
+saved to that day, Today and the streak are drawn for it, the programme gate
+opens on day one, the week 1 carb challenge fills in day by day, and the food
+recall asks for the round that would really be due — the baseline before day
+one, the follow-up from four weeks on. Progress hides the post fitness test
+until the four weeks are up. The time of day stays real.
+
+To log a whole month: sign in as a **test** athlete on a team whose start date
+you know, tap the date and pick day one, log the day, tap ›, repeat.
+
+Where it is available:
+
+- **Any dev server** — `npm start`, `npm run web:live`, `npm run web:demo` —
+  because it is on whenever React Native's `__DEV__` is.
+- **A published bundle or build**, only if it is built with
+  `EXPO_PUBLIC_TIME_MACHINE=1`. No `eas.json` profile sets it, deliberately.
+
+**It writes real rows.** Against the live database a simulated day is a real
+`daily_logs` row, which the research export reads. Never test with one of the
+three roster athletes. In `web:demo` nothing is written, and the demo's day one
+is thirty days before the real today, so step back thirty days to stand on it.

@@ -236,6 +236,7 @@ export async function fetchCoachView(
       .from('daily_logs')
       .select('id, participant_id, log_date, day_type, breakfast, urine_colour')
       .gte('log_date', since)
+      .lte('log_date', today)
       .returns<LogRow[]>(),
   ]);
 

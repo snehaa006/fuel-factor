@@ -1,4 +1,4 @@
-import { summariseDay, type LoggedItem, type TodayData } from '../today';
+import { summariseDay, todayIso, type LoggedItem, type TodayData } from '../today';
 import type { TrainingSession } from '../session';
 import type { LessonCard, Week } from '../learn';
 import type { AdviceRule } from '../advice';
@@ -11,6 +11,7 @@ import type { CoachTeam } from '../coach-auth';
 import type { AthleteProfile } from '../profile';
 import type { RecallDay } from '../recall';
 import type { RecallNutrition } from '../recall-nutrition';
+import type { ChallengeItem, ChallengeLog } from '../carb-challenge';
 
 /**
  * The squad's names, or stand-ins for them.
@@ -489,8 +490,13 @@ export const DEMO_COACH_VIEW: CoachView = {
  * one rather than a second copy of a stored value, in the same spirit as
  * DEMO_LEADERBOARD's day counts.
  */
-export function demoProgrammeStart(today: string): string {
-  return new Date(Date.parse(`${today}T00:00:00Z`) - 30 * 86_400_000).toISOString().slice(0, 10);
+export function demoProgrammeStart(): string {
+  // Thirty days before the REAL today, not the time machine's: a start date
+  // that moved with the machine would keep the demo on day 31 wherever it was
+  // sent, and week 1 could never be reached. Anchored, travelling back thirty
+  // days lands on day one.
+  const real = todayIso(new Date());
+  return new Date(Date.parse(`${real}T00:00:00Z`) - 30 * 86_400_000).toISOString().slice(0, 10);
 }
 
 /**
@@ -558,3 +564,41 @@ export const DEMO_COACH_TEAM: CoachTeam = {
   programmeStartsOn: null,
   athletes: 3,
 };
+
+/**
+ * Week 1 of the carb challenge, for the demo only.
+ *
+ * FIXTURE ONLY, for the same reason as the streak strip's days: these are
+ * dated meals nobody logged, and writing them to `daily_logs` would be
+ * fabricating collected data. The shape is five days won, one day with
+ * dinner carb-less, and one with lunch skipped -- enough to show a done day,
+ * a missed one and a streak that restarts.
+ */
+export function demoChallengeLogs(programmeStartsOn: string): ChallengeLog[] {
+  const carb = (slot: ChallengeItem['slot']): ChallengeItem => ({
+    slot,
+    carbs_g: 57,
+    deckCarbSource: true,
+  });
+  const noCarb = (slot: ChallengeItem['slot']): ChallengeItem => ({
+    slot,
+    carbs_g: 0,
+    deckCarbSource: false,
+  });
+  const full = [carb('breakfast'), carb('lunch'), carb('dinner')];
+  const days: ChallengeItem[][] = [
+    full,
+    full,
+    [carb('breakfast'), carb('lunch'), noCarb('dinner')],
+    full,
+    full,
+    [carb('breakfast'), carb('dinner')],
+    full,
+  ];
+  return days.map((items, i) => ({
+    date: new Date(Date.parse(`${programmeStartsOn}T00:00:00Z`) + i * 86_400_000)
+      .toISOString()
+      .slice(0, 10),
+    items,
+  }));
+}

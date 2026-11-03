@@ -103,9 +103,11 @@ export default function ProgressScreen() {
                       recall is what fills the second half of this line. */}
                   {a.pre === null ? 'Not measured' : `${a.pre}${a.unit ? ` ${a.unit}` : ''} at baseline`}
                   {' · '}
-                  {a.post === null
-                    ? 'not re-measured yet'
-                    : `${a.post}${a.unit ? ` ${a.unit}` : ''} now`}
+                  {a.post !== null
+                    ? `${a.post}${a.unit ? ` ${a.unit}` : ''} now`
+                    : progress.postOpensOn
+                      ? `re-tested after week 4, from ${progress.postOpensOn}`
+                      : 'not re-measured yet'}
                 </Text>
               </View>
             ))}
