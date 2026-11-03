@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import { defaultPortion, macroLine, portionSummary, QUANTITIES, searchFoods } from '@/lib/logger';
+import { defaultPortion, portionSummary, QUANTITIES, searchFoods } from '@/lib/logger';
 import { DEMO_FOODS } from '@/lib/__fixtures__/today';
-import type { FoodPortion, FoodWithPortions } from '@/lib/food';
+import { macroLine, type FoodPortion, type FoodWithPortions } from '@/lib/food';
 
 const read = (p: string) => readFileSync(resolve(__dirname, '../../../..', p), 'utf8');
 
@@ -15,7 +15,7 @@ describe('searchFoods', () => {
   });
 
   it('matches the Indonesian name', () => {
-    expect(names(searchFoods(DEMO_FOODS, 'nasi'))).toEqual(['Nasi putih', 'Nasi merah']);
+    expect(names(searchFoods(DEMO_FOODS, 'nasi'))).toEqual(['Nasi putih', 'Nasi merah', 'Nasi']);
   });
 
   it('matches the English name, because the squad uses both', () => {
@@ -117,8 +117,8 @@ describe('the demo food fixture', () => {
     expect(portions.every((p) => p.protein_g === null && p.fat_g === null)).toBe(true);
   });
 
-  it('carries the week 2 deck’s protein figures as seed 0010 does, and nothing else', () => {
-    const seed = read('supabase/seed/0010_week2_foods.sql');
+  it('carries the week 2 deck’s protein figures as seed 0011 does, and nothing else', () => {
+    const seed = read('supabase/seed/0011_week2_foods.sql');
     for (const food of week2) {
       const p = food.food_portions[0];
       const row = new RegExp(`\\('${food.name_id}',\\s+'${p.label}',\\s+[^,]+,\\s+([^,]+),`).exec(seed);
@@ -131,6 +131,12 @@ describe('the demo food fixture', () => {
     }
     expect(week2.length).toBeGreaterThan(0);
   });
+
+  it('gives composition-table foods every figure, per 100 g by default', () => {
+    const nasi = DEMO_FOODS.find((f) => f.tkpi_id === 921)!;
+    const hundred = nasi.food_portions.find((p) => p.is_default)!;
+    expect(hundred).toMatchObject({ label: '100 g', kcal: 180, carbs_g: 39.8, protein_g: 3, fat_g: 0.3 });
+  });
 });
 
 describe('macroLine', () => {
@@ -139,20 +145,24 @@ describe('macroLine', () => {
   const nasi = DEMO_FOODS[0].food_portions[0];
 
   it('gives carbohydrate for a week 1 food', () => {
-    expect(macroLine(portionSummary(nasi, 1))).toBe('57 g carbs');
+    expect(macroLine(portionSummary(nasi, 1))).toBe('260 kcal · 57 g carbs');
   });
 
   it('gives protein for a week 2 food', () => {
     expect(macroLine(portionSummary(egg, 2))).toBe('36 g protein');
   });
 
-  it('says so when the programme has given neither', () => {
+  it('knows when the programme has given no figure at all', () => {
     expect(portionSummary(tahu, 1).unknown).toBe(true);
-    expect(macroLine(portionSummary(tahu, 1))).toBe('No figure for this yet — it will still be logged.');
+    expect(macroLine(portionSummary(tahu, 1))).toBe('');
+  });
+
+  it('is not unknown for a protein food with no carbohydrate figure', () => {
+    expect(portionSummary(egg, 1).unknown).toBe(false);
   });
 
   it('gives both when a portion carries both', () => {
-    expect(macroLine({ carbs_g: 27, protein_g: 18, kcal: null, unknown: false })).toBe(
+    expect(macroLine({ kcal: null, carbs_g: 27, protein_g: 18, fat_g: null })).toBe(
       '27 g carbs · 18 g protein'
     );
   });

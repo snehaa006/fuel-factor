@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MascotBanner } from '@/components/mascot-banner';
 import { MetricCompare } from '@/components/metric-compare';
+import { PushButton } from '@/components/push-button';
 import { PROGRESS_CUE } from '@/lib/mascot-copy';
 import { useProgress } from '@/lib/use-progress';
 import { useTheme } from '@/theme';
@@ -83,6 +84,17 @@ export default function ProgressScreen() {
           ))}
         </View>
 
+        {/* Where the Week 0 / Week 4 figures are entered and compared. */}
+        <View style={{ marginTop: spacing['space-6'] }}>
+          <PushButton
+            label="Assessments: Week 0 vs Week 4"
+            variant="ghost"
+            fullWidth
+            testID="progress-assessments"
+            onPress={() => router.push('/assessments')}
+          />
+        </View>
+
         {progress.assessments.length > 0 && (
           <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>
             <Text style={[typography['heading-l'], { color: colors.ink }]}>Fitness tests</Text>
@@ -106,7 +118,7 @@ export default function ProgressScreen() {
                   {a.post !== null
                     ? `${a.post}${a.unit ? ` ${a.unit}` : ''} now`
                     : progress.postOpensOn
-                      ? `re-tested after week 4, from ${progress.postOpensOn}`
+                      ? `re-tested in week 4, from ${progress.postOpensOn}`
                       : 'not re-measured yet'}
                 </Text>
               </View>

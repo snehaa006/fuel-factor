@@ -72,6 +72,14 @@ export type RecallWindow =
   /** Both rounds are complete, or there is no programme date to count from. */
   | { status: 'none'; reason: 'complete' | 'no-programme-date' };
 
+/**
+ * Testing switch: open the follow-up round now instead of four weeks after
+ * day one. **Off**: the time machine (clock.ts) does the same job honestly --
+ * set the date to four weeks on and the follow-up opens because it is due,
+ * exactly as it will for a real athlete. Leave it off for the real programme.
+ */
+export const FOLLOW_UP_OPEN_FOR_TESTING = false;
+
 /** The day the follow-up round opens: four weeks after day one. */
 export function followUpOpensOn(programmeStartsOn: IsoDate): IsoDate {
   return new Date(Date.parse(`${programmeStartsOn}T00:00:00Z`) + PROGRAMME_DAYS * 86_400_000)
@@ -114,7 +122,9 @@ export function positionInRound(dayNumber: number): number {
 export function recallWindow(
   recordedDays: readonly number[],
   programmeStartsOn: IsoDate | null,
-  today: IsoDate
+  today: IsoDate,
+  /** Skip the four-week wait (and the need for a start date) for the follow-up. */
+  openFollowUpEarly = false
 ): RecallWindow {
   const baselineDone = BASELINE_DAYS.filter((day) => recordedDays.includes(day)).length;
 
@@ -137,14 +147,18 @@ export function recallWindow(
 
   // Without a start date there is nothing to count four weeks from, and
   // guessing one would put the follow-up on a date the coach never chose.
-  if (programmeStartsOn === null) return { status: 'none', reason: 'no-programme-date' };
+  if (programmeStartsOn === null && !openFollowUpEarly) {
+    return { status: 'none', reason: 'no-programme-date' };
+  }
 
   const followUpDone = FOLLOW_UP_DAYS.filter((day) => recordedDays.includes(day)).length;
   if (followUpDone >= RECALL_DAYS) return { status: 'none', reason: 'complete' };
 
-  const opensOn = followUpOpensOn(programmeStartsOn);
-  const daysUntil = daysBetween(today, opensOn);
-  if (daysUntil > 0) return { status: 'waiting', opensOn, daysUntil };
+  if (!openFollowUpEarly && programmeStartsOn !== null) {
+    const opensOn = followUpOpensOn(programmeStartsOn);
+    const daysUntil = daysBetween(today, opensOn);
+    if (daysUntil > 0) return { status: 'waiting', opensOn, daysUntil };
+  }
 
   const dayNumber = firstMissing(FOLLOW_UP_DAYS, recordedDays);
   if (dayNumber === null) return { status: 'none', reason: 'complete' };

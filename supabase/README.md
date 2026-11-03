@@ -226,11 +226,12 @@ schema, and ran after them.
 | `0002_week1_programme.sql` | Week 1's challenge and 5 advice rules |
 | `0006_week1_lessons.sql` | Week 1's lesson cards, built from the deck |
 | `0007_badges.sql` | The badge ladder. Names and thresholds are Theo's to change |
-| `0009_week2_programme.sql` | Week 2's challenge and its 4 protein advice rules |
-| `0010_week2_foods.sql` | The Week 2 deck's protein table: 6 foods with protein figures, plus tahu and susu with none |
-| `0011_week2_lessons.sql` | Week 2's lesson cards. Seeding these is what unlocks week 2 on Learn |
+| `0009_tkpi_foods.sql` | The Indonesian food composition table: 1,346 foods, per-100 g figures, five gram portions each. Keyed on `tkpi_id`, re-runnable |
+| `0010_week2_programme.sql` | Week 2's challenge and its 4 protein advice rules |
+| `0011_week2_foods.sql` | The Week 2 deck's protein table: 6 foods with protein figures, plus tahu and susu with none |
+| `0012_week2_lessons.sql` | Week 2's lesson cards. Seeding these is what unlocks week 2 on Learn |
 
-**0009–0011 are not on the live project yet.** They were applied against a
+**0010–0012 are not on the live project yet.** They were applied against a
 local Postgres 16 with every migration and seed before them and read back
 cleanly; run them against `fuel-factor` in that order.
 

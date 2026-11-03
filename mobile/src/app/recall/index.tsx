@@ -95,6 +95,7 @@ export default function RecallIndex() {
     const locked =
       name === 'follow-up' &&
       !started &&
+      !state.followUpOpenEarly &&
       !(window.status === 'due' && window.round === 'follow-up');
 
     return (
@@ -211,6 +212,15 @@ export default function RecallIndex() {
             `Three more days, ${PROGRAMME_WEEKS} weeks in.`
           )}
         </View>
+
+        {state.followUpOpenEarly && (
+          <Text
+            testID="recall-testing"
+            style={[typography['body-s'], { color: colors['pisang-deep'], marginTop: spacing['space-3'] }]}
+          >
+            Testing mode: the four-weeks-on recall is open now instead of after the programme.
+          </Text>
+        )}
 
         {window.status === 'none' && window.reason === 'no-programme-date' && (
           <Text

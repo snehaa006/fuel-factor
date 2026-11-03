@@ -267,14 +267,15 @@ describe('asOfDate', () => {
     assessments: [{ measure: 'Cooper 12-min run', unit: 'm', pre: 2680, post: 2810 }],
   };
 
-  it('withholds the post-programme test until the four weeks are up', () => {
+  it('withholds the post-programme test until week 4 opens, on day 22', () => {
     const inWeek1 = asOfDate(measured, '2026-11-09', '2026-11-11');
     expect(inWeek1.assessments[0]).toMatchObject({ pre: 2680, post: null });
-    expect(inWeek1.postOpensOn).toBe('2026-12-07');
+    expect(inWeek1.postOpensOn).toBe('2026-11-30');
+    expect(asOfDate(measured, '2026-11-09', '2026-11-29').assessments[0].post).toBeNull();
   });
 
-  it('shows it from the day the follow-up opens', () => {
-    const after = asOfDate(measured, '2026-11-09', '2026-12-07');
+  it('shows it from day 22, the day the Week 4 tests open', () => {
+    const after = asOfDate(measured, '2026-11-09', '2026-11-30');
     expect(after.assessments[0].post).toBe(2810);
     expect(after.postOpensOn).toBeUndefined();
   });

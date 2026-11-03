@@ -8,12 +8,14 @@ import {
 } from './__fixtures__/today';
 import { messageOf } from './errors';
 import { fetchProfile } from './profile';
-import { recallWindow, type RecallWindow } from './recall-window';
+import { FOLLOW_UP_OPEN_FOR_TESTING, recallWindow, type RecallWindow } from './recall-window';
 import {
   fetchRecall,
   fetchRecallEntries,
+  fetchRecallFoods,
   fetchRecalls,
   saveRecall,
+  saveRecallFoods,
   type RecallDay,
   type RecallEntry,
 } from './recall';
@@ -32,6 +34,8 @@ export type RecallStatus =
       days: RecallDay[];
       window: RecallWindow;
       programmeStartsOn: string | null;
+      /** The follow-up round is open now, for testing. See FOLLOW_UP_OPEN_FOR_TESTING. */
+      followUpOpenEarly?: boolean;
     }
   | { status: 'error'; message: string };
 
@@ -55,8 +59,10 @@ export function useRecallStatus(): RecallStatus & { reload: () => void } {
       window: recallWindow(
         DEMO_RECALL_DAYS.map((d) => d.dayNumber),
         programmeStartsOn,
-        today
+        today,
+        FOLLOW_UP_OPEN_FOR_TESTING
       ),
+      followUpOpenEarly: FOLLOW_UP_OPEN_FOR_TESTING,
       programmeStartsOn,
     };
   });
@@ -90,8 +96,10 @@ export function useRecallStatus(): RecallStatus & { reload: () => void } {
           window: recallWindow(
             days.map((d) => d.dayNumber),
             profile.programmeStartsOn,
-            todayIso()
+            todayIso(),
+            FOLLOW_UP_OPEN_FOR_TESTING
           ),
+          followUpOpenEarly: FOLLOW_UP_OPEN_FOR_TESTING,
           programmeStartsOn: profile.programmeStartsOn,
         });
       } catch (error) {
@@ -161,11 +169,14 @@ export function useRecallForm(dayNumber: number): RecallFormController {
         }
         setParticipantId(profile.participantId);
 
-        const existing = await fetchRecall(profile.participantId, dayNumber);
+        const [existing, foods] = await Promise.all([
+          fetchRecall(profile.participantId, dayNumber),
+          fetchRecallFoods(profile.participantId, [dayNumber]),
+        ]);
         if (!active) return;
         setState({
           status: 'ready',
-          entry: existing?.entry ?? blankEntry(),
+          entry: { ...(existing?.entry ?? blankEntry()), foods: foods[dayNumber] ?? [] },
           recallId: existing?.id ?? null,
           nutrition: null,
         });
@@ -195,6 +206,7 @@ export function useRecallForm(dayNumber: number): RecallFormController {
         if (participantId === null) throw new Error('No athlete is claimed on this device.');
 
         const recallId = await saveRecall(participantId, dayNumber, entry);
+        if (entry.foods !== undefined) await saveRecallFoods(recallId, entry.foods);
         // The figures are the backend's answer. A failure here must not lose a
         // saved recall, so it is reported and the day stays saved.
         let nutrition: RecallNutrition | null = null;
@@ -273,8 +285,15 @@ export function useRecallRound(dayNumbers: readonly number[]): RecallRoundContro
         setParticipantId(profile.participantId);
 
         const days = key === '' ? [] : key.split(',').map(Number);
-        const entries = await fetchRecallEntries(profile.participantId, days);
+        const [loaded, foods] = await Promise.all([
+          fetchRecallEntries(profile.participantId, days),
+          fetchRecallFoods(profile.participantId, days),
+        ]);
         if (!active) return;
+        const entries: Record<number, RecallEntry> = {};
+        for (const [day, entry] of Object.entries(loaded)) {
+          entries[Number(day)] = { ...entry, foods: foods[Number(day)] ?? [] };
+        }
         setState({ status: 'ready', entries, savedDays: Object.keys(entries).map(Number) });
       } catch (error) {
         if (active) setState({ status: 'error', message: messageOf(error) });
@@ -298,6 +317,7 @@ export function useRecallRound(dayNumbers: readonly number[]): RecallRoundContro
         if (!USE_FIXTURE) {
           if (participantId === null) throw new Error('No athlete is claimed on this device.');
           const recallId = await saveRecall(participantId, dayNumber, entry);
+          if (entry.foods !== undefined) await saveRecallFoods(recallId, entry.foods);
           // The figures are the backend's answer and a failure there must not
           // lose a saved day, so it is reported and the day stays saved.
           try {

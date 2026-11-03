@@ -1,5 +1,5 @@
 import { asError } from './errors';
-import { carbsFor, proteinFor, type FoodPortion, type FoodWithPortions } from './food';
+import { carbsFor, macrosFor, type FoodPortion, type FoodWithPortions } from './food';
 import { supabase } from './supabase';
 import type { TablesUpdate } from './database.types';
 import type { MealSlot } from './today';
@@ -71,24 +71,21 @@ export const QUANTITIES = [0.5, 1, 1.5, 2, 3] as const;
  * Null carbohydrate stays null all the way to the screen.
  */
 export function portionSummary(portion: FoodPortion, quantity: number) {
-  const carbs = carbsFor(portion, quantity);
-  const protein = proteinFor(portion, quantity);
+  const macros = macrosFor(portion, quantity);
   return {
-    carbs_g: carbs,
-    protein_g: protein,
-    kcal: portion.kcal === null ? null : Number(portion.kcal) * quantity,
-    /** The programme has supplied neither figure for this portion yet. */
-    unknown: carbs === null && protein === null,
+    ...macros,
+    carbs_g: carbsFor(portion, quantity),
+    /**
+     * The programme has supplied no figure at all for this portion yet. Not
+     * just "no carbohydrate": week 2's protein foods carry protein and no carb
+     * figure, and are not unknown.
+     */
+    unknown:
+      macros.kcal === null &&
+      macros.carbs_g === null &&
+      macros.protein_g === null &&
+      macros.fat_g === null,
   };
-}
-
-/** The line under the picker: whichever figures the programme has given. */
-export function macroLine(summary: ReturnType<typeof portionSummary>): string {
-  if (summary.unknown) return 'No figure for this yet — it will still be logged.';
-  const parts: string[] = [];
-  if (summary.carbs_g !== null) parts.push(`${Math.round(summary.carbs_g)} g carbs`);
-  if (summary.protein_g !== null) parts.push(`${Math.round(summary.protein_g)} g protein`);
-  return parts.join(' · ');
 }
 
 /**

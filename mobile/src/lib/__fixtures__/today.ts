@@ -99,7 +99,7 @@ export const DEMO_RULES: AdviceRule[] = [
     reviewed_by: null,
     source: 'week-1-deck',
   },
-  // Week 2's, mirroring supabase/seed/0009_week2_programme.sql.
+  // Week 2's, mirroring supabase/seed/0010_week2_programme.sql.
   {
     code: 'no_protein_breakfast',
     domain: 'protein',
@@ -224,7 +224,7 @@ function demoFood(
 ): FoodWithPortions {
   return {
     id, name_id, name_en, category, guidance, guidance_note,
-    is_pork: false, source: 'week-1-deck', created_at: CREATED,
+    is_pork: false, source: 'week-1-deck', tkpi_id: null, created_at: CREATED,
     food_portions: [
       {
         id: `${id}-p`, food_id: id, label, grams: null, kcal, carbs_g,
@@ -235,7 +235,7 @@ function demoFood(
   };
 }
 
-/** A food from the Week 2 deck's protein table, as seed 0010 holds it. */
+/** A food from the Week 2 deck's protein table, as seed 0011 holds it. */
 function demoProtein(
   id: string,
   name_id: string,
@@ -252,6 +252,31 @@ function demoProtein(
   };
 }
 
+/**
+ * A food from the composition table: per-100 g figures, five gram portions,
+ * no deck guidance. Mirrors what seed 0009 loads.
+ */
+function demoTkpiFood(
+  tkpiId: number,
+  name_id: string,
+  per100: { kcal: number; protein: number; fat: number; carbs: number }
+): FoodWithPortions {
+  const id = `t${tkpiId}`;
+  return {
+    id, name_id, name_en: null, category: null, guidance: null, guidance_note: null,
+    is_pork: false, source: 'tkpi', tkpi_id: tkpiId, created_at: CREATED,
+    food_portions: [50, 100, 150, 200, 250].map((grams) => ({
+      id: `${id}-${grams}`, food_id: id, label: `${grams} g`, grams,
+      kcal: Math.round(per100.kcal * grams) / 100,
+      carbs_g: Math.round(per100.carbs * grams) / 100,
+      protein_g: Math.round(per100.protein * grams) / 100,
+      fat_g: Math.round(per100.fat * grams) / 100,
+      source_note: 'Indonesian food composition table, per 100 g, scaled',
+      is_default: grams === 100, created_at: CREATED,
+    })),
+  };
+}
+
 export const DEMO_FOODS: FoodWithPortions[] = [
   demoFood('f1', 'Nasi putih', 'White rice', 'carbohydrate', 'eat_daily', '200g cooked', 260, 57),
   demoFood('f2', 'Nasi merah', 'Brown rice', 'carbohydrate', 'eat_daily', '200g cooked', 220, 46, 'More fibre'),
@@ -264,6 +289,9 @@ export const DEMO_FOODS: FoodWithPortions[] = [
   demoProtein('p2', 'Tempe', 'Tempeh', '100g', 19, 'Best local plant protein + iron'),
   demoProtein('p3', 'Ayam dada', 'Chicken breast', '100g', 24, 'Complete amino acids'),
   demoProtein('p4', 'Tahu', 'Tofu', '1 portion', null, null),
+  demoTkpiFood(921, 'Nasi', { kcal: 180, protein: 3, fat: 0.3, carbs: 39.8 }),
+  demoTkpiFood(1215, 'Telur Ayam', { kcal: 162, protein: 12.8, fat: 11.5, carbs: 0.7 }),
+  demoTkpiFood(1234, 'Tempe Goreng', { kcal: 328, protein: 18.4, fat: 23.2, carbs: 12.8 }),
 ];
 
 /**
@@ -374,7 +402,7 @@ export const DEMO_LESSON_CARDS: LessonCard[] = [
 ];
 
 /**
- * Week 2, mirroring supabase/seed/0011_week2_lessons.sql card for card. A
+ * Week 2, mirroring supabase/seed/0012_week2_lessons.sql card for card. A
  * test holds the kinds and their order to the seed's, as it does for week 1.
  */
 export const DEMO_LESSON_CARDS_WEEK2: LessonCard[] = [
@@ -769,3 +797,64 @@ export function demoChallengeLogs(programmeStartsOn: string, week: number): Chal
     items,
   }));
 }
+
+/**
+ * The ASSESSMENTS tab's Week 0 column, as the workbook holds it, keyed by the
+ * coach fixture's participant ids. Week 4 is empty everywhere: the follow-up
+ * has not been measured.
+ */
+export const DEMO_ASSESSMENTS: Record<string, import('../assessments').PairValues> = {
+  'p-jeongho': {
+    height: { pre: 175, post: null },
+    weight: { pre: 71, post: null },
+    calf: { pre: 38, post: null },
+    kcal: { pre: 1571, post: null },
+    carbs: { pre: 167, post: null },
+    protein: { pre: 102, post: null },
+    fat: { pre: 48, post: null },
+    fv: { pre: 0.3, post: null },
+  },
+  'p-theo': {
+    height: { pre: 174, post: null },
+    weight: { pre: 68, post: null },
+    calf: { pre: 36, post: null },
+    cooper: { pre: 2680, post: null },
+    kcal: { pre: 1472, post: null },
+    carbs: { pre: 87, post: null },
+    protein: { pre: 134, post: null },
+    fat: { pre: 68, post: null },
+    fv: { pre: 1.2, post: null },
+  },
+  'p-jacob': {
+    height: { pre: 177, post: null },
+    weight: { pre: 66, post: null },
+    calf: { pre: 35, post: null },
+    cooper: { pre: 2800, post: null },
+    kcal: { pre: 1882, post: null },
+    carbs: { pre: 153, post: null },
+    protein: { pre: 120, post: null },
+    fat: { pre: 84, post: null },
+    fv: { pre: 0.3, post: null },
+  },
+};
+
+/**
+ * Theo's three baseline recall days, as the assessments read them: the RECALL
+ * tab's breakfast column ("None" twice, then a yogurt) and urine 6/6/6. No
+ * food was picked from the database, so no calories are worked out.
+ */
+export const DEMO_RECALL_FIGURES: Record<string, import('../assessments').RecallDayFigures[]> = {
+  'p-theo': [1, 2, 3].map((dayNumber) => ({
+    dayNumber,
+    breakfast: dayNumber === 3 ? 'Greek yogurt with chia seeds, honey, fruits' : 'None',
+    breakfastPicked: false,
+    fluid_ml: null,
+    energy: null,
+    recovery: null,
+    urine_colour: 6,
+    kcal: null,
+    carbs_g: null,
+    protein_g: null,
+    fat_g: null,
+  })),
+};

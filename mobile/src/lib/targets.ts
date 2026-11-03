@@ -9,14 +9,22 @@ export type CarbBand = { min: number; max: number };
  *
  * Straight from the Week 1 deck. These are the programme's numbers, not the
  * app's: nothing here is interpolated, rounded or collapsed to a midpoint, and
- * nothing is added. The deck also gives 6-8 g/kg for game days, but the
- * tracker's Day Type column holds only training and rest, so that band has
- * nowhere to live until the dietitian adds the value.
+ * nothing is added. Match days take the deck's game-day band, now that the
+ * tracker's Day Type column holds Training, Match and Rest.
  */
 export const CARB_G_PER_KG: Record<DayType, CarbBand> = {
   training: { min: 5, max: 7 },
+  match: { min: 6, max: 8 },
   rest: { min: 3, max: 4 },
 };
+
+/**
+ * A day with a session in it: training or a match. The breakfast and
+ * pre-session advice, and the session times, apply to both.
+ */
+export function hasSessionDay(dayType: DayType | null): boolean {
+  return dayType === 'training' || dayType === 'match';
+}
 
 /**
  * Today's carbohydrate band in grams, or null when it cannot be computed.

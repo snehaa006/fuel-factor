@@ -60,10 +60,9 @@ describe('research tier mirrors the tracker', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('day_type holds only the two values their sheet uses', () => {
-    // The Week 1 deck also gives a game-day carbohydrate band, but "game" is not
-    // a value the tracker's Day Type column carries.
-    expect(Constants.public.Enums.day_type).toEqual(['training', 'rest']);
+  it('day_type holds the three values their sheet uses', () => {
+    // The tracker's Day Type column: Training, Match, Rest.
+    expect(Constants.public.Enums.day_type).toEqual(['training', 'match', 'rest']);
   });
 
   it('meal_slot matches the six slots the sheet uses, in order', () => {
@@ -263,12 +262,12 @@ describe('the Learn section carries the deck and nothing else', () => {
   });
 
   it('copies the deck’s own carbohydrate bands, including the game day it gives', () => {
-    // The deck prints a game-day band, so the Learn page shows it. That is
-    // teaching material, not a third value for the tracker's Day Type column.
+    // The deck prints a game-day band, so the Learn page shows it, and match
+    // is now a Day Type of its own.
     expect(lessonSeed).toContain('5–7g per kg body weight');
     expect(lessonSeed).toContain('3–4g per kg body weight');
     expect(lessonSeed).toContain('6–8g per kg');
-    expect(Constants.public.Enums.day_type).toEqual(['training', 'rest']);
+    expect(Constants.public.Enums.day_type).toEqual(['training', 'match', 'rest']);
   });
 
   it('keeps the demo fixture in step with the seed', () => {
@@ -289,9 +288,9 @@ describe('the Learn section carries the deck and nothing else', () => {
 });
 
 describe('week 2 carries its deck and nothing else', () => {
-  const programme = read('supabase/seed/0009_week2_programme.sql');
-  const foods = read('supabase/seed/0010_week2_foods.sql');
-  const lessons = read('supabase/seed/0011_week2_lessons.sql');
+  const programme = read('supabase/seed/0010_week2_programme.sql');
+  const foods = read('supabase/seed/0011_week2_foods.sql');
+  const lessons = read('supabase/seed/0012_week2_lessons.sql');
   /** The SQL with its comments taken out, so only what is inserted is checked. */
   const body = (sql: string) => sql.replace(/^\s*--.*$/gm, '');
 

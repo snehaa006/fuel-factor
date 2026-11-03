@@ -1,6 +1,6 @@
 import { hasNutrient } from './nutrients';
 import type { Minutes } from './session';
-import { PROTEIN_PER_MEAL_MAX_G, PROTEIN_WEEK } from './targets';
+import { hasSessionDay, PROTEIN_PER_MEAL_MAX_G, PROTEIN_WEEK } from './targets';
 import type { DaySummary, MealSlot } from './today';
 import type { Tables } from './database.types';
 
@@ -77,7 +77,7 @@ export function evaluate(
   const fired: string[] = [];
 
   const breakfast = summary.slots.find((s) => s.slot === 'breakfast');
-  if (summary.dayType === 'training' && breakfast && !breakfast.logged) {
+  if (hasSessionDay(summary.dayType) && breakfast && !breakfast.logged) {
     fired.push('no_breakfast_training_day');
   }
 
@@ -100,7 +100,7 @@ export function evaluate(
   // training has started, telling the athlete to eat two hours beforehand is
   // advice about a moment that has gone.
   if (
-    summary.dayType === 'training' &&
+    hasSessionDay(summary.dayType) &&
     startsAt !== null &&
     !slotLogged('pre_training') &&
     now >= startsAt - PRE_TRAINING_WINDOW_MIN &&

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { DEMO_FOODS } from './__fixtures__/today';
 import { messageOf } from './errors';
-import { listFoods, type FoodWithPortions } from './food';
+import { searchFoodDatabase, type FoodWithPortions } from './food';
 import { supabase } from './supabase';
 
 const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
@@ -12,31 +12,41 @@ export type FoodsState =
   | { status: 'ready'; foods: FoodWithPortions[] }
   | { status: 'error'; message: string };
 
-/** The food database, for the logger's picker. */
-export function useFoods(): FoodsState {
-  const [state, setState] = useState<FoodsState>({ status: 'loading' });
+/** How long typing pauses before the server is asked. */
+export const SEARCH_DEBOUNCE_MS = 250;
+
+/**
+ * The food database, for the pickers.
+ *
+ * With nothing typed it is the programme's short list. With a query it is a
+ * server-side search of the whole composition table, asked once typing
+ * pauses. In fixture mode the demo foods are searched on the device.
+ */
+export function useFoods(query = ''): FoodsState {
+  const [state, setState] = useState<FoodsState>(() =>
+    USE_FIXTURE ? { status: 'ready', foods: DEMO_FOODS } : { status: 'loading' }
+  );
+  const term = query.trim();
 
   useEffect(() => {
+    // The demo foods are searched on the device by the caller.
+    if (USE_FIXTURE) return;
     let active = true;
 
-    async function load() {
-      if (USE_FIXTURE) {
-        if (active) setState({ status: 'ready', foods: DEMO_FOODS });
-        return;
-      }
-      try {
-        const foods = await listFoods();
-        if (active) setState({ status: 'ready', foods });
-      } catch (e) {
-        if (active) setState({ status: 'error', message: messageOf(e) });
-      }
-    }
+    const timer = setTimeout(
+      () => {
+        searchFoodDatabase(term)
+          .then((foods) => active && setState({ status: 'ready', foods }))
+          .catch((e) => active && setState({ status: 'error', message: messageOf(e) }));
+      },
+      term === '' ? 0 : SEARCH_DEBOUNCE_MS
+    );
 
-    load();
     return () => {
       active = false;
+      clearTimeout(timer);
     };
-  }, []);
+  }, [term]);
 
   return state;
 }

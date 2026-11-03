@@ -9,7 +9,7 @@ jest.mock('@/lib/use-progress', () => ({
   ...jest.requireActual('@/lib/use-progress'),
   useProgress: jest.fn(),
 }));
-jest.mock('expo-router', () => ({ useRouter: () => ({ back: jest.fn() }) }));
+jest.mock('expo-router', () => ({ useRouter: () => ({ back: jest.fn(), push: jest.fn() }) }));
 
 const mockUseProgress = useProgress as jest.MockedFunction<typeof useProgress>;
 

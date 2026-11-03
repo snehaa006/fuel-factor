@@ -1,4 +1,5 @@
 import { simulatedDate } from './clock';
+import { CARB_SOURCE_WORDS, namesSource, PROTEIN_SOURCE_WORDS } from './nutrients';
 import { asError } from './errors';
 import { carbsFor, deckWeek, proteinFor } from './food';
 import { NO_SESSION, parseTime, type TrainingSession } from './session';
@@ -167,9 +168,9 @@ type LogItemRow = Tables<'log_items'> & {
 /**
  * One log_items row as the day sees it.
  *
- * Which deck a food came from is what makes it a carb source or a protein
- * source when the deck gave it no figure: everything in week 1's table is a
- * carbohydrate source, and week 2's protein table is its category 'protein'.
+ * Whether it is a carb source or a protein source is decided here, once, for
+ * Today, the challenges and the rules. See nutrients.ts for why it is the
+ * food and not its figure that decides.
  */
 export function toLoggedItem(row: {
   slot: MealSlot;
@@ -180,14 +181,17 @@ export function toLoggedItem(row: {
   const portion = row.food_portions;
   const food = portion?.food_items ?? null;
   const week = food ? deckWeek(food.source) : null;
+  const fromTable = food?.source === 'tkpi';
   return {
     slot: row.slot,
     quantity: Number(row.quantity),
     carbs_g: portion ? carbsFor(portion, Number(row.quantity)) : null,
     protein_g: portion ? proteinFor(portion, Number(row.quantity)) : null,
     name: food?.name_id ?? row.free_text ?? 'Logged item',
-    carbSource: week === 1,
-    proteinSource: week === 2 && food?.category === 'protein',
+    carbSource: week === 1 || (fromTable && namesSource(food.name_id, CARB_SOURCE_WORDS)),
+    proteinSource:
+      (week === 2 && food?.category === 'protein') ||
+      (fromTable && namesSource(food.name_id, PROTEIN_SOURCE_WORDS)),
   };
 }
 

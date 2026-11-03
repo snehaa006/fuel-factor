@@ -144,7 +144,7 @@ Fix: ikan kembung, salmon, sarden — 2–3× per week'),
       'Tempe, ikan kembung, and telur give you protein AND iron AND zinc AND omega-3. You don''t need to think about micronutrients separately. Add those three foods and you cover the most critical gaps.')
 ) as p(position, label, detail);
 
--- No points: the protein table is the food database (seed 0010), read from
+-- No points: the protein table is the food database (seed 0011), read from
 -- food_items so there is one copy of each figure.
 insert into public.lesson_cards (week_number, position, kind, heading, source)
 values (2, 9, 'foods', 'Best Protein Sources in Jakarta', 'week-2-deck');

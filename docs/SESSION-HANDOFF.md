@@ -483,7 +483,7 @@ machine and kept the demo on day 31 wherever it went. Travel back 30 days in
 folder (the PDF deck and seven slides, 2 November).
 
 **It arrived as rows, as the design always said it would.** Seeds
-`0009`–`0011` hold the week 2 challenge, four advice rules, the deck's
+`0010`–`0012` (renumbered from 0009–0011 to follow `0009_tkpi_foods`) hold the week 2 challenge, four advice rules, the deck's
 protein table and twelve lesson cards. No migration: every card is a kind the
 screen already draws. Seeding them is what unlocks week 2 on Learn.
 **They are not on the live project yet** — they were run against a local
@@ -550,7 +550,36 @@ Week 1 PDF's "Add one carb to every meal", which is what `weekly_challenges`
 holds and what the tracker checks. Week 2's deck is not read as evidence
 about week 1.
 
-**1049 tests pass.**
+**Step 19** — Merged with `main` after PR #6 (3 November): the Indonesian
+food database (TKPI, seed `0009_tkpi_foods`), Week 0 / Week 4 assessments
+and match days, built in another session. Seven files conflicted; every
+conflict was both sides adding something and both were kept. Four things
+needed more than that:
+
+**What counts as a source.** With TKPI, nearly every food has some protein
+and some carbohydrate -- nasi has 3 g protein per 100 g -- so the challenges
+and protein rules stopped asking "is the figure above zero" and ask "is this
+a source" (`nutrients.ts`): a deck's own foods are its sources, and a TKPI
+food is one when the **first word** of its name is a source the decks name
+(telur, tempe, ayam, ikan, nasi, roti, pisang ...). The head word keeps out
+"Daun Ubi Jalar", "Jantung Pisang", "Kepala Susu (Krim)" and "Kacang Telur";
+it misses dishes like "Gulai ikan". The word lists are Sofia's to review.
+
+**The testing switches are off.** `OPEN_BOTH_FOR_TESTING` (assessments) and
+`FOLLOW_UP_OPEN_FOR_TESTING` (recall) opened Week 4 and the follow-up from
+day one. The time machine replaces them: Week 4 opens on day 22 and the
+follow-up recall on day 29 because the date has got there, as they will for
+a real squad. Progress now withholds the post figures until day 22 too, to
+agree with the assessments.
+
+**Seeds renumbered.** Main's `0009_tkpi_foods` took 0009, so week 2's seeds
+are `0010`–`0012` and run after the food database.
+
+**The logger's "no figure" line** only shows when a portion has no figure at
+all; week 2's protein foods carry protein and no carbohydrate, and are not
+unknown.
+
+**1116 tests pass.**
 
 `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.

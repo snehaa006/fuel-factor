@@ -61,31 +61,23 @@ describe('the challenges are the decks’ own', () => {
 });
 
 describe('what counts', () => {
-  it('a figure above zero', () => {
-    expect(counts(carb('lunch', 27), 'carb')).toBe(true);
-    expect(counts(protein('lunch', 18), 'protein')).toBe(true);
-    expect(counts(none('lunch'), 'carb')).toBe(false);
-    expect(counts(none('lunch'), 'protein')).toBe(false);
-  });
-
-  it('a food from that week’s table when the deck gave no figure', () => {
-    // Pepaya in week 1, tahu and susu in week 2.
-    expect(counts({ carbs_g: null, carbSource: true }, 'carb')).toBe(true);
-    expect(counts({ carbs_g: null, protein_g: null, proteinSource: true }, 'protein')).toBe(true);
-  });
-
-  it('a carb source is not a protein source, and the other way round', () => {
+  it('a deck source counts for its own nutrient and not the other', () => {
+    expect(counts(carb('lunch'), 'carb')).toBe(true);
+    expect(counts(protein('lunch'), 'protein')).toBe(true);
     expect(counts(carb('lunch'), 'protein')).toBe(false);
     expect(counts(protein('lunch'), 'carb')).toBe(false);
   });
 
-  it('never a free-text item the app cannot see into', () => {
-    expect(counts({ carbs_g: null }, 'carb')).toBe(false);
-    expect(counts({ carbs_g: null }, 'protein')).toBe(false);
+  it('a figure alone does not make a source', () => {
+    // Nasi carries 3 g protein per 100 g in the composition table; a plate of
+    // rice is not the protein source the week 2 challenge asks for.
+    expect(counts({ carbSource: true }, 'protein')).toBe(false);
+    expect(counts(none('lunch'), 'carb')).toBe(false);
   });
 
-  it('a zero figure wins over the table it came from', () => {
-    expect(counts({ carbs_g: 0, carbSource: true }, 'carb')).toBe(false);
+  it('never a free-text item the app cannot see into', () => {
+    expect(counts({}, 'carb')).toBe(false);
+    expect(counts({}, 'protein')).toBe(false);
   });
 });
 

@@ -14,10 +14,32 @@ deliberately carry different bundles.
 | **Web / coach dashboard**, <https://fuel-factor--step14.expo.app> | step 14 | **real database** |
 | **Supabase** `nprvrlpkdrgckzceyryc` | 15 migrations | live |
 
-Step 15 adds a sixteenth, `20261102000001_programme_start_required.sql`, which
-is **not applied yet** — it makes the programme's first day required on
-`create_team` and un-clearable afterwards. Everything else below describes the
-step-14 deployment.
+Step 15's `20261102000001_programme_start_required.sql` and step 16's
+`20261103000001_assessment_entry_and_match_day.sql` are **both applied** (17
+migrations live). The second adds `match` to `day_type` and lets an athlete,
+or their coach, write `assessments` rows -- the Week 0 / Week 4 form at
+`/assessments` and `/coach/assessments`.
+
+**Food database.** `20261103000002_food_database.sql` (applied) and seed
+`supabase/seed/0009_tkpi_foods.sql` (loaded) put the programme's Indonesian
+composition table in `food_items`: 1,346 foods, per-100 g calories, protein,
+fat and carbohydrate, five gram portions each. The daily log searches it on the
+server; the recall has a picker under each meal, and `compute_recall_nutrition`
+now adds up what was picked (`recall_items`). The seed is keyed on `tkpi_id`
+and can be re-run safely.
+
+**Assessments testing mode.** `OPEN_BOTH_FOR_TESTING` in
+`mobile/src/lib/assessments.ts` opens the Week 4 form from day one. Set it to
+`false` before the real programme runs, and Week 4 opens on day 22.
+`FOLLOW_UP_OPEN_FOR_TESTING` in `mobile/src/lib/recall-window.ts` does the same
+for the four-weeks-on recall (days 4-6): on, it opens as soon as the baseline
+is in, with no start date needed. Turn both off together.
+
+**Assessments read the recall.** Calories, carbohydrate, protein, fat,
+breakfast frequency, fluid, morning energy (the recall's Energy rating),
+recovery and urine colour are filled from the recall's averages -- days 1-3 for
+Week 0, days 4-6 for Week 4 -- wherever nobody has typed a value. Saving the
+form writes them into `assessments`.
 
 The split is on purpose. The two phone surfaces get passed around, so they show
 the fixture under stand-in names and write nothing. The web build talks to the

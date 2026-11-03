@@ -197,3 +197,25 @@ describe('isIsoDate', () => {
     }
   });
 });
+
+describe('opening the follow-up early, for testing', () => {
+  it('makes the follow-up due as soon as the baseline is in, weeks early', () => {
+    expect(recallWindow([1, 2, 3], '2026-12-01', '2026-12-02', true)).toMatchObject({
+      status: 'due',
+      round: 'follow-up',
+      dayNumber: 4,
+    });
+  });
+
+  it('does not need a programme date', () => {
+    expect(recallWindow([1, 2, 3], null, '2026-12-02', true)).toMatchObject({ status: 'due', round: 'follow-up' });
+  });
+
+  it('still asks for the baseline first', () => {
+    expect(recallWindow([], '2026-12-01', '2026-12-02', true)).toMatchObject({ round: 'baseline' });
+  });
+
+  it('waits as before when it is off', () => {
+    expect(recallWindow([1, 2, 3], '2026-12-01', '2026-12-02').status).toBe('waiting');
+  });
+});

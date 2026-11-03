@@ -1,6 +1,6 @@
 import { URINE_WORDING } from './check-in';
 import { asError } from './errors';
-import { followUpOpensOn } from './recall-window';
+import { WEEK_4_OPENS_ON_DAY } from './assessments';
 import { supabase } from './supabase';
 import type { IsoDate } from './streak';
 
@@ -220,8 +220,9 @@ export async function fetchProgress(since: IsoDate, until: IsoDate): Promise<Pro
  * future, which is exactly what the time machine would do when set back to
  * week 1 after the results are in.
  *
- * So the date decides, the same date that opens the follow-up recall. With no
- * programme date there is nothing to wait for and nothing is withheld.
+ * So the date decides: the day the Week 4 tests open (`WEEK_4_OPENS_ON_DAY`,
+ * day 22, in assessments.ts). With no programme date there is nothing to wait
+ * for and nothing is withheld.
  */
 export function asOfDate(
   progress: Progress,
@@ -229,7 +230,11 @@ export function asOfDate(
   today: IsoDate
 ): Progress {
   if (programmeStartsOn === null) return progress;
-  const opensOn = followUpOpensOn(programmeStartsOn);
+  const opensOn = new Date(
+    Date.parse(`${programmeStartsOn}T00:00:00Z`) + (WEEK_4_OPENS_ON_DAY - 1) * 86_400_000
+  )
+    .toISOString()
+    .slice(0, 10);
   if (today >= opensOn) return { ...progress, postOpensOn: undefined };
   return {
     ...progress,
