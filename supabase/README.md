@@ -231,9 +231,9 @@ schema, and ran after them.
 | `0011_week2_foods.sql` | The Week 2 deck's protein table: 6 foods with protein figures, plus tahu and susu with none |
 | `0012_week2_lessons.sql` | Week 2's lesson cards. Seeding these is what unlocks week 2 on Learn |
 
-**0010–0012 are not on the live project yet.** They were applied against a
-local Postgres 16 with every migration and seed before them and read back
-cleanly; run them against `fuel-factor` in that order.
+**Every migration and every seed here is on the live project** (checked
+3 November): 18 migrations; weeks 1 and 2, the badges and the composition
+table. Nothing else is in it but what people have entered in the app.
 
 **Seeds hold the programme's content and nothing else** — foods, lessons,
 advice rules, challenges and the badge ladder. No team and no athlete is

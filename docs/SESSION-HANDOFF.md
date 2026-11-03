@@ -486,9 +486,8 @@ folder (the PDF deck and seven slides, 2 November).
 `0010`–`0012` (renumbered from 0009–0011 to follow `0009_tkpi_foods`) hold the week 2 challenge, four advice rules, the deck's
 protein table and twelve lesson cards. No migration: every card is a kind the
 screen already draws. Seeding them is what unlocks week 2 on Learn.
-**They are not on the live project yet** — they were run against a local
-Postgres 16 after every migration and the eight earlier seeds and read back
-cleanly.
+**They are on the live project** (applied 3 November, after a dry run
+against a local Postgres 16).
 
 **Protein has figures now, so the app counts it.** The week 2 table gives
 protein for six foods (telur, tempe, ayam dada, ikan kembung, Greek yogurt,
@@ -578,6 +577,11 @@ are `0010`–`0012` and run after the food database.
 **The logger's "no figure" line** only shows when a portion has no figure at
 all; week 2's protein foods carry protein and no carbohydrate, and are not
 unknown.
+
+**The live project matches this repository** (3 November): all 18
+migrations; seeds for weeks 1 and 2, the badges and the composition table
+(15 + 8 deck foods, 1,346 TKPI foods, 9 advice rules, 22 lesson cards); one
+team, Team Jakarta buddies, and nothing seeded in it.
 
 **1116 tests pass.**
 
