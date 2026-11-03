@@ -235,9 +235,8 @@ describe('coach access is not athlete access', () => {
 });
 
 describe('the demo squad shows each state the screen has', () => {
-  // Named through DEMO_NAMES rather than as literals: a build meant to be
-  // passed around sets EXPO_PUBLIC_ANON_DEMO=1 and the three athletes get
-  // stand-ins, and the suite has to pass either way.
+  // Named through DEMO_NAMES rather than as literals, so the fixture's
+  // stand-in names live in one place.
   it('includes a flagged athlete, a clean one, and one with no band', () => {
     const byName = Object.fromEntries(DEMO_COACH_VIEW.athletes.map((a) => [a.name, a]));
     expect(byName[DEMO_NAMES.me].flags.map((f) => f.code)).toEqual([

@@ -14,31 +14,21 @@ import type { RecallNutrition } from '../recall-nutrition';
 import type { ChallengeItem, ChallengeLog } from '../meal-challenge';
 
 /**
- * The squad's names, or stand-ins for them.
+ * TEST FIXTURES ONLY. Nothing in the app imports this file: there is no demo
+ * mode, and every screen reads the live database (3 November 2026).
  *
- * The three athletes are real, named 14 to 16 year olds, and the figures
- * beside them -- hydration readings, Cooper run distances -- are transcribed
- * from the programme's own tracker. That is fine inside a demo on a laptop and
- * is not fine in a build handed to people, so any build meant to be passed
- * around sets EXPO_PUBLIC_ANON_DEMO=1 and gets stand-ins instead.
- *
- * Only the names change. Every figure, every finding and every shape of the
- * demo stays exactly as it is, because those are the programme's results and
- * they are the point.
- *
- * The stand-ins have to sort the same way the real names do -- Jacob,
- * Jeongho, Theo -- because the coach's roster is alphabetical and the fixture
- * is written in that order. A test holds the two in step.
+ * The three athletes are stand-ins. The squad these figures were first
+ * transcribed from is real, named 14 to 16 year olds, and their names have no
+ * business in test data. The stand-ins sort alphabetically in the order the
+ * fixture is written, because the coach's roster is alphabetical.
  */
-const ANON = process.env.EXPO_PUBLIC_ANON_DEMO === '1';
-
 export const DEMO_NAMES = {
-  /** The athlete this device holds. Sorts last, as Theo does. */
-  me: ANON ? 'Candra' : 'Theo',
-  /** The squad's most consistent logger. Sorts second, as Jeongho does. */
-  first: ANON ? 'Bima' : 'Jeongho',
-  /** Sorts first, as Jacob does. */
-  third: ANON ? 'Arya' : 'Jacob',
+  /** The athlete this device holds. Sorts last. */
+  me: 'Candra',
+  /** The squad's most consistent logger. Sorts second. */
+  first: 'Bima',
+  /** Sorts first. */
+  third: 'Arya',
 } as const;
 
 /**

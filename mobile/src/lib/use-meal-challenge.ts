@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 
-import { demoChallengeLogs, demoProgrammeStart } from './__fixtures__/today';
 import {
   challengeWeek,
   CHALLENGES,
@@ -11,8 +10,6 @@ import {
 import { messageOf } from './errors';
 import { fetchProfile } from './profile';
 import { todayIso } from './today';
-
-const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
 
 export type MealChallengeState =
   | { status: 'loading' }
@@ -52,22 +49,9 @@ function build(
  * Today can refresh the card when the athlete comes back from logging.
  */
 export function useMealChallenge(weekNumber?: number, reloadKey = 0): MealChallengeState {
-  const [state, setState] = useState<MealChallengeState>(() => {
-    if (!USE_FIXTURE) return { status: 'loading' };
-    const today = todayIso();
-    const startsOn = demoProgrammeStart();
-    const current = programmeWeek(startsOn, today);
-    const spec = CHALLENGES[weekNumber ?? current];
-    return {
-      status: 'ready',
-      programmeWeek: current,
-      week: spec ? challengeWeek(demoChallengeLogs(startsOn, spec.week), startsOn, today, spec) : null,
-      today,
-    };
-  });
+  const [state, setState] = useState<MealChallengeState>({ status: 'loading' });
 
   useEffect(() => {
-    if (USE_FIXTURE) return;
     let active = true;
     const today = todayIso();
 

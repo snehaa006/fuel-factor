@@ -13,13 +13,11 @@ import type { Database } from './database.types';
  * read as a useful early failure and was not one: `supabase.ts` is imported
  * transitively by nearly every module, so a build without the configuration
  * died on launch with "Missing EXPO_PUBLIC_SUPABASE_URL" before a single
- * screen rendered -- **including a demo build, which never calls Supabase at
- * all**. An app that cannot start without a backend it does not use is
- * broken, and it shipped that way in the first APK.
+ * screen rendered.
  *
  * Deferring the check moves the failure to the first actual call, where it
- * belongs: a real build still fails loudly with the same message the moment
- * it tries to reach the database, and a demo build never trips it.
+ * belongs: a build without the configuration still fails loudly with the same
+ * message the moment it tries to reach the database.
  */
 
 let client: SupabaseClient<Database> | null = null;

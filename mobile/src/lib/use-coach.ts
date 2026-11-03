@@ -1,12 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { DEMO_COACH_VIEW } from './__fixtures__/today';
 import { claimCoach, fetchCoachView, isCoach, type CoachView } from './coach';
 import { messageOf } from './errors';
 import { sinceDate } from './use-progress';
 import { todayIso } from './today';
-
-const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
 
 /** The dashboard's window. A fortnight is enough to see a habit or its absence. */
 export const COACH_WINDOW_DAYS = 14;
@@ -26,16 +23,13 @@ export type CoachController = CoachState & {
 };
 
 export function useCoach(): CoachController {
-  const [state, setState] = useState<CoachState>(() =>
-    USE_FIXTURE ? { status: 'ready', view: DEMO_COACH_VIEW } : { status: 'loading' }
-  );
+  const [state, setState] = useState<CoachState>({ status: 'loading' });
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0);
 
   useEffect(() => {
     let active = true;
-    if (USE_FIXTURE) return;
 
     const today = todayIso();
 
@@ -66,7 +60,7 @@ export function useCoach(): CoachController {
    * from what the client happened to know beforehand.
    */
   const join = useCallback((code: string) => {
-    if (USE_FIXTURE || joining) return;
+    if (joining) return;
     setJoining(true);
     setJoinError(null);
 

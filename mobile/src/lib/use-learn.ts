@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { DEMO_FOODS, DEMO_LESSON_CARDS_BY_WEEK, DEMO_WEEKS } from './__fixtures__/today';
 import { messageOf } from './errors';
 import { listFoods, type FoodWithPortions } from './food';
 import {
@@ -20,13 +19,6 @@ import {
 } from './photos';
 import { todayIso } from './today';
 
-/**
- * Same development flag the Today screen uses: draw from the fixture instead
- * of the network, so a build that gets passed around shows the section
- * without reading or writing a row of the study's own.
- */
-const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
-
 export type WeeksState =
   | { status: 'loading' }
   | { status: 'ready'; weeks: Week[] }
@@ -36,13 +28,10 @@ export function useWeeks(): WeeksState {
   // The fixture is known at first render, so it is the initial state rather
   // than something an effect sets afterwards -- which would cost a render and
   // a flash of the spinner for data that was already in hand.
-  const [state, setState] = useState<WeeksState>(() =>
-    USE_FIXTURE ? { status: 'ready', weeks: DEMO_WEEKS } : { status: 'loading' }
-  );
+  const [state, setState] = useState<WeeksState>({ status: 'loading' });
 
   useEffect(() => {
     let active = true;
-    if (USE_FIXTURE) return;
 
     fetchWeeks()
       .then((weeks) => active && setState({ status: 'ready', weeks }))
@@ -78,30 +67,12 @@ export type WeekController = WeekState & {
   reportPhotoError: (message: string) => void;
 };
 
-/** The fixture's answer for a week, known without a round trip. */
-function fixtureWeek(weekNumber: number): WeekState {
-  const week = DEMO_WEEKS.find((w) => w.weekNumber === weekNumber);
-  if (!week) return { status: 'error', message: 'That week is not part of the programme.' };
-  return {
-    status: 'ready',
-    detail: {
-      week,
-      cards: week.unlocked ? (DEMO_LESSON_CARDS_BY_WEEK[weekNumber] ?? []) : [],
-      completedOn: null,
-      photoPath: null,
-    },
-    foods: DEMO_FOODS,
-  };
-}
-
 export function useWeek(weekNumber: number, participantId: string | null): WeekController {
   const valid = Number.isInteger(weekNumber);
   // Initial state, not an effect, for the same reason as above. Each week is
   // its own pushed screen, so weekNumber does not change under a mounted
   // hook.
-  const [state, setState] = useState<WeekState>(() =>
-    USE_FIXTURE && valid ? fixtureWeek(weekNumber) : { status: 'loading' }
-  );
+  const [state, setState] = useState<WeekState>({ status: 'loading' });
   const [saving, setSaving] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -119,7 +90,7 @@ export function useWeek(weekNumber: number, participantId: string | null): WeekC
   useEffect(() => {
     let active = true;
     // In fixture mode the path is already a local URI and needs no signing.
-    if (currentPath === null || USE_FIXTURE) return;
+    if (currentPath === null) return;
 
     signedPhotoUrl(currentPath)
       .then((url) => active && setPhotoUrl(url))
@@ -132,7 +103,7 @@ export function useWeek(weekNumber: number, participantId: string | null): WeekC
 
   useEffect(() => {
     let active = true;
-    if (!valid || USE_FIXTURE) return;
+    if (!valid) return;
 
     Promise.all([fetchWeek(weekNumber), listFoods()])
       .then(([detail, foods]) => {
@@ -164,23 +135,21 @@ export function useWeek(weekNumber: number, participantId: string | null): WeekC
       const wasDone = current.detail.completedOn === today;
       const previous = current.detail.completedOn;
 
-      if (!USE_FIXTURE) {
-        if (!participantId) return current;
-        setSaving(true);
-        const write = wasDone
-          ? undoChallenge(challengeId, participantId, today)
-          : completeChallenge(challengeId, participantId, today);
+      if (!participantId) return current;
+      setSaving(true);
+      const write = wasDone
+        ? undoChallenge(challengeId, participantId, today)
+        : completeChallenge(challengeId, participantId, today);
 
-        write
-          .catch(() =>
-            setState((latest) =>
-              latest.status === 'ready'
-                ? { ...latest, detail: { ...latest.detail, completedOn: previous } }
-                : latest
-            )
+      write
+        .catch(() =>
+          setState((latest) =>
+            latest.status === 'ready'
+              ? { ...latest, detail: { ...latest.detail, completedOn: previous } }
+              : latest
           )
-          .finally(() => setSaving(false));
-      }
+        )
+        .finally(() => setSaving(false));
 
       return { ...current, detail: { ...current.detail, completedOn: wasDone ? null : today } };
     });
@@ -198,23 +167,6 @@ export function useWeek(weekNumber: number, participantId: string | null): WeekC
       if (state.status !== 'ready' || uploading) return;
       const { challengeId } = state.detail.week;
       if (!challengeId) return;
-
-      // In fixture mode there is nothing to upload to, so the picked file is
-      // previewed from its own local URI. The picker, the preview and
-      // removing it all behave as they will against the real bucket; only
-      // the round trip is absent.
-      if (USE_FIXTURE) {
-        setPhotoUrl(photo.uri);
-        setState((latest) =>
-          latest.status === 'ready'
-            ? {
-                ...latest,
-                detail: { ...latest.detail, completedOn: today, photoPath: photo.uri },
-              }
-            : latest
-        );
-        return;
-      }
 
       if (!participantId) return;
       setUploading(true);
@@ -241,16 +193,6 @@ export function useWeek(weekNumber: number, participantId: string | null): WeekC
     const { challengeId } = state.detail.week;
     const path = state.detail.photoPath;
     if (!challengeId || !path) return;
-
-    if (USE_FIXTURE) {
-      setPhotoUrl(null);
-      setState((latest) =>
-        latest.status === 'ready'
-          ? { ...latest, detail: { ...latest.detail, photoPath: null } }
-          : latest
-      );
-      return;
-    }
 
     if (!participantId) return;
     setUploading(true);

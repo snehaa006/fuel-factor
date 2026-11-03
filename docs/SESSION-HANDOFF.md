@@ -583,21 +583,33 @@ migrations; seeds for weeks 1 and 2, the badges and the composition table
 (15 + 8 deck foods, 1,346 TKPI foods, 9 advice rules, 22 lesson cards); one
 team, Team Jakarta buddies, and nothing seeded in it.
 
+**Step 20** — **No demo mode. This is the real app** (3 November).
+
+The Expo link had been published as a demo bundle -- sample data, stand-in
+names -- copying how earlier steps shipped it, and the person running this app
+opened it expecting the real one. So demo mode is gone, not switched off:
+
+- Every hook's `USE_FIXTURE` branch is deleted (14 hooks and the join screen).
+  The app reads the live database and nothing else; no app module imports
+  `__fixtures__/today.ts`, which is now test data only, with stand-in names.
+- `EXPO_PUBLIC_DEMO_DATA` and `EXPO_PUBLIC_ANON_DEMO` are read nowhere.
+  `eas.json`'s `share` profile no longer sets them, `npm run web:demo` and its
+  launch entry are gone.
+- Both Expo channels, `preview` (the Expo Go link) and `share` (the APK
+  handed out), were republished from `main` as the real app.
+- The time machine is development-only and is in no published bundle.
+
+`docs/RUNNING-IT.md` was rewritten around this. Earlier steps below still
+describe demo mode, the fixture's day one and `web:demo`, as history.
+
 **1116 tests pass.**
 
 `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
 
-To look at the app without a session:
-`cd mobile && EXPO_PUBLIC_DEMO_DATA=1 npx expo start --ios`, or
-`npm run web:demo` for the browser on port 8095.
-
-In demo mode the recall prompt shows the **follow-up** round as due. That is not
-a fixture contradicting the database: seed 0003 really does hold Theo's three
-baseline days, so the app has no business asking for them again. The fixture
-puts the programme's start thirty days back, which is also what seed 0004 now
-gives the squad — so the demo opens on a running programme. To see
-`/before-you-start`, move that date forward.
+To look at the app: `cd mobile && npx expo start --ios`, or `npm run web:live`
+for the browser on port 8096. Both use the live database, so sign in as a
+test athlete.
 
 ### Where things are
 

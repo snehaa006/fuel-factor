@@ -292,5 +292,4 @@ called by a signed-in user. Do not "fix" them by revoking execute.
 Supabase dashboard under Authentication → Sign In / Providers. Only the project
 owner can. Until then the gate says so on screen rather than failing silently.
 
-`EXPO_PUBLIC_DEMO_DATA=1` draws the Today screen from a fixture, skipping the
-gate entirely, for layout work without a session.
+There is no demo mode (removed 3 November): every build reads this project.
