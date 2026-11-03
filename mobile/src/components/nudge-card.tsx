@@ -40,8 +40,7 @@ export function materialLabel(source: string | undefined): string {
  *
  * The app never composes advice copy, so this renders the rule's message
  * verbatim. A rule the dietitian has not yet signed off is marked as such,
- * which keeps an unreviewed sentence from passing as clinical guidance in a
- * demo.
+ * which keeps an unreviewed sentence from passing as clinical guidance.
  */
 export function NudgeCard({ nudge, testID }: NudgeCardProps) {
   const { colors, radius, spacing, typography } = useTheme();

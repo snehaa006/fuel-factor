@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { DEMO_PROFILE } from './__fixtures__/today';
 import { signOut } from './coach-auth';
 import { messageOf } from './errors';
 import { fetchProfile, type Profile } from './profile';
-
-const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
 
 export type ProfileState =
   | { status: 'loading' }
@@ -21,20 +18,16 @@ export type ProfileController = ProfileState & {
 };
 
 export function useProfile(): ProfileController {
-  const [state, setState] = useState<ProfileState>(() =>
-    USE_FIXTURE ? { status: 'ready', profile: DEMO_PROFILE } : { status: 'loading' }
-  );
+  const [state, setState] = useState<ProfileState>({ status: 'loading' });
   const [nonce, setNonce] = useState(0);
   const [leaving, setLeaving] = useState(false);
 
   const reload = useCallback(() => {
-    if (USE_FIXTURE) return;
     setState({ status: 'loading' });
     setNonce((n) => n + 1);
   }, []);
 
   useEffect(() => {
-    if (USE_FIXTURE) return;
     let active = true;
 
     fetchProfile()
@@ -65,7 +58,7 @@ export function useProfile(): ProfileController {
     if (leaving) return;
     setLeaving(true);
     try {
-      if (!USE_FIXTURE) await signOut();
+      await signOut();
       setState({ status: 'signed-out' });
     } catch (error) {
       setState({ status: 'error', message: messageOf(error) });

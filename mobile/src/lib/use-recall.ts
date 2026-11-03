@@ -1,11 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import {
-  DEMO_PROFILE,
-  DEMO_RECALL_DAYS,
-  DEMO_RECALL_NUTRITION,
-  demoProgrammeStart,
-} from './__fixtures__/today';
 import { messageOf } from './errors';
 import { fetchProfile } from './profile';
 import { FOLLOW_UP_OPEN_FOR_TESTING, recallWindow, type RecallWindow } from './recall-window';
@@ -21,8 +15,6 @@ import {
 } from './recall';
 import { computeNutrition, type RecallNutrition } from './recall-nutrition';
 import { todayIso } from './today';
-
-const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
 
 export type RecallStatus =
   | { status: 'loading' }
@@ -48,34 +40,15 @@ export type RecallStatus =
  * step with the rows, and no midnight job has to run.
  */
 export function useRecallStatus(): RecallStatus & { reload: () => void } {
-  const [state, setState] = useState<RecallStatus>(() => {
-    if (!USE_FIXTURE) return { status: 'loading' };
-    const today = todayIso();
-    const programmeStartsOn = demoProgrammeStart();
-    return {
-      status: 'ready',
-      participantId: DEMO_PROFILE.participantId,
-      days: DEMO_RECALL_DAYS,
-      window: recallWindow(
-        DEMO_RECALL_DAYS.map((d) => d.dayNumber),
-        programmeStartsOn,
-        today,
-        FOLLOW_UP_OPEN_FOR_TESTING
-      ),
-      followUpOpenEarly: FOLLOW_UP_OPEN_FOR_TESTING,
-      programmeStartsOn,
-    };
-  });
+  const [state, setState] = useState<RecallStatus>({ status: 'loading' });
   const [nonce, setNonce] = useState(0);
 
   const reload = useCallback(() => {
-    if (USE_FIXTURE) return;
     setState({ status: 'loading' });
     setNonce((n) => n + 1);
   }, []);
 
   useEffect(() => {
-    if (USE_FIXTURE) return;
     let active = true;
 
     async function load() {
@@ -144,19 +117,14 @@ export type RecallFormController = RecallFormState & {
  * key on.
  */
 export function useRecallForm(dayNumber: number): RecallFormController {
-  const [state, setState] = useState<RecallFormState>(() =>
-    USE_FIXTURE
-      ? { status: 'ready', entry: blankEntry(), recallId: null, nutrition: null }
-      : { status: 'loading' }
-  );
+  const [state, setState] = useState<RecallFormState>({ status: 'loading' });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [participantId, setParticipantId] = useState<string | null>(
-    USE_FIXTURE ? DEMO_PROFILE.participantId : null
+    null
   );
 
   useEffect(() => {
-    if (USE_FIXTURE) return;
     let active = true;
 
     async function load() {
@@ -197,12 +165,6 @@ export function useRecallForm(dayNumber: number): RecallFormController {
       setSaving(true);
       setSaveError(null);
       try {
-        if (USE_FIXTURE) {
-          // Nothing to write to, and nothing to compute against. The screen
-          // shows the same "not computed yet" the real backend returns.
-          setState({ status: 'ready', entry, recallId: 'demo', nutrition: DEMO_RECALL_NUTRITION });
-          return;
-        }
         if (participantId === null) throw new Error('No athlete is claimed on this device.');
 
         const recallId = await saveRecall(participantId, dayNumber, entry);
@@ -261,17 +223,14 @@ export type RecallRoundController = RecallRoundState & {
  */
 export function useRecallRound(dayNumbers: readonly number[]): RecallRoundController {
   const key = dayNumbers.join(',');
-  const [state, setState] = useState<RecallRoundState>(() =>
-    USE_FIXTURE ? { status: 'ready', entries: {}, savedDays: [] } : { status: 'loading' }
-  );
+  const [state, setState] = useState<RecallRoundState>({ status: 'loading' });
   const [savingDay, setSavingDay] = useState<number | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [participantId, setParticipantId] = useState<string | null>(
-    USE_FIXTURE ? DEMO_PROFILE.participantId : null
+    null
   );
 
   useEffect(() => {
-    if (USE_FIXTURE) return;
     let active = true;
 
     async function load() {
@@ -314,17 +273,15 @@ export function useRecallRound(dayNumbers: readonly number[]): RecallRoundContro
       setSavingDay(dayNumber);
       setSaveError(null);
       try {
-        if (!USE_FIXTURE) {
-          if (participantId === null) throw new Error('No athlete is claimed on this device.');
-          const recallId = await saveRecall(participantId, dayNumber, entry);
-          if (entry.foods !== undefined) await saveRecallFoods(recallId, entry.foods);
-          // The figures are the backend's answer and a failure there must not
-          // lose a saved day, so it is reported and the day stays saved.
-          try {
-            await computeNutrition(recallId);
-          } catch (error) {
-            setSaveError(messageOf(error));
-          }
+        if (participantId === null) throw new Error('No athlete is claimed on this device.');
+        const recallId = await saveRecall(participantId, dayNumber, entry);
+        if (entry.foods !== undefined) await saveRecallFoods(recallId, entry.foods);
+        // The figures are the backend's answer and a failure there must not
+        // lose a saved day, so it is reported and the day stays saved.
+        try {
+          await computeNutrition(recallId);
+        } catch (error) {
+          setSaveError(messageOf(error));
         }
         setState((current) =>
           current.status === 'ready'

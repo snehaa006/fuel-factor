@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { DEMO_COACH_TEAM } from './__fixtures__/today';
 import {
   createTeam,
   currentEmail,
@@ -10,8 +9,6 @@ import {
   type CoachTeam,
 } from './coach-auth';
 import { messageOf } from './errors';
-
-const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
 
 export type CoachTeamState =
   | { status: 'loading' }
@@ -38,23 +35,17 @@ export type CoachTeamController = CoachTeamState & {
  * that let a coach try anyway would walk them into that refusal.
  */
 export function useCoachTeam(): CoachTeamController {
-  const [state, setState] = useState<CoachTeamState>(() =>
-    USE_FIXTURE
-      ? { status: 'ready', email: 'coach@example.com', team: DEMO_COACH_TEAM }
-      : { status: 'loading' }
-  );
+  const [state, setState] = useState<CoachTeamState>({ status: 'loading' });
   const [nonce, setNonce] = useState(0);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const reload = useCallback(() => {
-    if (USE_FIXTURE) return;
     setState({ status: 'loading' });
     setNonce((n) => n + 1);
   }, []);
 
   useEffect(() => {
-    if (USE_FIXTURE) return;
     let active = true;
 
     async function load() {
@@ -82,7 +73,7 @@ export function useCoachTeam(): CoachTeamController {
 
   const create = useCallback(
     async (name: string, startsOn: string) => {
-      if (busy || USE_FIXTURE) return;
+      if (busy) return;
       setBusy(true);
       setActionError(null);
       try {
@@ -100,7 +91,7 @@ export function useCoachTeam(): CoachTeamController {
 
   const setStart = useCallback(
     async (startsOn: string) => {
-      if (busy || USE_FIXTURE) return;
+      if (busy) return;
       setBusy(true);
       setActionError(null);
       try {

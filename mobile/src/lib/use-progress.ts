@@ -1,12 +1,9 @@
 import { useEffect, useState } from 'react';
 
-import { DEMO_PROGRESS, demoProgrammeStart } from './__fixtures__/today';
 import { messageOf } from './errors';
 import { fetchProfile } from './profile';
 import { asOfDate, fetchProgress, type Progress } from './progress';
 import { todayIso } from './today';
-
-const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
 
 /**
  * How far back "now" reaches.
@@ -36,15 +33,10 @@ export function sinceDate(today: string, days = SINCE_DAYS): string {
  * would really have looked on that date.
  */
 export function useProgress(): ProgressState {
-  const [state, setState] = useState<ProgressState>(() => {
-    if (!USE_FIXTURE) return { status: 'loading' };
-    const today = todayIso();
-    return { status: 'ready', progress: asOfDate(DEMO_PROGRESS, demoProgrammeStart(), today) };
-  });
+  const [state, setState] = useState<ProgressState>({ status: 'loading' });
 
   useEffect(() => {
     let active = true;
-    if (USE_FIXTURE) return;
 
     const today = todayIso();
     Promise.all([fetchProgress(sinceDate(today), today), fetchProfile()])

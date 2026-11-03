@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { demoToday, DEMO_RULES } from './__fixtures__/today';
 import { messageOf } from './errors';
 import { carbBand, type DayType } from './targets';
 import { ensureDailyLog } from './logger';
@@ -8,13 +7,6 @@ import { saveSession, type TrainingSession } from './session';
 import { fetchToday, setDayType, todayIso, type TodayData } from './today';
 import { supabase } from './supabase';
 import type { AdviceRule } from './advice';
-
-/**
- * Development flag. Draws the screen from the fixture instead of the network,
- * so the layout can be worked on without a session. Off unless the environment
- * sets it, and never on in a build that ships.
- */
-const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
 
 export type TodayState =
   | { status: 'loading' }
@@ -71,15 +63,13 @@ export function useToday(): TodayController {
       if (current.status !== 'ready' || current.data.summary.dayType === next) return current;
 
       const previous = current.data.summary.dayType;
-      if (!USE_FIXTURE) {
-        setDayType(current.data.participantId, current.date, next).catch(() => {
-          setState((latest) =>
-            latest.status === 'ready' && previous !== null
-              ? { ...latest, data: withDayType(latest.data, previous) }
-              : latest
-          );
-        });
-      }
+      setDayType(current.data.participantId, current.date, next).catch(() => {
+        setState((latest) =>
+          latest.status === 'ready' && previous !== null
+            ? { ...latest, data: withDayType(latest.data, previous) }
+            : latest
+        );
+      });
       return { ...current, data: withDayType(current.data, next) };
     });
   }, []);
@@ -95,23 +85,21 @@ export function useToday(): TodayController {
       if (current.status !== 'ready') return current;
 
       const previous = current.data.summary.session;
-      if (!USE_FIXTURE) {
-        const { participantId, dailyLogId } = current.data;
-        const write = dailyLogId
-          ? saveSession(dailyLogId, next)
-          : ensureDailyLog(participantId, current.date).then((id) => {
-              setState((latest) =>
-                latest.status === 'ready' ? { ...latest, data: { ...latest.data, dailyLogId: id } } : latest
-              );
-              return saveSession(id, next);
-            });
+      const { participantId, dailyLogId } = current.data;
+      const write = dailyLogId
+        ? saveSession(dailyLogId, next)
+        : ensureDailyLog(participantId, current.date).then((id) => {
+            setState((latest) =>
+              latest.status === 'ready' ? { ...latest, data: { ...latest.data, dailyLogId: id } } : latest
+            );
+            return saveSession(id, next);
+          });
 
-        write.catch(() => {
-          setState((latest) =>
-            latest.status === 'ready' ? { ...latest, data: withSession(latest.data, previous) } : latest
-          );
-        });
-      }
+      write.catch(() => {
+        setState((latest) =>
+          latest.status === 'ready' ? { ...latest, data: withSession(latest.data, previous) } : latest
+        );
+      });
       return { ...current, data: withSession(current.data, next) };
     });
   }, []);
@@ -121,12 +109,6 @@ export function useToday(): TodayController {
     const date = todayIso();
 
     async function load() {
-      if (USE_FIXTURE) {
-        if (active) {
-          setState({ status: 'ready', data: demoToday(date), rules: DEMO_RULES, date });
-        }
-        return;
-      }
 
       try {
         const { data: session } = await supabase.auth.getSession();

@@ -14,7 +14,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CheckBox } from '@/components/check-box';
 import { Mascot } from '@/components/mascot';
 import { PushButton } from '@/components/push-button';
-import { DEMO_COACH_TEAM } from '@/lib/__fixtures__/today';
 
 import {
   CONSENT_CHECKBOX,
@@ -40,13 +39,6 @@ import {
 } from '@/lib/join';
 import { WELCOME_CUE } from '@/lib/mascot-copy';
 import { useTheme } from '@/theme';
-
-/**
- * Development flag, as everywhere else in this app. Without it this screen
- * needs a real session and a real team row, so the invite flow could not be
- * demonstrated from the fixture at all.
- */
-const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
 
 type Step = 'consent' | 'about-you';
 
@@ -80,11 +72,11 @@ export default function Join() {
   const [step, setStep] = useState<Step>('consent');
   const [consented, setConsented] = useState(false);
   const [teamName, setTeamName] = useState<string | null>(
-    USE_FIXTURE ? DEMO_COACH_TEAM.name : null
+    null
   );
   const [form, setForm] = useState<Questionnaire>(EMPTY_QUESTIONNAIRE);
   const [measurementText, setMeasurementText] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(!USE_FIXTURE);
+  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const account = useAccount();
@@ -98,7 +90,7 @@ export default function Join() {
   const signedIn = account.status === 'ready' && account.account.role !== 'signed-out';
 
   useEffect(() => {
-    if (USE_FIXTURE || !signedIn) return;
+    if (!signedIn) return;
     let active = true;
 
     async function start() {
@@ -141,7 +133,7 @@ export default function Join() {
     setBusy(true);
     setError(null);
     try {
-      if (!USE_FIXTURE) await joinTeam(joinCode, form, consented);
+      await joinTeam(joinCode, form, consented);
       router.replace('/');
     } catch (e) {
       setError(messageOf(e));
@@ -171,11 +163,11 @@ export default function Join() {
   // An invite link opened by somebody with no account. The code travels with
   // them, so they come back here after signing in rather than being dropped
   // at a team-code box with a link they have already used.
-  if (!USE_FIXTURE && account.status === 'ready' && account.account.role === 'signed-out') {
+  if (account.status === 'ready' && account.account.role === 'signed-out') {
     return <Redirect href={{ pathname: '/sign-in', params: { joinCode } }} />;
   }
 
-  if (loading || (!USE_FIXTURE && !signedIn)) {
+  if (loading || !signedIn) {
     return (
       <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
         <ActivityIndicator color={colors.pisang} />

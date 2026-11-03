@@ -1,16 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
-  DEMO_ASSESSMENTS,
-  DEMO_COACH_VIEW,
-  DEMO_PROFILE,
-  DEMO_RECALL_FIGURES,
-  demoProgrammeStart,
-} from './__fixtures__/today';
-import {
   fetchAssessments,
   fetchRecallFigures,
-  mergePhase,
   recallFill,
   saveAssessment,
   type PairValues,
@@ -23,8 +15,6 @@ import { fetchProfile } from './profile';
 import { programmeState, type ProgrammeState } from './programme';
 import { supabase } from './supabase';
 import { todayIso } from './today';
-
-const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
 
 export type SaveFn = (
   participantId: string,
@@ -51,18 +41,7 @@ export type MyAssessmentsState =
   | { status: 'error'; message: string };
 
 export function useMyAssessments(): MyAssessmentsState & { save: SaveFn } {
-  const [state, setState] = useState<MyAssessmentsState>(() => {
-    if (!USE_FIXTURE) return { status: 'loading' };
-    const today = todayIso();
-    return {
-      status: 'ready',
-      participantId: DEMO_PROFILE.participantId,
-      name: DEMO_PROFILE.name,
-      programme: programmeState(demoProgrammeStart(), today),
-      pairs: DEMO_ASSESSMENTS[DEMO_PROFILE.participantId] ?? {},
-      fill: recallFill(DEMO_RECALL_FIGURES[DEMO_PROFILE.participantId] ?? []),
-    };
-  });
+  const [state, setState] = useState<MyAssessmentsState>({ status: 'loading' });
 
   // The latest state, read by save without re-creating it.
   const latest = useRef(state);
@@ -71,7 +50,6 @@ export function useMyAssessments(): MyAssessmentsState & { save: SaveFn } {
   }, [state]);
 
   useEffect(() => {
-    if (USE_FIXTURE) return;
     let active = true;
 
     (async () => {
@@ -108,9 +86,7 @@ export function useMyAssessments(): MyAssessmentsState & { save: SaveFn } {
   const save = useCallback<SaveFn>(async (participantId, phase, values) => {
     const s0 = latest.current;
     const current: PairValues = s0.status === 'ready' ? s0.pairs : {};
-    const pairs = USE_FIXTURE
-      ? mergePhase(current, phase, values)
-      : await saveAssessment(participantId, phase, values, current);
+    const pairs = await saveAssessment(participantId, phase, values, current);
     setState((s) => (s.status === 'ready' ? { ...s, pairs } : s));
   }, []);
 
@@ -136,22 +112,7 @@ export type SquadAssessmentsState =
   | { status: 'error'; message: string };
 
 export function useSquadAssessments(): SquadAssessmentsState & { save: SaveFn } {
-  const [state, setState] = useState<SquadAssessmentsState>(() =>
-    USE_FIXTURE
-      ? {
-          status: 'ready',
-          athletes: DEMO_COACH_VIEW.athletes.map((a) => ({
-            participantId: a.participantId,
-            name: a.name,
-          })),
-          pairs: DEMO_ASSESSMENTS,
-          fills: Object.fromEntries(
-            DEMO_COACH_VIEW.athletes.map((a) => [a.participantId, recallFill(DEMO_RECALL_FIGURES[a.participantId] ?? [])])
-          ),
-          programme: programmeState(demoProgrammeStart(), todayIso()),
-        }
-      : { status: 'loading' }
-  );
+  const [state, setState] = useState<SquadAssessmentsState>({ status: 'loading' });
 
   const latest = useRef(state);
   useEffect(() => {
@@ -159,7 +120,6 @@ export function useSquadAssessments(): SquadAssessmentsState & { save: SaveFn } 
   }, [state]);
 
   useEffect(() => {
-    if (USE_FIXTURE) return;
     let active = true;
 
     (async () => {
@@ -194,9 +154,7 @@ export function useSquadAssessments(): SquadAssessmentsState & { save: SaveFn } 
   const save = useCallback<SaveFn>(async (participantId, phase, values) => {
     const s0 = latest.current;
     const current: PairValues = s0.status === 'ready' ? (s0.pairs[participantId] ?? {}) : {};
-    const next = USE_FIXTURE
-      ? mergePhase(current, phase, values)
-      : await saveAssessment(participantId, phase, values, current);
+    const next = await saveAssessment(participantId, phase, values, current);
     setState((s) =>
       s.status === 'ready' ? { ...s, pairs: { ...s.pairs, [participantId]: next } } : s
     );

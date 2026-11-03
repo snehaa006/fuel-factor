@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react';
 
-import { DEMO_FOODS } from './__fixtures__/today';
 import { messageOf } from './errors';
 import { searchFoodDatabase, type FoodWithPortions } from './food';
 import { supabase } from './supabase';
-
-const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
 
 export type FoodsState =
   | { status: 'loading' }
@@ -20,17 +17,13 @@ export const SEARCH_DEBOUNCE_MS = 250;
  *
  * With nothing typed it is the programme's short list. With a query it is a
  * server-side search of the whole composition table, asked once typing
- * pauses. In fixture mode the demo foods are searched on the device.
+ * pauses.
  */
 export function useFoods(query = ''): FoodsState {
-  const [state, setState] = useState<FoodsState>(() =>
-    USE_FIXTURE ? { status: 'ready', foods: DEMO_FOODS } : { status: 'loading' }
-  );
+  const [state, setState] = useState<FoodsState>({ status: 'loading' });
   const term = query.trim();
 
   useEffect(() => {
-    // The demo foods are searched on the device by the caller.
-    if (USE_FIXTURE) return;
     let active = true;
 
     const timer = setTimeout(
@@ -62,7 +55,6 @@ export function useParticipantId(): string | null {
   const [id, setId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (USE_FIXTURE) return;
     let active = true;
 
     supabase

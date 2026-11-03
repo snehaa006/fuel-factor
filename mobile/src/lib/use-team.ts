@@ -1,17 +1,9 @@
 import { useEffect, useState } from 'react';
 
-import { DEMO_BADGES, DEMO_LEADERBOARD, DEMO_MONTH_MVP } from './__fixtures__/today';
 import { award, fetchBadges, fetchStats, type EarnedBadge } from './badges';
 import { messageOf } from './errors';
 import { fetchLeaderboard, fetchMvp, MONTH_DAYS, type Leaderboard } from './team';
 import { todayIso } from './today';
-
-/**
- * The same development flag the rest of the app uses. It matters here for the
- * usual reason: a build that gets passed around must not read the study's own
- * rows, so without it there is nothing to draw a board from on a demo build.
- */
-const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
 
 export type TeamView = {
   week: Leaderboard;
@@ -30,18 +22,10 @@ export function useTeam(): TeamState {
   // The fixture is known at first render, so it is the initial state rather
   // than something an effect sets afterwards, which would cost a render and a
   // flash of the spinner for data already in hand.
-  const [state, setState] = useState<TeamState>(() =>
-    USE_FIXTURE
-      ? {
-          status: 'ready',
-          view: { week: DEMO_LEADERBOARD, monthMvp: DEMO_MONTH_MVP, badges: DEMO_BADGES },
-        }
-      : { status: 'loading' }
-  );
+  const [state, setState] = useState<TeamState>({ status: 'loading' });
 
   useEffect(() => {
     let active = true;
-    if (USE_FIXTURE) return;
 
     const today = todayIso();
 
