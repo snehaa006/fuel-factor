@@ -189,14 +189,14 @@ export default function Welcome() {
           <View style={{ gap: spacing['space-4'] }}>
             {heading('Your team code')}
             <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-              Your coach has it. It looks like FUEL01.
+              Your coach has it: six letters and numbers, like K7XRMP.
             </Text>
             <TextInput
               value={joinCode}
               onChangeText={setJoinCode}
               autoCapitalize="characters"
               autoCorrect={false}
-              placeholder="FUEL01"
+              placeholder="K7XRMP"
               placeholderTextColor={colors['ink-faint']}
               accessibilityLabel="Team code"
               testID="team-code"
