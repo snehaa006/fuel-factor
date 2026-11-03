@@ -159,22 +159,25 @@ on Android in Expo Go.
 Published updates live at
 <https://expo.dev/accounts/snehaa006/projects/fuel-factor/updates>.
 
-**What this link currently serves.** Step 14 — coach accounts, the invite
-flow, the questionnaire, the sidebar and the recall form — published 1 Nov
-2026, update group `c544368d`. It is a **demo bundle**:
-`EXPO_PUBLIC_DEMO_DATA=1` so every screen draws from the fixture and nothing
-writes to the database, and `EXPO_PUBLIC_ANON_DEMO=1` so the three athletes
-appear under their stand-in names. That second flag matters here and not only
-in the APK: this link gets forwarded by message, and the athletes are real
-minors. Verified in the uploaded bundle — the stand-ins are present and none
-of the three real names is.
+**What this link currently serves.** `main` as of 3 November 2026 — week 2
+(protein), the meal challenges, the time machine, the Indonesian food
+database and the Week 0 / Week 4 assessments — update group `74e63f54`,
+commit `69c1b44`. It is a **demo bundle**: `EXPO_PUBLIC_DEMO_DATA=1` so every
+screen draws from the fixture and nothing writes to the database, and
+`EXPO_PUBLIC_ANON_DEMO=1` so the three athletes appear under their stand-in
+names. That second flag matters here and not only in the APK: this link gets
+forwarded by message, and the athletes are real minors. Verified in the
+uploaded bundle — the stand-ins are present and none of the three real names
+is. It also carries `EXPO_PUBLIC_TIME_MACHINE=1`, so the date pill is there
+to step through week 1 and week 2; in a demo bundle it moves the fixture's
+days and writes nothing.
 
 **Pushing to GitHub does not change this link.** The bundle moves only when
 somebody runs `eas update`. The two are separate systems, and the link served
 a day-old bundle for a while because of exactly that assumption:
 
 ```bash
-cd mobile && EXPO_PUBLIC_DEMO_DATA=1 EXPO_PUBLIC_ANON_DEMO=1 \
+cd mobile && EXPO_PUBLIC_DEMO_DATA=1 EXPO_PUBLIC_ANON_DEMO=1 EXPO_PUBLIC_TIME_MACHINE=1 \
   npx eas-cli@latest update --branch preview --environment preview \
   --platform all --message "what changed"
 ```
