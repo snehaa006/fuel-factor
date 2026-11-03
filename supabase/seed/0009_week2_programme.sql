@@ -7,8 +7,8 @@
 -- reviewed_by stays null: seed rules until the dietitian signs them off.
 --
 -- The deck is headed MALE ATHLETES and its 1.6-2.2 g/kg target is stated "for
--- teen male athletes". Every athlete in the study is male, so the app uses it
--- for everybody; a squad with girls in it would need Sofia's own band.
+-- teen male athletes", which is the app's whole audience: teen boys who play
+-- football (confirmed 3 November).
 
 insert into public.weekly_challenges (week_number, theme, challenge)
 values (2, 'Protein + Micronutrients', 'Add one protein source to every meal');

@@ -502,7 +502,9 @@ programme has given — carbs, protein, both, or that it has neither.
 **From week 2, Today shows protein against the deck's band.** 1.6–2.2 g/kg
 a day — 109–150 g for Theo's 68 kg — as a bar with the band drawn as a band,
 under the carb ring. One band for every day, because the deck gives no
-training/rest split. It passes no verdict, and says when items with no figure
+training/rest split. The deck states it "for teen male athletes", and that is
+exactly who the app is for: **teen boys who play football, and nobody else,
+for now** (confirmed 3 November). It passes no verdict, and says when items with no figure
 make the total a floor.
 
 **Four protein rules, from week 2 only.** Breakfast logged with no protein;
@@ -719,11 +721,6 @@ not belong on it, so those sentences were left out and a test fails if any
 roster name reaches a week 2 seed. The group figures beside them were kept.
 If Sofia wants individual flags in the app, they belong on that athlete's own
 screen, not in a lesson.
-
-**The week 2 protein band is the deck's "for teen male athletes".** The deck
-is headed MALE ATHLETES. Every athlete in the study is male; a squad with
-girls in it would need Sofia's own figure, and the app would be wrong for them
-today.
 
 **Two of the week 2 deck's own numbers disagree.** Greek yogurt is 200 g =
 20 g in the table and 17 g in a sentence; telur is 3 eggs = 18 g in the table,

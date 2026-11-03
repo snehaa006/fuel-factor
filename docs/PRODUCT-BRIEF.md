@@ -24,6 +24,7 @@ These came out of the call and should not be re-litigated — they are decisions
 | 4 | **Free-text food in → nutrition estimate out → advice** | Sofia | Needs a food composition database. This is the core engine |
 | 5 | **Jakarta / Indonesian food tables** are the differentiator vs MyFitnessPal | Sofia | Food DB seeded with nasi, pisang, ubi, mie, roti — not USDA |
 | 6 | **Football only** (basketball's 40–45 min ≠ football's 90 min fuelling) | Bhavesh | One sport profile in v1. Kynan and Nathan drop out of the study arm |
+| 6a | **Teen boys only** — male footballers, 14–16 | Confirmed 3 Nov | The programme's sex-specific figures (week 2's protein band is "for teen male athletes") are used as they are, with no other profile |
 | 7 | **B2B first** — sell to schools and clubs in Jakarta, coaches distribute | Bhavesh | A coach view is a revenue feature, not a nice-to-have |
 | 8 | **Under-18 consent screen is mandatory** | Sofia | Consent gate before any data capture. Blocking requirement |
 | 9 | **Halal / cultural constraint** — keep pork etc. out | Theo | App must never *suggest* pork. Logging stays non-judgemental |
