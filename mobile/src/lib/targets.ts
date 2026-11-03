@@ -52,3 +52,31 @@ export function positionInBand(grams: number, band: CarbBand): BandPosition {
   if (grams > band.max) return 'above';
   return 'inside';
 }
+
+/**
+ * The Week 2 deck's daily protein band: "1.6–2.2g per kg bodyweight needed
+ * daily for teen male athletes", printed as 96–154g for a 60–70 kg athlete.
+ *
+ * One band for every day: the deck gives no training/rest split for protein,
+ * so the app does not invent one. Shown as a range for the same reason the
+ * carbohydrate ring is -- the programme set a band, not a midpoint.
+ */
+export const PROTEIN_G_PER_KG: CarbBand = { min: 1.6, max: 2.2 };
+
+export function proteinBand(weightKg: number | null): CarbBand | null {
+  if (weightKg === null || !Number.isFinite(weightKg) || weightKg <= 0) return null;
+  return {
+    min: Math.round(PROTEIN_G_PER_KG.min * weightKg),
+    max: Math.round(PROTEIN_G_PER_KG.max * weightKg),
+  };
+}
+
+/**
+ * "The body can only use 25–35g per meal for muscle protein synthesis.
+ * Above that, surplus amino acids are burned as fuel." The top of that sweet
+ * spot is the line past which a meal is carrying protein it cannot use.
+ */
+export const PROTEIN_PER_MEAL_MAX_G = 35;
+
+/** Protein is taught in week 2, so nothing about it is shown or said before. */
+export const PROTEIN_WEEK = 2;

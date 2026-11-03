@@ -74,10 +74,11 @@ export type RecallWindow =
 
 /**
  * Testing switch: open the follow-up round now instead of four weeks after
- * day one, so the whole before-and-after can be tried without waiting a
- * month. Turn it off before the real programme runs.
+ * day one. **Off**: the time machine (clock.ts) does the same job honestly --
+ * set the date to four weeks on and the follow-up opens because it is due,
+ * exactly as it will for a real athlete. Leave it off for the real programme.
  */
-export const FOLLOW_UP_OPEN_FOR_TESTING = true;
+export const FOLLOW_UP_OPEN_FOR_TESTING = false;
 
 /** The day the follow-up round opens: four weeks after day one. */
 export function followUpOpensOn(programmeStartsOn: IsoDate): IsoDate {

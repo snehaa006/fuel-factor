@@ -1,8 +1,10 @@
+import { simulatedDate } from './clock';
+import { CARB_SOURCE_WORDS, namesSource, PROTEIN_SOURCE_WORDS } from './nutrients';
 import { asError } from './errors';
-import { carbsFor } from './food';
+import { carbsFor, deckWeek, proteinFor } from './food';
 import { NO_SESSION, parseTime, type TrainingSession } from './session';
 import { supabase } from './supabase';
-import { carbBand, type CarbBand, type DayType } from './targets';
+import { carbBand, proteinBand, type CarbBand, type DayType } from './targets';
 import type { Enums, Tables } from './database.types';
 
 export type MealSlot = Enums<'meal_slot'>;
@@ -32,6 +34,15 @@ export type LoggedItem = {
   /** Null when the programme has supplied no carbohydrate figure for it. */
   carbs_g: number | null;
   name: string;
+  /** Null when the programme has supplied no protein figure. Absent reads as null. */
+  protein_g?: number | null;
+  /**
+   * A food the Week 2 deck lists as a protein source, figure or not -- tahu
+   * and susu are named in its challenge with no number. Absent reads as false.
+   */
+  proteinSource?: boolean;
+  /** A food from the Week 1 deck's carbohydrate table. Absent reads as false. */
+  carbSource?: boolean;
 };
 
 export type SlotState = {
@@ -41,6 +52,8 @@ export type SlotState = {
   items: LoggedItem[];
   /** Carbohydrate across the slot's items, or null if none of them carry a figure. */
   carbs_g: number | null;
+  /** Protein across the slot's items, or null if none of them carry a figure. */
+  protein_g: number | null;
 };
 
 export type DaySummary = {
@@ -51,6 +64,12 @@ export type DaySummary = {
   /** Items logged whose portion has no carbohydrate figure yet. */
   itemsWithoutFigures: number;
   band: CarbBand | null;
+  /** Protein from every item that carries a figure. */
+  proteinEaten: number;
+  /** Items logged with no protein figure -- every week 1 food, for a start. */
+  itemsWithoutProtein: number;
+  /** The Week 2 deck's daily band, 1.6–2.2 g/kg. Null without a weight. */
+  proteinBand: CarbBand | null;
   /** The DQ Score /12. Null until the dietitian states the formula. */
   dqScore: number | null;
   /** The evening check-in's 1-8 reading, or null before it is filled. */
@@ -81,12 +100,17 @@ export function summariseDay(
   const slots = MEAL_SLOTS.map<SlotState>((slot) => {
     const slotItems = items.filter((i) => i.slot === slot);
     const known = slotItems.filter((i) => i.carbs_g !== null);
+    const knownProtein = slotItems.filter((i) => (i.protein_g ?? null) !== null);
     return {
       slot,
       label: SLOT_LABEL[slot],
       logged: (log?.[slot] ?? false) || slotItems.length > 0,
       items: slotItems,
       carbs_g: known.length === 0 ? null : known.reduce((sum, i) => sum + (i.carbs_g ?? 0), 0),
+      protein_g:
+        knownProtein.length === 0
+          ? null
+          : knownProtein.reduce((sum, i) => sum + (i.protein_g ?? 0), 0),
     };
   });
 
@@ -96,6 +120,9 @@ export function summariseDay(
     carbsEaten: items.reduce((sum, i) => sum + (i.carbs_g ?? 0), 0),
     itemsWithoutFigures: items.filter((i) => i.carbs_g === null).length,
     band: carbBand(weightKg, log?.day_type ?? null),
+    proteinEaten: items.reduce((sum, i) => sum + (i.protein_g ?? 0), 0),
+    itemsWithoutProtein: items.filter((i) => (i.protein_g ?? null) === null).length,
+    proteinBand: proteinBand(weightKg),
     dqScore: log?.dq_score ?? null,
     urineColour: log?.urine_colour ?? null,
     session,
@@ -113,17 +140,60 @@ export type TodayData = {
   activeDates: string[];
 };
 
-/** Today in the device's own timezone, as YYYY-MM-DD. */
-export function todayIso(now = new Date()): string {
+/**
+ * Today in the device's own timezone, as YYYY-MM-DD.
+ *
+ * Asked with no argument, it answers with the time machine's date when one is
+ * set (see `clock.ts`). Asked about a specific instant, it answers about that
+ * instant and nothing else, so tests stay pure.
+ */
+export function todayIso(now?: Date): string {
+  if (now === undefined) {
+    const simulated = simulatedDate();
+    if (simulated !== null) return simulated;
+    now = new Date();
+  }
   const offset = now.getTimezoneOffset() * 60_000;
   return new Date(now.getTime() - offset).toISOString().slice(0, 10);
 }
 
 type LogItemRow = Tables<'log_items'> & {
   food_portions:
-    | (Tables<'food_portions'> & { food_items: Pick<Tables<'food_items'>, 'name_id'> | null })
+    | (Tables<'food_portions'> & {
+        food_items: Pick<Tables<'food_items'>, 'name_id' | 'category' | 'source'> | null;
+      })
     | null;
 };
+
+/**
+ * One log_items row as the day sees it.
+ *
+ * Whether it is a carb source or a protein source is decided here, once, for
+ * Today, the challenges and the rules. See nutrients.ts for why it is the
+ * food and not its figure that decides.
+ */
+export function toLoggedItem(row: {
+  slot: MealSlot;
+  quantity: number | string;
+  free_text: string | null;
+  food_portions: LogItemRow['food_portions'];
+}): LoggedItem {
+  const portion = row.food_portions;
+  const food = portion?.food_items ?? null;
+  const week = food ? deckWeek(food.source) : null;
+  const fromTable = food?.source === 'tkpi';
+  return {
+    slot: row.slot,
+    quantity: Number(row.quantity),
+    carbs_g: portion ? carbsFor(portion, Number(row.quantity)) : null,
+    protein_g: portion ? proteinFor(portion, Number(row.quantity)) : null,
+    name: food?.name_id ?? row.free_text ?? 'Logged item',
+    carbSource: week === 1 || (fromTable && namesSource(food.name_id, CARB_SOURCE_WORDS)),
+    proteinSource:
+      (week === 2 && food?.category === 'protein') ||
+      (fromTable && namesSource(food.name_id, PROTEIN_SOURCE_WORDS)),
+  };
+}
 
 /**
  * Everything the Today screen needs, for the signed-in athlete.
@@ -154,6 +224,9 @@ export async function fetchToday(date = todayIso()): Promise<TodayData | null> {
       .from('daily_logs')
       .select('log_date')
       .eq('participant_id', participant.id)
+      // Nothing after today. With the time machine set back a week, the days
+      // logged "later" must not light the strip or be counted by the limit.
+      .lte('log_date', date)
       .order('log_date', { ascending: false })
       .limit(120),
   ]);
@@ -167,7 +240,7 @@ export async function fetchToday(date = todayIso()): Promise<TodayData | null> {
     const [itemsResult, sessionResult] = await Promise.all([
       supabase
         .from('log_items')
-        .select('slot, quantity, free_text, food_portions(*, food_items(name_id))')
+        .select('slot, quantity, free_text, food_portions(*, food_items(name_id, category, source))')
         .eq('daily_log_id', logResult.data.id)
         .returns<LogItemRow[]>(),
       supabase
@@ -187,12 +260,7 @@ export async function fetchToday(date = todayIso()): Promise<TodayData | null> {
     }
 
     if (error) throw asError(error);
-    items = (data ?? []).map((row) => ({
-      slot: row.slot,
-      quantity: Number(row.quantity),
-      carbs_g: row.food_portions ? carbsFor(row.food_portions, Number(row.quantity)) : null,
-      name: row.food_portions?.food_items?.name_id ?? row.free_text ?? 'Logged item',
-    }));
+    items = (data ?? []).map((row) => toLoggedItem(row));
   }
 
   const weightKg = participant.weight_kg === null ? null : Number(participant.weight_kg);

@@ -58,7 +58,7 @@ export function useMyAssessments(): MyAssessmentsState & { save: SaveFn } {
       status: 'ready',
       participantId: DEMO_PROFILE.participantId,
       name: DEMO_PROFILE.name,
-      programme: programmeState(demoProgrammeStart(today), today),
+      programme: programmeState(demoProgrammeStart(), today),
       pairs: DEMO_ASSESSMENTS[DEMO_PROFILE.participantId] ?? {},
       fill: recallFill(DEMO_RECALL_FIGURES[DEMO_PROFILE.participantId] ?? []),
     };
@@ -148,7 +148,7 @@ export function useSquadAssessments(): SquadAssessmentsState & { save: SaveFn } 
           fills: Object.fromEntries(
             DEMO_COACH_VIEW.athletes.map((a) => [a.participantId, recallFill(DEMO_RECALL_FIGURES[a.participantId] ?? [])])
           ),
-          programme: programmeState(demoProgrammeStart(todayIso()), todayIso()),
+          programme: programmeState(demoProgrammeStart(), todayIso()),
         }
       : { status: 'loading' }
   );

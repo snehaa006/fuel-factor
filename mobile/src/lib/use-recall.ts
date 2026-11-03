@@ -51,7 +51,7 @@ export function useRecallStatus(): RecallStatus & { reload: () => void } {
   const [state, setState] = useState<RecallStatus>(() => {
     if (!USE_FIXTURE) return { status: 'loading' };
     const today = todayIso();
-    const programmeStartsOn = demoProgrammeStart(today);
+    const programmeStartsOn = demoProgrammeStart();
     return {
       status: 'ready',
       participantId: DEMO_PROFILE.participantId,

@@ -96,7 +96,8 @@ describe('fetchStats', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFrom.mockImplementation((table: string) => ({
-      select: async () =>
+      select: () => ({
+        lte: async () =>
         table === 'daily_logs'
           ? {
               data: [
@@ -110,7 +111,25 @@ describe('fetchStats', () => {
               error: null,
             }
           : { data: [{ challenge_id: 'c1' }, { challenge_id: 'c1' }, { challenge_id: 'c2' }], error: null },
+      }),
     }));
+  });
+
+  it('reads nothing after today, so a time machine set back sees the past', async () => {
+    const bounds: [string, string, string][] = [];
+    mockFrom.mockImplementation((table: string) => ({
+      select: () => ({
+        lte: async (column: string, value: string) => {
+          bounds.push([table, column, value]);
+          return { data: [], error: null };
+        },
+      }),
+    }));
+    await fetchStats('2026-10-31');
+    expect(bounds).toEqual([
+      ['daily_logs', 'log_date', '2026-10-31'],
+      ['challenge_completions', 'completed_on', '2026-10-31'],
+    ]);
   });
 
   it('counts a day once however many rows it has', () => {
@@ -131,7 +150,7 @@ describe('fetchStats', () => {
 
   it('reports a refusal the way supabase-js refuses', async () => {
     mockFrom.mockImplementation(() => ({
-      select: async () => ({ data: null, error: { message: 'permission denied' } }),
+      select: () => ({ lte: async () => ({ data: null, error: { message: 'permission denied' } }) }),
     }));
     await expect(fetchStats('2026-10-31')).rejects.toThrow('permission denied');
   });

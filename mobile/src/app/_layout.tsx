@@ -1,8 +1,10 @@
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
+import { TimeMachine } from '@/components/time-machine';
+import { restoreSimulatedDate, TIME_MACHINE_ENABLED, useSimulatedDate } from '@/lib/clock';
 import { useTheme } from '@/theme';
 import { fontAssets } from '@/theme/fonts';
 
@@ -12,23 +14,41 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(fontAssets);
+  const [clockReady, setClockReady] = useState(!TIME_MACHINE_ENABLED);
+  const simulated = useSimulatedDate();
   const theme = useTheme();
 
+  // The remembered time-machine date is read before the first screen draws,
+  // so a reload lands on the day being tested rather than on today first.
   useEffect(() => {
-    if (fontsLoaded || fontError) {
+    if (clockReady) return;
+    restoreSimulatedDate().finally(() => setClockReady(true));
+  }, [clockReady]);
+
+  const ready = (fontsLoaded || fontError) && clockReady;
+
+  useEffect(() => {
+    if (ready) {
       SplashScreen.hideAsync().catch(() => {});
     }
-  }, [fontsLoaded, fontError]);
+  }, [ready]);
 
   // Hold the splash rather than flashing a system-font frame first.
-  if (!fontsLoaded && !fontError) return null;
+  if (!ready) return null;
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: theme.colors.surface },
-      }}
-    />
+    <>
+      {/* Keyed on the date, so moving the time machine remounts every screen
+          and each one loads the new day from scratch, exactly as opening the
+          app on that day would. `/` routes from there. */}
+      <Stack
+        key={simulated ?? 'real'}
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: theme.colors.surface },
+        }}
+      />
+      <TimeMachine />
+    </>
   );
 }

@@ -1,12 +1,15 @@
-import { hasSessionDay } from './targets';
+import { hasNutrient } from './nutrients';
 import type { Minutes } from './session';
+import { hasSessionDay, PROTEIN_PER_MEAL_MAX_G, PROTEIN_WEEK } from './targets';
 import type { DaySummary, MealSlot } from './today';
 import type { Tables } from './database.types';
 
 export type AdviceRule = Pick<
   Tables<'advice_rules'>,
   'code' | 'domain' | 'message_en' | 'severity' | 'reviewed_by'
->;
+> &
+  /** Which week's deck the sentence is from, e.g. 'week-2-deck'. Absent on older rows. */
+  Partial<Pick<Tables<'advice_rules'>, 'source'>>;
 
 export type Nudge = {
   code: string;
@@ -15,6 +18,8 @@ export type Nudge = {
   severity: number;
   /** False while the rule is still a seed row the dietitian has not signed off. */
   reviewed: boolean;
+  /** The deck the sentence came from, so the card can say which week's material it is. */
+  source?: string;
 };
 
 /**
@@ -62,7 +67,12 @@ export const MAX_NUDGES = 2;
  * the one place a nutrition rule is turned into a card, and it should be
  * answerable at any time of day in a test without mocking a clock.
  */
-export function evaluate(summary: DaySummary, rules: AdviceRule[], now: Minutes): Nudge[] {
+export function evaluate(
+  summary: DaySummary,
+  rules: AdviceRule[],
+  now: Minutes,
+  programmeWeek = 1
+): Nudge[] {
   const byCode = new Map(rules.map((r) => [r.code, r]));
   const fired: string[] = [];
 
@@ -106,6 +116,30 @@ export function evaluate(summary: DaySummary, rules: AdviceRule[], now: Minutes)
     fired.push('refuel_window_open');
   }
 
+  // Protein is taught in week 2. Before it, nothing is said about protein:
+  // an athlete told off for a carb-only breakfast in week 1 has been graded
+  // on a lesson they have not had.
+  if (programmeWeek >= PROTEIN_WEEK) {
+    const slot = (s: MealSlot) => summary.slots.find((x) => x.slot === s);
+    const loggedWithout = (s: MealSlot) => {
+      const state = slot(s);
+      return (
+        state !== undefined &&
+        state.items.length > 0 &&
+        !state.items.some((i) => hasNutrient(i, 'protein'))
+      );
+    };
+
+    if (loggedWithout('breakfast')) fired.push('no_protein_breakfast');
+    if (loggedWithout('lunch') || loggedWithout('dinner')) fired.push('no_protein_in_meal');
+    if (loggedWithout('post_training')) fired.push('post_training_no_protein');
+
+    // The one rule here that reads a computed figure: the deck's own line
+    // that above 35 g a meal adds no muscle protein synthesis.
+    const dinner = slot('dinner')?.protein_g ?? null;
+    if (dinner !== null && dinner > PROTEIN_PER_MEAL_MAX_G) fired.push('protein_piled_at_dinner');
+  }
+
   return fired
     .map((code) => byCode.get(code))
     .filter((rule): rule is AdviceRule => rule !== undefined)
@@ -115,6 +149,7 @@ export function evaluate(summary: DaySummary, rules: AdviceRule[], now: Minutes)
       message: rule.message_en,
       severity: rule.severity,
       reviewed: rule.reviewed_by !== null,
+      source: rule.source,
     }))
     // Severity is the rule row's own. Ties keep evaluation order rather than
     // being broken here, because ranking one domain above another -- hydration
@@ -127,7 +162,8 @@ export function topNudges(
   summary: DaySummary,
   rules: AdviceRule[],
   now: Minutes,
-  limit = MAX_NUDGES
+  limit = MAX_NUDGES,
+  programmeWeek = 1
 ): Nudge[] {
-  return evaluate(summary, rules, now).slice(0, Math.max(limit, 0));
+  return evaluate(summary, rules, now, programmeWeek).slice(0, Math.max(limit, 0));
 }

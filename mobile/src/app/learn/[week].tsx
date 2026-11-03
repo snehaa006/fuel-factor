@@ -2,10 +2,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { MealChallengeCard } from '@/components/meal-challenge-card';
 import { ChallengePhoto } from '@/components/challenge-photo';
 import { LessonCard } from '@/components/lesson-card';
 import { PushButton } from '@/components/push-button';
 import { todayIso } from '@/lib/today';
+import { deckWeek } from '@/lib/food';
+import { useMealChallenge } from '@/lib/use-meal-challenge';
 import { useParticipantId } from '@/lib/use-foods';
 import { useWeek } from '@/lib/use-learn';
 import { useTheme } from '@/theme';
@@ -25,6 +28,7 @@ export default function Week() {
   const { colors, spacing, typography } = useTheme();
 
   const state = useWeek(weekNumber, participantId);
+  const checked = useMealChallenge(Number.isInteger(weekNumber) ? weekNumber : undefined);
   const today = todayIso();
 
   // Derived, not stored: a route param that is not a number is known at
@@ -63,7 +67,9 @@ export default function Week() {
     );
   }
 
-  const { detail, foods } = state;
+  const { detail } = state;
+  // Each week's food card is that week's deck's table, not the whole database.
+  const foods = state.foods.filter((f) => deckWeek(f.source) === weekNumber);
   const done = detail.completedOn === today;
 
   return (
@@ -93,6 +99,18 @@ export default function Week() {
             <LessonCard key={card.id} card={card} foods={foods} testID={`card-${card.kind}`} />
           ))}
         </View>
+
+        {/* A challenge the log can answer is checked here, beside the tap
+            that records what the athlete says. */}
+        {checked.status === 'ready' && checked.week !== null && (
+          <View style={{ marginTop: spacing['space-6'] }}>
+            <MealChallengeCard
+              week={checked.week}
+              challenge={detail.week.challenge}
+              testID="meal-challenge"
+            />
+          </View>
+        )}
 
         {detail.week.challengeId !== null && (
           <View style={{ marginTop: spacing['space-6'], gap: spacing['space-2'] }}>

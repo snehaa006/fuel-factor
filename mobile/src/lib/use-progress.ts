@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 
-import { DEMO_PROGRESS } from './__fixtures__/today';
+import { DEMO_PROGRESS, demoProgrammeStart } from './__fixtures__/today';
 import { messageOf } from './errors';
-import { fetchProgress, type Progress } from './progress';
+import { fetchProfile } from './profile';
+import { asOfDate, fetchProgress, type Progress } from './progress';
 import { todayIso } from './today';
 
 const USE_FIXTURE = process.env.EXPO_PUBLIC_DEMO_DATA === '1';
@@ -28,17 +29,30 @@ export function sinceDate(today: string, days = SINCE_DAYS): string {
     .slice(0, 10);
 }
 
+/**
+ * Baseline against now, as of today -- the time machine's today when one is
+ * set. Logs after it are not read and the post-programme tests stay hidden
+ * until the four weeks are up, so the screen looks on any date the way it
+ * would really have looked on that date.
+ */
 export function useProgress(): ProgressState {
-  const [state, setState] = useState<ProgressState>(() =>
-    USE_FIXTURE ? { status: 'ready', progress: DEMO_PROGRESS } : { status: 'loading' }
-  );
+  const [state, setState] = useState<ProgressState>(() => {
+    if (!USE_FIXTURE) return { status: 'loading' };
+    const today = todayIso();
+    return { status: 'ready', progress: asOfDate(DEMO_PROGRESS, demoProgrammeStart(), today) };
+  });
 
   useEffect(() => {
     let active = true;
     if (USE_FIXTURE) return;
 
-    fetchProgress(sinceDate(todayIso()))
-      .then((progress) => active && setState({ status: 'ready', progress }))
+    const today = todayIso();
+    Promise.all([fetchProgress(sinceDate(today), today), fetchProfile()])
+      .then(([progress, profile]) => {
+        if (!active) return;
+        const startsOn = profile?.kind === 'athlete' ? profile.programmeStartsOn : null;
+        setState({ status: 'ready', progress: asOfDate(progress, startsOn, today) });
+      })
       .catch((error) => active && setState({ status: 'error', message: messageOf(error) }));
 
     return () => {

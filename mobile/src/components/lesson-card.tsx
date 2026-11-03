@@ -273,7 +273,7 @@ function Foods({ foods, theme }: { foods: FoodWithPortions[]; theme: Theme }) {
             </Text>
             {inRegister.map((food) => {
               const portion = food.food_portions.find((p) => p.is_default) ?? food.food_portions[0];
-              const carbs = portion?.carbs_g;
+              const figure = foodFigure(portion);
               return (
                 <View
                   key={food.id}
@@ -300,10 +300,10 @@ function Foods({ foods, theme }: { foods: FoodWithPortions[]; theme: Theme }) {
                   <Text
                     style={[
                       typography['body-s'],
-                      { color: carbs === null || carbs === undefined ? colors['ink-faint'] : colors['pisang-deep'] },
+                      { color: figure === null ? colors['ink-faint'] : colors['pisang-deep'] },
                     ]}
                   >
-                    {carbs === null || carbs === undefined ? 'No figure yet' : `${carbs}g carbs`}
+                    {figure ?? 'No figure yet'}
                   </Text>
                 </View>
               );
@@ -313,6 +313,18 @@ function Foods({ foods, theme }: { foods: FoodWithPortions[]; theme: Theme }) {
       })}
     </View>
   );
+}
+
+/**
+ * What the deck says a portion carries: carbohydrate (week 1's table),
+ * protein (week 2's), both, or neither.
+ */
+export function foodFigure(portion: FoodWithPortions['food_portions'][number] | undefined): string | null {
+  if (!portion) return null;
+  const parts: string[] = [];
+  if (portion.carbs_g !== null) parts.push(`${portion.carbs_g}g carbs`);
+  if (portion.protein_g !== null) parts.push(`${portion.protein_g}g protein`);
+  return parts.length === 0 ? null : parts.join(' · ');
 }
 
 function References({ points, theme }: { points: LessonPoint[]; theme: Theme }) {

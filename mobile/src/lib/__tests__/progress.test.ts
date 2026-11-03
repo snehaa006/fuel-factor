@@ -1,5 +1,6 @@
 import { DEMO_PROGRESS } from '@/lib/__fixtures__/today';
 import {
+  asOfDate,
   change,
   fetchProgress,
   frequency,
@@ -191,7 +192,9 @@ describe('fetchProgress', () => {
       }
       if (table === 'daily_logs') {
         return {
-          select: () => ({ gte: async () => ({ data: [log({ urine_colour: 4 })], error: null }) }),
+          select: () => ({
+            gte: () => ({ lte: async () => ({ data: [log({ urine_colour: 4 })], error: null }) }),
+          }),
         };
       }
       return {
@@ -206,7 +209,7 @@ describe('fetchProgress', () => {
   });
 
   it('builds the metrics and the assessments', async () => {
-    const progress = await fetchProgress('2026-10-03');
+    const progress = await fetchProgress('2026-10-03', '2026-10-31');
     expect(byKey(progress.metrics, 'urine').baseline.value).toBe(6);
     expect(byKey(progress.metrics, 'urine').current.value).toBe(4);
     expect(progress.assessments).toEqual([
@@ -216,7 +219,7 @@ describe('fetchProgress', () => {
 
   it('keeps a test that has not been re-run as not re-measured', async () => {
     // post_value is null for every athlete until the December recall.
-    expect((await fetchProgress('2026-10-03')).assessments[0].post).toBeNull();
+    expect((await fetchProgress('2026-10-03', '2026-10-31')).assessments[0].post).toBeNull();
   });
 
   it('reports a refusal the way supabase-js refuses', async () => {
@@ -228,13 +231,15 @@ describe('fetchProgress', () => {
     mockFrom.mockImplementation(() => {
       const result = Promise.resolve(refused) as Promise<typeof refused> & {
         gte: () => typeof result;
+        lte: () => typeof result;
         order: () => typeof result;
       };
       result.gte = () => result;
+      result.lte = () => result;
       result.order = () => result;
       return { select: () => result };
     });
-    await expect(fetchProgress('2026-10-03')).rejects.toThrow('permission denied');
+    await expect(fetchProgress('2026-10-03', '2026-10-31')).rejects.toThrow('permission denied');
   });
 });
 
@@ -253,5 +258,29 @@ describe('the demo progress matches the seeds', () => {
 
   it('leaves the Cooper run not re-measured', () => {
     expect(DEMO_PROGRESS.assessments.every((a) => a.post === null)).toBe(true);
+  });
+});
+
+describe('asOfDate', () => {
+  const measured = {
+    metrics: [],
+    assessments: [{ measure: 'Cooper 12-min run', unit: 'm', pre: 2680, post: 2810 }],
+  };
+
+  it('withholds the post-programme test until week 4 opens, on day 22', () => {
+    const inWeek1 = asOfDate(measured, '2026-11-09', '2026-11-11');
+    expect(inWeek1.assessments[0]).toMatchObject({ pre: 2680, post: null });
+    expect(inWeek1.postOpensOn).toBe('2026-11-30');
+    expect(asOfDate(measured, '2026-11-09', '2026-11-29').assessments[0].post).toBeNull();
+  });
+
+  it('shows it from day 22, the day the Week 4 tests open', () => {
+    const after = asOfDate(measured, '2026-11-09', '2026-11-30');
+    expect(after.assessments[0].post).toBe(2810);
+    expect(after.postOpensOn).toBeUndefined();
+  });
+
+  it('withholds nothing without a programme date to count from', () => {
+    expect(asOfDate(measured, null, '2026-11-11')).toBe(measured);
   });
 });

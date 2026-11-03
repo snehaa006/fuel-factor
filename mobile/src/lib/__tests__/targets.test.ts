@@ -1,4 +1,13 @@
-import { CARB_G_PER_KG, carbBand, hasSessionDay, positionInBand } from '@/lib/targets';
+import {
+  CARB_G_PER_KG,
+  carbBand,
+  hasSessionDay,
+  positionInBand,
+  PROTEIN_G_PER_KG,
+  PROTEIN_PER_MEAL_MAX_G,
+  PROTEIN_WEEK,
+  proteinBand,
+} from '@/lib/targets';
 
 describe('carbohydrate bands', () => {
   it('uses the Week 1 deck’s own per-kilogram figures', () => {
@@ -67,5 +76,26 @@ describe('position against a band', () => {
   it('places amounts either side', () => {
     expect(positionInBand(111, band)).toBe('below');
     expect(positionInBand(500, band)).toBe('above');
+  });
+});
+
+describe('proteinBand', () => {
+  it('is the week 2 deck’s 1.6–2.2 g per kg', () => {
+    expect(PROTEIN_G_PER_KG).toEqual({ min: 1.6, max: 2.2 });
+    // The deck prints 96–154g for a 60–70 kg athlete: 1.6 x 60 and 2.2 x 70.
+    expect(proteinBand(60)?.min).toBe(96);
+    expect(proteinBand(70)?.max).toBe(154);
+    expect(proteinBand(68)).toEqual({ min: 109, max: 150 });
+  });
+
+  it('is no band without a usable weight', () => {
+    expect(proteinBand(null)).toBeNull();
+    expect(proteinBand(0)).toBeNull();
+    expect(proteinBand(Number.NaN)).toBeNull();
+  });
+
+  it('caps a meal at the top of the deck’s 25–35 g sweet spot, from week 2', () => {
+    expect(PROTEIN_PER_MEAL_MAX_G).toBe(35);
+    expect(PROTEIN_WEEK).toBe(2);
   });
 });

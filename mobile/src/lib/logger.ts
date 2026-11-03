@@ -71,12 +71,20 @@ export const QUANTITIES = [0.5, 1, 1.5, 2, 3] as const;
  * Null carbohydrate stays null all the way to the screen.
  */
 export function portionSummary(portion: FoodPortion, quantity: number) {
-  const carbs = carbsFor(portion, quantity);
+  const macros = macrosFor(portion, quantity);
   return {
-    ...macrosFor(portion, quantity),
-    carbs_g: carbs,
-    /** The programme has supplied nothing for this portion yet. */
-    unknown: carbs === null,
+    ...macros,
+    carbs_g: carbsFor(portion, quantity),
+    /**
+     * The programme has supplied no figure at all for this portion yet. Not
+     * just "no carbohydrate": week 2's protein foods carry protein and no carb
+     * figure, and are not unknown.
+     */
+    unknown:
+      macros.kcal === null &&
+      macros.carbs_g === null &&
+      macros.protein_g === null &&
+      macros.fat_g === null,
   };
 }
 

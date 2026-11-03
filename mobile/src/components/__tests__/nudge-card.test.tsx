@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react-native';
 
-import { NudgeCard } from '@/components/nudge-card';
+import { materialLabel, NudgeCard } from '@/components/nudge-card';
 import { getTheme } from '@/theme';
 
 const light = getTheme('light');
@@ -61,3 +61,19 @@ function fillOf(testID: string): string | undefined {
   const style = screen.getByTestId(testID).props.style;
   return (Array.isArray(style) ? Object.assign({}, ...style.flat()) : style)?.backgroundColor;
 }
+
+describe('which week a card is from', () => {
+  it('names the week the sentence came from', async () => {
+    await render(
+      <NudgeCard nudge={{ ...seed, domain: 'protein', source: 'week-2-deck' }} testID="nudge" />
+    );
+    expect(screen.getByTestId('nudge-unreviewed')).toHaveTextContent('Week 2 material · awaiting dietitian review');
+    expect(screen.getByText('PROTEIN')).toBeTruthy();
+  });
+
+  it('does not guess a week it was not told', () => {
+    expect(materialLabel(undefined)).toBe('Programme material');
+    expect(materialLabel('tkpi')).toBe('Programme material');
+    expect(materialLabel('week-1-deck')).toBe('Week 1 material');
+  });
+});

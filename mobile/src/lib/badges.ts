@@ -94,8 +94,9 @@ export async function fetchBadges(): Promise<Badge[]> {
  */
 export async function fetchStats(today: IsoDate): Promise<AthleteStats> {
   const [logs, completions] = await Promise.all([
-    supabase.from('daily_logs').select('log_date'),
-    supabase.from('challenge_completions').select('challenge_id'),
+    // Nothing after today, which only matters with the time machine set back.
+    supabase.from('daily_logs').select('log_date').lte('log_date', today),
+    supabase.from('challenge_completions').select('challenge_id').lte('completed_on', today),
   ]);
 
   if (logs.error) throw asError(logs.error);

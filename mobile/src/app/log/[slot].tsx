@@ -255,13 +255,14 @@ function LogMealForm() {
                       ))}
                     </View>
 
-                    {/* The deck gives carbohydrate for eight foods and nothing
-                        for the rest. A zero here would be a lie, so it says so. */}
+                    {/* Week 1's deck gives carbohydrate, week 2's gives protein,
+                        and some foods have neither. A zero here would be a lie,
+                        so it says so. */}
                     <Text testID="macro-feedback" style={[typography['body-l'], { color: colors['pisang-deep'] }]}>
                       {summary === null
                         ? ''
                         : summary.unknown
-                          ? 'No carbohydrate figure for this yet — it will still be logged.'
+                          ? 'No figure for this yet — it will still be logged.'
                           : macroLine(summary)}
                     </Text>
                   </View>

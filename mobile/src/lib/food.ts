@@ -113,6 +113,21 @@ export function carbsFor(portion: FoodPortion, quantity = 1): number | null {
   return portion.carbs_g === null ? null : Number(portion.carbs_g) * quantity;
 }
 
+/**
+ * Protein in a portion, or null when the programme has not supplied a figure.
+ * Week 2's deck gives protein for its six complete proteins and nothing else;
+ * every week 1 food has none, which is the deck's silence and not a zero.
+ */
+export function proteinFor(portion: FoodPortion, quantity = 1): number | null {
+  return portion.protein_g === null ? null : Number(portion.protein_g) * quantity;
+}
+
+/** The deck that put a food in the database, by week. 'week-2-deck' is week 2. */
+export function deckWeek(source: string): number | null {
+  const match = /^week-(\d)-deck$/.exec(source);
+  return match ? Number(match[1]) : null;
+}
+
 /** Foods the app may suggest. Pork can be logged but is never recommended. */
 export function suggestable(foods: FoodWithPortions[]): FoodWithPortions[] {
   return foods.filter((f) => !f.is_pork && f.guidance === 'eat_daily');

@@ -264,11 +264,13 @@ export function parseEntry(text: string, def: MeasureDef): ParseResult {
  *
  * Week 0 is the baseline and is open from the start. Week 4 is the follow-up
  * and opens on the first day of the programme's fourth week -- except while
- * `OPEN_BOTH_FOR_TESTING` is on, which opens both from day one so the whole
- * flow can be tried without waiting a month. Turn it off before the real
- * programme runs.
+ * `OPEN_BOTH_FOR_TESTING` is on, which opens both from day one.
+ *
+ * **Off.** To try Week 4 without waiting, move the time machine (clock.ts) to
+ * day 22: the form opens because it is due, which is how it will behave for
+ * a real squad. Leave it off for the real programme.
  */
-export const OPEN_BOTH_FOR_TESTING = true;
+export const OPEN_BOTH_FOR_TESTING = false;
 
 /** Day 22 is the first day of week 4. */
 export const WEEK_4_OPENS_ON_DAY = 22;
