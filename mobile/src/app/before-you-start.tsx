@@ -231,16 +231,6 @@ export default function BeforeYouStart() {
           </View>
         )}
 
-        <Text
-          testID="before-basis"
-          style={[
-            typography['body-s'],
-            { color: colors['ink-faint'], marginTop: spacing['space-8'], textAlign: 'center' },
-          ]}
-        >
-          Three days before the programme and three after four weeks is the programme&apos;s own
-          design, not the app&apos;s.
-        </Text>
       </ScrollView>
 
       <AppSidebar

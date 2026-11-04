@@ -80,7 +80,7 @@ describe('an athlete’s profile', () => {
     expect(screen.queryByTestId('profile-weight-input')).toBeNull();
     expect(screen.queryByTestId('profile-edit')).toBeNull();
     expect(screen.getByTestId('profile-measurements-note')).toHaveTextContent(
-      /Your coach or the programme's dietitian measures these/
+      /Your coach updates these/
     );
   });
 

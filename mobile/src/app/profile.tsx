@@ -195,10 +195,7 @@ function Athlete({ profile }: { profile: AthleteProfile }) {
             testID="profile-measurements-note"
             style={[typography['body-s'], { color: colors['ink-muted'] }]}
           >
-            {/* Why there is no edit button, rather than leaving it to be
-                wondered about. */}
-            Your coach or the programme&apos;s dietitian measures these. Nothing here is scored,
-            compared with anybody else, or shown on the leaderboard.
+            Your coach updates these.
           </Text>
         </>,
         'profile-measurements'
