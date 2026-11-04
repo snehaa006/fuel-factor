@@ -15,16 +15,14 @@ import { useSyncExternalStore } from 'react';
  * timing rules measure a training session the athlete typed against the
  * clock, and a fake clock would make them fire on nothing.
  *
- * Off in a build that ships. A real athlete on a simulated date would write
- * their breakfast into the wrong day of a research table.
+ * It is in every build -- there is one app, and testing it means testing the
+ * same thing everybody runs. Rows logged on a simulated day are real rows in
+ * the live database, so test with a test athlete.
  *
  * This module imports nothing from Supabase, deliberately: `today.ts` reads it
  * at runtime, and a runtime import that pulls in the client is how Today once
  * rendered blank while every test passed (see SESSION-HANDOFF).
  */
-
-export const TIME_MACHINE_ENABLED =
-  (typeof __DEV__ !== 'undefined' && __DEV__) || process.env.EXPO_PUBLIC_TIME_MACHINE === '1';
 
 const STORAGE_KEY = 'fuel-factor.simulated-date';
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -45,7 +43,7 @@ export function isIsoDate(value: string): boolean {
 
 /** The date the app is pretending is today, or null when it is the real one. */
 export function simulatedDate(): string | null {
-  return TIME_MACHINE_ENABLED ? simulated : null;
+  return simulated;
 }
 
 /**
@@ -55,7 +53,6 @@ export function simulatedDate(): string | null {
  * between days and it should reopen on the day being tested.
  */
 export function setSimulatedDate(date: string | null): void {
-  if (!TIME_MACHINE_ENABLED) return;
   if (date !== null && !isIsoDate(date)) throw new Error(`Not a date: ${date}`);
   if (date === simulated) return;
 
@@ -71,7 +68,6 @@ export function setSimulatedDate(date: string | null): void {
 
 /** Read the remembered date back. Resolves once, before the first screen draws. */
 export async function restoreSimulatedDate(): Promise<void> {
-  if (!TIME_MACHINE_ENABLED) return;
   try {
     const stored = await AsyncStorage.getItem(STORAGE_KEY);
     if (stored !== null && isIsoDate(stored) && stored !== simulated) {

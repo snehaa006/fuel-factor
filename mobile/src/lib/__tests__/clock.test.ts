@@ -6,7 +6,6 @@ import {
   setSimulatedDate,
   shiftDate,
   simulatedDate,
-  TIME_MACHINE_ENABLED,
 } from '@/lib/clock';
 import { programmeState } from '@/lib/programme';
 import { recallWindow } from '@/lib/recall-window';
@@ -15,10 +14,6 @@ import { todayIso } from '@/lib/today';
 afterEach(() => setSimulatedDate(null));
 
 describe('the time machine', () => {
-  it('is on in development, which is what jest runs as', () => {
-    expect(TIME_MACHINE_ENABLED).toBe(true);
-  });
-
   it('makes todayIso answer with the chosen date', () => {
     setSimulatedDate('2026-11-10');
     expect(todayIso()).toBe('2026-11-10');

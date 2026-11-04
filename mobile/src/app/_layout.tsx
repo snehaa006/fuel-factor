@@ -4,7 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 
 import { TimeMachine } from '@/components/time-machine';
-import { restoreSimulatedDate, TIME_MACHINE_ENABLED, useSimulatedDate } from '@/lib/clock';
+import { restoreSimulatedDate, useSimulatedDate } from '@/lib/clock';
 import { useTheme } from '@/theme';
 import { fontAssets } from '@/theme/fonts';
 
@@ -14,7 +14,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(fontAssets);
-  const [clockReady, setClockReady] = useState(!TIME_MACHINE_ENABLED);
+  const [clockReady, setClockReady] = useState(false);
   const simulated = useSimulatedDate();
   const theme = useTheme();
 

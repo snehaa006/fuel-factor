@@ -2,7 +2,7 @@ import { useContext, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
-import { setSimulatedDate, shiftDate, TIME_MACHINE_ENABLED, useSimulatedDate } from '@/lib/clock';
+import { setSimulatedDate, shiftDate, useSimulatedDate } from '@/lib/clock';
 import { todayIso } from '@/lib/today';
 import { useTheme } from '@/theme';
 
@@ -17,7 +17,7 @@ import { useTheme } from '@/theme';
  * While a date is simulated the pill turns `cabai` and says so, because
  * forgetting it is on means logging into the wrong day.
  *
- * Not rendered at all in a build without the time machine.
+ * In every build: there is one app.
  */
 
 const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -49,7 +49,6 @@ export function monthGrid(year: number, month: number): (string | null)[] {
 }
 
 export function TimeMachine() {
-  if (!TIME_MACHINE_ENABLED) return null;
   return <TimeMachinePill />;
 }
 
