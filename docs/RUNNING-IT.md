@@ -124,7 +124,7 @@ cd mobile && npx expo start --ios
 cd mobile && npm run web:live
 ```
 
-Both use the live database. Watch for a `Bundled` line in **your own**
+Both use the live database, and carry the time machine like every build. Watch for a `Bundled` line in **your own**
 terminal before believing what is on screen — a dev server left running by an
 earlier session will serve the simulator and log nothing.
 
@@ -143,9 +143,8 @@ root of a host.
 
 ## Testing a month in one sitting: the time machine
 
-**Development only.** It is on in every dev server (`__DEV__`) and in no
-published update or build. Real athletes use the shared link, and a date
-someone can change would put their meals on the wrong day of a research table.
+**In every build.** There is one app: the Expo Go link, the EAS link and the
+APK all carry it, with nothing to switch on.
 
 A pill at the bottom of every screen sets the date the app treats as today:
 ‹ and › step one day, tapping the date opens a month calendar with *Back to the
@@ -155,7 +154,7 @@ challenges, the leaderboard, the recall rounds and the Week 0 / Week 4
 assessments all follow it; the time of day stays real.
 
 **It writes real rows.** A simulated day is a real `daily_logs` row in the live
-database. Test with a test athlete on a test team, never with a real one.
+database. Test with a test athlete on a test team.
 
 ## Identity, once and never again
 
