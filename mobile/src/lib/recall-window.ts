@@ -189,8 +189,7 @@ export const ROUND_LABEL: Record<RecallRound, string> = {
  * Printed, never enforced. "One weekend and two working days, recall is
  * ideal."
  */
-export const DAY_CHOICE_GUIDANCE =
-  'Pick one weekend day and two school days, so the three days are a fair picture of a normal week.';
+export const DAY_CHOICE_GUIDANCE = 'Pick one weekend day and two school days.';
 
 /**
  * Whether a string is a real calendar date in YYYY-MM-DD.

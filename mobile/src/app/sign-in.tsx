@@ -94,8 +94,8 @@ export default function SignIn() {
         </Text>
         <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
           {mode === 'sign-in'
-            ? 'Sign in and pick up where you left off. Your streak follows the account, not the phone.'
-            : 'An email and a password, so a new phone still knows who you are. Your coach gives you the team code on the next screen.'}
+            ? 'Sign in to pick up where you left off.'
+            : 'You’ll enter your team code next.'}
         </Text>
 
         <View style={{ marginTop: spacing['space-6'] }}>

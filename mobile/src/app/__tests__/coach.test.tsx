@@ -184,20 +184,6 @@ describe('the coach dashboard', () => {
     expect(screen.queryByTestId('athlete-p-jacob-flag-dehydrated')).toBeNull();
   });
 
-  it('says the photos are not here', async () => {
-    // A coach can read a completion tick. The picture of a 14-year-old is
-    // not what this screen is for, and saying so is part of the product.
-    await render(<Coach />);
-    expect(screen.getByTestId('coach-basis')).toHaveTextContent(/photos are not shown here/);
-  });
-
-  it('attributes the flags to the programme', async () => {
-    await render(<Coach />);
-    expect(screen.getByTestId('coach-basis')).toHaveTextContent(
-      /programme's own thresholds, not the app's/
-    );
-  });
-
   it('explains an empty squad', async () => {
     mockUseCoach.mockReturnValue(ready({ athletes: [], loggedToday: 0 }));
     await render(<Coach />);

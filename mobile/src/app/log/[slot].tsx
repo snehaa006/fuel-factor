@@ -290,7 +290,7 @@ function LogMealForm() {
       <View style={{ padding: spacing['space-4'], gap: spacing['space-2'] }}>
         {participantId === null && foods.status === 'ready' && (
           <Text testID="cannot-save" style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-            Nothing to save to: this device has not claimed an athlete.
+            Sign in as an athlete to save.
           </Text>
         )}
         <PushButton

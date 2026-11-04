@@ -121,11 +121,6 @@ export function SessionTimes({ value, onChange, now, testID }: SessionTimesProps
       {row('Starts', 'startsAt', value.startsAt, (next) => withStart(value, next))}
       {row('Ends', 'endsAt', value.endsAt, (next) => withEnd(value, next))}
 
-      {!hasSession(value) && (
-        <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-          Set this and the app can remind you when to eat before and after.
-        </Text>
-      )}
     </View>
   );
 }

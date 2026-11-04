@@ -228,7 +228,7 @@ export default function Join() {
                   { color: colors['air-deep'], textAlign: 'center' },
                 ]}
               >
-                My coach says I am already on the squad list →
+                Already on the squad list? →
               </Text>
             </Pressable>
           </View>
@@ -238,8 +238,7 @@ export default function Join() {
           <View style={{ gap: spacing['space-6'] }}>
             {heading('About you')}
             <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-              These are the programme&apos;s own questions. Only your name is needed — leave
-              anything you do not know blank and your coach will measure it.
+              Only your name is required. Leave anything you don&apos;t know blank.
             </Text>
 
             <View style={{ gap: spacing['space-2'] }}>
@@ -326,12 +325,6 @@ export default function Join() {
                   />
                 </View>
               ))}
-              {/* No target, no band and no comment on any of these figures.
-                  The programme has set none, and a weight on a screen next to
-                  a judgement is the one thing this app must never be. */}
-              <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
-                Nothing here is scored or compared with anybody else.
-              </Text>
             </View>
 
             <CheckBox

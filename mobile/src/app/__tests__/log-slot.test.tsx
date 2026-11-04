@@ -183,7 +183,7 @@ describe('saving', () => {
   it('explains a disabled button rather than just looking broken', async () => {
     mockParticipant.mockReturnValue(null);
     await render(<LogMeal />);
-    expect(screen.getByTestId('cannot-save')).toHaveTextContent(/has not claimed an athlete/);
+    expect(screen.getByTestId('cannot-save')).toHaveTextContent(/Sign in as an athlete to save/);
   });
 });
 

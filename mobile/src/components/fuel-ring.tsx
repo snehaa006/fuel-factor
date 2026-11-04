@@ -142,7 +142,7 @@ export function FuelRing({ eaten, band, itemsWithoutFigures = 0, testID }: FuelR
           testID={testID ? `${testID}-unknown` : undefined}
           style={[typography['body-s'], styles.footnote, { color: colors['ink-muted'] }]}
         >
-          {`plus ${itemsWithoutFigures} item${itemsWithoutFigures === 1 ? '' : 's'} with no figure yet`}
+          {`+${itemsWithoutFigures} item${itemsWithoutFigures === 1 ? '' : 's'} without a figure`}
         </Text>
       )}
     </View>

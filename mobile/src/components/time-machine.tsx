@@ -180,8 +180,7 @@ function CalendarSheet({
         >
           <Text style={[typography.label, { color: colors['ink-muted'] }]}>TIME MACHINE</Text>
           <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-            Pick the day the app should treat as today. Meals, check-ins and recalls are saved to
-            that day. For testing only.
+            Pick the day the app treats as today.
           </Text>
 
           <View style={styles.monthRow}>

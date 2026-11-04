@@ -118,11 +118,6 @@ export default function BeforeYouStart() {
           <Text style={[typography['heading-l'], { color: colors.ink }]}>
             {waitingLine(programme.programme)}
           </Text>
-          <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-            {programme.programme.status === 'no-date'
-              ? 'Until they do, the three recall days below are what the programme needs from you.'
-              : 'Logging your meals, the fuel ring, your streak and the lessons all open that morning.'}
-          </Text>
         </View>
 
         <View style={{ marginTop: spacing['space-6'] }}>
@@ -131,8 +126,8 @@ export default function BeforeYouStart() {
             eyebrow={allIn ? 'ALL THREE ARE IN' : 'FIRST JOB'}
             message={
               allIn
-                ? 'Your baseline is done. Nothing else to do until the programme starts.'
-                : 'Three days of normal eating, written down. That is your baseline.'
+                ? 'Baseline done. See you on day one.'
+                : 'Write down three normal days of eating.'
             }
             testID="before-mascot"
           />

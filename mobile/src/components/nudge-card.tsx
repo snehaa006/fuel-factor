@@ -71,7 +71,7 @@ export function NudgeCard({ nudge, testID }: NudgeCardProps) {
           testID={testID ? `${testID}-unreviewed` : undefined}
           style={[typography['body-s'], { color: colors['ink-muted'] }]}
         >
-          {materialLabel(nudge.source)} · awaiting dietitian review
+          Awaiting dietitian review
         </Text>
       )}
     </View>

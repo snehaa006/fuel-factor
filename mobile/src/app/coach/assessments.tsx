@@ -79,7 +79,7 @@ function SquadAssessments() {
           Assessments
         </Text>
         <Text style={[typography['body-m'], { color: colors['ink-muted'], marginTop: spacing['space-2'] }]}>
-          Record baseline (Week 0) and follow-up (Week 4) measures for each athlete.
+          Week 0 and Week 4 measures for each athlete.
         </Text>
         {OPEN_BOTH_FOR_TESTING && (
           <Text style={[typography['body-s'], { color: colors['pisang-deep'], marginTop: spacing['space-2'] }]}>

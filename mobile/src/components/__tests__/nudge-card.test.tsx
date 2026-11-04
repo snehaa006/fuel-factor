@@ -22,7 +22,7 @@ describe('NudgeCard', () => {
   it('says when a rule has not been reviewed yet', async () => {
     // An unreviewed seed sentence must not pass as clinical guidance in a demo.
     await render(<NudgeCard nudge={seed} testID="nudge" />);
-    expect(screen.getByTestId('nudge-unreviewed')).toHaveTextContent(/awaiting dietitian review/);
+    expect(screen.getByTestId('nudge-unreviewed')).toHaveTextContent(/Awaiting dietitian review/);
   });
 
   it('drops the caveat once the dietitian has signed the rule off', async () => {
@@ -67,7 +67,7 @@ describe('which week a card is from', () => {
     await render(
       <NudgeCard nudge={{ ...seed, domain: 'protein', source: 'week-2-deck' }} testID="nudge" />
     );
-    expect(screen.getByTestId('nudge-unreviewed')).toHaveTextContent('Week 2 material · awaiting dietitian review');
+    expect(screen.getByTestId('nudge-unreviewed')).toHaveTextContent('Awaiting dietitian review');
     expect(screen.getByText('PROTEIN')).toBeTruthy();
   });
 

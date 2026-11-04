@@ -46,12 +46,12 @@ describe('FuelRing', () => {
 
   it('surfaces items whose portions carry no figure', async () => {
     await render(<FuelRing eaten={54} band={BAND} itemsWithoutFigures={2} testID="ring" />);
-    expect(screen.getByTestId('ring-unknown')).toHaveTextContent('plus 2 items with no figure yet');
+    expect(screen.getByTestId('ring-unknown')).toHaveTextContent('+2 items without a figure');
   });
 
   it('says item, not items, for one of them', async () => {
     await render(<FuelRing eaten={54} band={BAND} itemsWithoutFigures={1} testID="ring" />);
-    expect(screen.getByTestId('ring-unknown')).toHaveTextContent('plus 1 item with no figure yet');
+    expect(screen.getByTestId('ring-unknown')).toHaveTextContent('+1 item without a figure');
   });
 
   it('says nothing about unknowns when every portion has a figure', async () => {

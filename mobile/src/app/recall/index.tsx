@@ -128,7 +128,7 @@ export default function RecallIndex() {
               ? `Opens on ${window.opensOn}, ${window.daysUntil} ${
                   window.daysUntil === 1 ? 'day' : 'days'
                 } from now.`
-              : `Opens ${PROGRAMME_WEEKS} weeks after the programme starts. Your three baseline days come first.`}
+              : `Opens ${PROGRAMME_WEEKS} weeks after the start.`}
           </Text>
         ) : (
           <View style={{ gap: spacing['space-2'] }}>
@@ -204,7 +204,7 @@ export default function RecallIndex() {
           {round(
             'baseline',
             BASELINE_DAYS,
-            'Three days before the programme starts, so there is something to compare with later.'
+            'Three days before the programme starts.'
           )}
           {round(
             'follow-up',
@@ -230,8 +230,7 @@ export default function RecallIndex() {
               { color: colors['ink-muted'], marginTop: spacing['space-6'] },
             ]}
           >
-            Your coach has not set the programme&apos;s first day yet, so there is nothing to count
-            four weeks from.
+            Your coach hasn&apos;t set a start date yet.
           </Text>
         )}
 
@@ -258,16 +257,6 @@ export default function RecallIndex() {
           </View>
         )}
 
-        <Text
-          testID="recall-basis"
-          style={[
-            typography['body-s'],
-            { color: colors['ink-faint'], marginTop: spacing['space-8'], textAlign: 'center' },
-          ]}
-        >
-          Three days at the start and three after four weeks is the programme&apos;s own design,
-          not the app&apos;s.
-        </Text>
       </ScrollView>
     </SafeAreaView>
   );

@@ -124,7 +124,7 @@ describe('challengeWeek, week 1', () => {
     const week = challengeWeek([], START, '2026-11-05', WEEK1);
     expect(week.phase).toBe('before');
     expect(week.days.every((d) => d.status === 'upcoming')).toBe(true);
-    expect(statusLine(week)).toBe('Starts on 2026-11-09.');
+    expect(statusLine(week)).toBe('Starts 2026-11-09');
   });
 
   it('today without all three meals is still in play, not missed', () => {
@@ -137,7 +137,7 @@ describe('challengeWeek, week 1', () => {
     expect(week.days[1]).toMatchObject({ status: 'today', hits: 1, isToday: true });
     expect(week.streak).toBe(1);
     expect(week.broken).toBe(false);
-    expect(statusLine(week)).toBe('1 of 7 days so far. 1-day streak. Today: 1 of 3 meals so far.');
+    expect(statusLine(week)).toBe('1 of 7 days · 1-day streak · today 1/3');
   });
 
   it('a past day without all three is missed and breaks the run', () => {
@@ -166,7 +166,7 @@ describe('challengeWeek, week 1', () => {
     const week = challengeWeek(weekDates(START, 1).map(fullDay), START, '2026-11-15', WEEK1);
     expect(week.complete).toBe(true);
     expect(week.streak).toBe(7);
-    expect(statusLine(week)).toBe('All 7 days. Challenge complete!');
+    expect(statusLine(week)).toBe('7 of 7 days. Challenge complete!');
   });
 
   it('ignores logs dated after today, so travelling back shows the week as it stood', () => {
@@ -180,7 +180,7 @@ describe('challengeWeek, week 1', () => {
     expect(week.phase).toBe('over');
     expect(week.doneDays).toBe(5);
     expect(week.streak).toBe(1);
-    expect(statusLine(week)).toBe('Week over: 5 of 7 days.');
+    expect(statusLine(week)).toBe('Week over · 5 of 7 days');
   });
 });
 
@@ -209,7 +209,7 @@ describe('challengeWeek, week 2', () => {
   it('says 3+ for today, because four are on offer', () => {
     const day = { date: '2026-11-16', items: [protein('lunch')] };
     expect(statusLine(challengeWeek([day], START, '2026-11-16', WEEK2))).toBe(
-      '0 of 7 days so far. Today: 1 of 3+ meals so far.'
+      '0 of 7 days · today 1/3+'
     );
   });
 

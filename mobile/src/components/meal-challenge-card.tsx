@@ -56,7 +56,6 @@ export function MealChallengeCard({ week, challenge, testID }: MealChallengeCard
         <Text style={[typography['heading-m'], { color: colors.ink }]}>
           {challenge ?? spec.title}
         </Text>
-        <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>{spec.rule}</Text>
       </View>
 
       <View
@@ -154,21 +153,21 @@ function DayColumn({
   );
 }
 
-/** How the week stands, in one line. */
+/** How the week stands, in one short line. */
 export function statusLine(week: ChallengeWeek): string {
-  if (week.phase === 'before') return `Starts on ${week.startsOn}.`;
-  if (week.complete) return 'All 7 days. Challenge complete!';
+  if (week.phase === 'before') return `Starts ${week.startsOn}`;
+  if (week.complete) return '7 of 7 days. Challenge complete!';
 
   const tally = `${week.doneDays} of 7 days`;
-  if (week.phase === 'over') return `Week over: ${tally}.`;
+  if (week.phase === 'over') return `Week over · ${tally}`;
 
   const today = week.days.find((d) => d.status === 'today');
   const { mealsNeeded, meals } = week.spec;
   const target = mealsNeeded === meals.length ? `${mealsNeeded}` : `${mealsNeeded}+`;
-  const left = today ? ` Today: ${today.hits} of ${target} meals so far.` : '';
-  if (week.broken) return `${tally} so far. A day was missed, so keep the habit going.${left}`;
-  const streak = week.streak > 0 ? ` ${week.streak}-day streak.` : '';
-  return `${tally} so far.${streak}${left}`;
+  const parts = [tally];
+  if (!week.broken && week.streak > 0) parts.push(`${week.streak}-day streak`);
+  if (today) parts.push(`today ${today.hits}/${target}`);
+  return parts.join(' · ');
 }
 
 const styles = StyleSheet.create({

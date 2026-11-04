@@ -76,10 +76,6 @@ export default function CoachTeamScreen() {
     return frame(
       <View style={{ marginTop: spacing['space-2'], gap: spacing['space-4'] }}>
         <Text style={[typography['display-l'], { color: colors.ink }]}>Your squad</Text>
-        <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-          Creating a team needs a coach account with an email. Your squad make their own
-          accounts and join with the code from your link.
-        </Text>
         <PushButton
           label="Coach sign-in"
           fullWidth
@@ -269,8 +265,7 @@ export default function CoachTeamScreen() {
           {team.coachCode}
         </Text>
         <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-          This one lets another coach open the dashboard and read every athlete&apos;s logs. The
-          team code above does not.
+          For other coaches only: it opens every athlete&apos;s logs.
         </Text>
       </View>
 
@@ -332,8 +327,8 @@ function ProgrammeStart({
       <Text style={[typography['heading-l'], { color: colors.ink }]}>The four weeks</Text>
       <Text testID="team-programme" style={[typography['body-m'], { color: colors['ink-muted'] }]}>
         {startsOn === null
-          ? 'Not set yet, so your squad can only fill their three baseline recall days. Logging opens on the day you set here.'
-          : `Day one is ${startsOn}. Logging opened that morning and the follow-up recall opens ${PROGRAMME_WEEKS} weeks later.`}
+          ? 'Not set yet. Logging opens on this date.'
+          : `Day one: ${startsOn}. Follow-up recall opens ${PROGRAMME_WEEKS} weeks later.`}
       </Text>
       <TextInput
         value={draft}

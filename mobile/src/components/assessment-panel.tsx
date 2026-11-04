@@ -93,9 +93,7 @@ export function AssessmentPanel({
         <View style={{ gap: spacing['space-2'] }}>
           <ComparisonTable columns={comparison} showNames={showNames} testID={`${testID}-comparison`} />
           <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
-            Δ = Week 4 minus Week 0. For sprint time a negative Δ means faster. A dash means not
-            measured yet. Diet, fluid, morning energy, recovery and urine colour not entered by hand
-            are the recall’s averages for that week.
+            Δ = Week 4 minus Week 0. For sprint time, negative is faster.
           </Text>
         </View>
       ) : (() => {

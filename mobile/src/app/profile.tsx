@@ -93,8 +93,8 @@ export default function Profile() {
                     identity they had. They have an account now, so the
                     warning would be a lie that costs somebody their logs. */}
                 {profile.kind === 'athlete'
-                  ? 'You can sign back in with your email and password. Your logs, your streak and your place on the squad stay with the account.'
-                  : 'You can sign back in with your email and password. The team stays as it is.'}
+                  ? 'Sign back in any time. Your logs stay with your account.'
+                  : 'Sign back in any time. Your team stays as it is.'}
               </Text>
               <PushButton
                 label={state.leaving ? 'Signing out…' : 'Yes, sign out'}

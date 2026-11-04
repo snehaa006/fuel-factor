@@ -163,7 +163,7 @@ describe('saving', () => {
     await render(<RecallAll />);
     fireEvent.press(screen.getByTestId('recall-urine-6'));
     await waitFor(() =>
-      expect(screen.getByTestId('all-no-meals')).toHaveTextContent(/cannot go through the food/)
+      expect(screen.getByTestId('all-no-meals')).toHaveTextContent(/No meals written in yet/)
     );
     expect(screen.getByTestId('all-save').props.accessibilityState.disabled).toBe(false);
   });

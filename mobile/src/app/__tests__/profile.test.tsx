@@ -125,7 +125,7 @@ describe('signing out', () => {
     fireEvent.press(screen.getByTestId('profile-leave'));
     await waitFor(() =>
       expect(screen.getByTestId('profile-leave-warning')).toHaveTextContent(
-        /sign back in with your email and password/
+        /Your logs stay with your account/
       )
     );
   });
@@ -136,7 +136,7 @@ describe('signing out', () => {
     fireEvent.press(screen.getByTestId('profile-leave'));
     await waitFor(() =>
       expect(screen.getByTestId('profile-leave-warning')).toHaveTextContent(
-        /sign back in with your email/
+        /Your team stays as it is/
       )
     );
   });

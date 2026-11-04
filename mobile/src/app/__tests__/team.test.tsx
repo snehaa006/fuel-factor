@@ -109,7 +109,7 @@ describe('the Team screen', () => {
     // and is not being compared. This sentence is the feature, not decoration.
     await render(<Team />);
     expect(screen.getByTestId('team-basis')).toHaveTextContent(
-      /Nobody is ranked on their weight or their size/
+      /never on weight or size/
     );
   });
 

@@ -246,7 +246,7 @@ function Computed({ nutrition }: { nutrition: RecallNutrition | null }) {
           style={[typography['body-s'], { color: colors['ink-muted'] }]}
         >
           {nutrition?.note ??
-            'Your day is saved. The figures arrive once the programme’s food composition tables are loaded.'}
+            'Saved.'}
         </Text>
       )}
     </View>

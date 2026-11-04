@@ -68,12 +68,6 @@ describe('SessionTimes', () => {
     expect(screen.queryByTestId('s-clear')).toBeNull();
   });
 
-  it('says what setting a session buys, while none is set', async () => {
-    const { ui } = setup(NO_SESSION);
-    await render(ui);
-    expect(screen.getByText(/remind you when to eat before and after/)).toBeTruthy();
-  });
-
   it('drops that line once a session is set', async () => {
     const { ui } = setup(AFTERNOON);
     await render(ui);
