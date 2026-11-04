@@ -84,13 +84,12 @@ export function ProteinBar({ eaten, band, itemsWithoutFigures, testID }: Protein
 
       <Text testID={testID ? `${testID}-band-text` : undefined} style={[typography['body-s'], { color: colors['ink-muted'] }]}>
         {band
-          ? `The programme's band: ${band.min}–${band.max} g a day (1.6–2.2 g per kg), spread across 4 meals.`
-          : 'No band without a weight on your profile.'}
+          ? `Target ${band.min}–${band.max} g a day`
+          : 'Add your weight to see a target.'}
       </Text>
       {itemsWithoutFigures > 0 && (
         <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
-          {itemsWithoutFigures === 1 ? '1 item has' : `${itemsWithoutFigures} items have`} no protein
-          figure yet, so the real total may be higher.
+          +{itemsWithoutFigures} {itemsWithoutFigures === 1 ? 'item' : 'items'} without a figure
         </Text>
       )}
     </View>

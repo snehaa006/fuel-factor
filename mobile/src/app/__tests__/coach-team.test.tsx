@@ -122,6 +122,6 @@ describe('moving the date afterwards', () => {
       team: { ...TEAM, programmeStartsOn: null },
     });
     await render(<CoachTeamScreen />);
-    expect(screen.getByTestId('team-programme')).toHaveTextContent(/only fill their three baseline/);
+    expect(screen.getByTestId('team-programme')).toHaveTextContent(/Logging opens on this date/);
   });
 });

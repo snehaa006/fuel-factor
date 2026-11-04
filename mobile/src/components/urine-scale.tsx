@@ -67,7 +67,7 @@ export function UrineScale({ value, onChange, onShowGuide, testID }: UrineScaleP
         testID={testID ? `${testID}-wording` : undefined}
         style={[typography['body-s'], { color: wording ? colors['air-deep'] : colors['ink-muted'] }]}
       >
-        {wording ?? 'Match against the chart in your workbook, then tap the number.'}
+        {wording ?? 'Match the chart, then tap the number.'}
       </Text>
 
       {/* The chart itself, one tap away, the way a shop puts its size guide

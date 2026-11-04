@@ -126,17 +126,6 @@ export default function ProgressScreen() {
           </View>
         )}
 
-        {/* The honest frame for everything above it. */}
-        <Text
-          testID="progress-basis"
-          style={[
-            typography['body-s'],
-            { color: colors['ink-faint'], marginTop: spacing['space-8'], textAlign: 'center' },
-          ]}
-        >
-          The app shows what was recorded and the change between. Whether a change is good is
-          for the programme to say, not the app.
-        </Text>
       </ScrollView>
     </SafeAreaView>
   );

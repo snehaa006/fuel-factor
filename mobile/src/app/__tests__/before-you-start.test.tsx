@@ -112,7 +112,7 @@ describe('what there is to do before day one', () => {
     recall([1, 2, 3]);
     await render(<BeforeYouStart />);
     expect(screen.queryByTestId('before-all')).toBeNull();
-    expect(screen.getByTestId('before-mascot')).toHaveTextContent(/baseline is done/);
+    expect(screen.getByTestId('before-mascot')).toHaveTextContent(/Baseline done/);
   });
 
   it('offers no logging, no ring and no streak', async () => {

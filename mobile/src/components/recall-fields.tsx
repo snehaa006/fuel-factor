@@ -228,16 +228,8 @@ export function RecallFields({
               <Text style={[typography['heading-m'], { color: colors.ink }]}>
                 {macroLine(totals) || 'Not enough figures to add up'}
               </Text>
-              <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
-                The day’s figures are worked out from these when you save.
-              </Text>
             </View>
           )}
-          {/* No food is called good or bad here, and none is suggested.
-              The athlete records what happened. */}
-          <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
-            Write it as you would say it. Nothing here is judged.
-          </Text>
         </>
       )}
 
@@ -285,7 +277,7 @@ export function RecallFields({
               style={inputStyle}
             />
             <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-              A rough idea is fine. A large bottle is about 1500 mL.
+              A large bottle is about 1500 mL.
             </Text>
           </View>
         </>

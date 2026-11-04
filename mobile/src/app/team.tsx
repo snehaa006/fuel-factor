@@ -132,8 +132,7 @@ export default function Team() {
         <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>
           {board.rows.length === 0 ? (
             <Text testID="team-empty" style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-              No squad yet. Claim an athlete with your team code and the rest of the team
-              appears here.
+              No teammates yet.
             </Text>
           ) : (
             board.rows.map((row) => (
@@ -203,7 +202,7 @@ export default function Team() {
             },
           ]}
         >
-          This board counts logging only. Nobody is ranked on their weight or their size.
+          Ranked on days logged, never on weight or size.
         </Text>
       </ScrollView>
     </SafeAreaView>

@@ -94,13 +94,10 @@ function CheckInForm() {
           </Pressable>
         </View>
         <Text style={[typography['display-l'], { color: colors.ink }]}>How was today?</Text>
-        <Text style={[typography['body-m'], { color: colors['ink-muted'], marginTop: spacing['space-2'] }]}>
-          Anything you skip stays blank. Nothing here is a score.
-        </Text>
 
         {section(
           'Servings',
-          'A count of what you had. There is no target.',
+          'How many you had.',
           <View style={{ gap: spacing['space-2'] }}>
             {COUNTERS.map(({ field, label }) => (
               <Stepper
@@ -196,11 +193,6 @@ function CheckInForm() {
           />
         )}
 
-        {/* The sheet names a DQ Score /12 and states no formula, so the
-            check-in does not compute one and the streak runs off submission. */}
-        <Text style={[typography['body-s'], { color: colors['ink-muted'], marginTop: spacing['space-6'] }]}>
-          Your diet quality score is set by the programme, not by this form.
-        </Text>
 
         {error && (
           <Text testID="save-error" style={[typography['body-m'], { color: colors['cabai-deep'], marginTop: spacing['space-4'] }]}>
@@ -212,7 +204,7 @@ function CheckInForm() {
       <View style={{ padding: spacing['space-4'], gap: spacing['space-2'] }}>
         {participantId === null && (
           <Text testID="cannot-save" style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-            Nothing to save to: this device has not claimed an athlete.
+            Sign in as an athlete to save.
           </Text>
         )}
         <PushButton

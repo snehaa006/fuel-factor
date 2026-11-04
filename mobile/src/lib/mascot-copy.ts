@@ -37,7 +37,7 @@ export function dayCue(loggedSlots: number, totalSlots: number): MascotCue {
     return {
       pose: 'stand',
       eyebrow: 'READY WHEN YOU ARE',
-      message: 'Nothing logged yet today. Start with whatever you ate last.',
+      message: 'Nothing logged yet. Start with your last meal.',
       // A hop every few seconds, to pull an eye back to something undone.
       motion: 'nudge',
     };
@@ -47,7 +47,7 @@ export function dayCue(loggedSlots: number, totalSlots: number): MascotCue {
     return {
       pose: 'best',
       eyebrow: 'ALL SIX',
-      message: 'Every slot logged today. That is the whole day on the board.',
+      message: 'Every meal logged today.',
       motion: 'celebrate',
     };
   }
@@ -66,7 +66,7 @@ export function badgeCue(earned: number, total: number): MascotCue {
     return {
       pose: 'think',
       eyebrow: 'NOTHING YET',
-      message: 'No badges yet. The first one only asks you to log once.',
+      message: 'Log once to earn your first badge.',
       motion: 'nudge',
     };
   }
@@ -75,7 +75,7 @@ export function badgeCue(earned: number, total: number): MascotCue {
     return {
       pose: 'best',
       eyebrow: 'THE LOT',
-      message: 'Every badge earned. There is nothing left on the ladder.',
+      message: 'Every badge earned.',
       motion: 'celebrate',
     };
   }
@@ -83,7 +83,7 @@ export function badgeCue(earned: number, total: number): MascotCue {
   return {
     pose: 'best',
     eyebrow: 'EARNED',
-    message: `${earned} of ${total} badges. The next one is right below.`,
+    message: `${earned} of ${total} badges earned.`,
     motion: 'idle',
   };
 }
@@ -108,7 +108,7 @@ export const WELCOME_CUE: MascotCue = {
 export const PROGRESS_CUE: MascotCue = {
   pose: 'think',
   eyebrow: 'BEFORE AND AFTER',
-  message: 'Your three-day baseline against everything you have logged since.',
+  message: 'Your baseline against now.',
   motion: 'enter',
 };
 
@@ -124,7 +124,7 @@ export const PROGRESS_CUE: MascotCue = {
 export const SAVE_FAILED_CUE: MascotCue = {
   pose: 'think',
   eyebrow: 'DID NOT SAVE',
-  message: 'That did not save. Nothing is lost, so try again.',
+  message: 'That didn’t save. Try again.',
   motion: 'shake',
 };
 

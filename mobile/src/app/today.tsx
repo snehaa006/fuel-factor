@@ -154,7 +154,7 @@ function TodayScreen() {
             </View>
           )}
 
-        {recall.status === 'ready' && (
+        {recall.status === 'ready' && recall.window.status === 'due' && (
           <View style={{ marginTop: spacing['space-6'] }}>
             <RecallPrompt
               window={recall.window}
@@ -233,24 +233,26 @@ function TodayScreen() {
           />
         </View>
 
-        {/* The sheet names a DQ Score /12 and states no formula, so the app
-            shows the slot and leaves the number to the dietitian. */}
-        <View
-          style={[
-            styles.dq,
-            {
-              backgroundColor: colors['kecap-tint'],
-              borderRadius: 16,
-              padding: spacing['space-4'],
-              marginTop: spacing['space-8'],
-            },
-          ]}
-        >
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>DIET QUALITY SCORE</Text>
-          <Text testID="dq-score" style={[typography['heading-m'], { color: colors['kecap-deep'] }]}>
-            {summary.dqScore === null ? 'Not scored yet' : `${summary.dqScore} / 12`}
-          </Text>
-        </View>
+        {/* The sheet names a DQ Score /12 and states no formula yet. The card
+            appears once there is a score; until then it would only say so. */}
+        {summary.dqScore !== null && (
+          <View
+            style={[
+              styles.dq,
+              {
+                backgroundColor: colors['kecap-tint'],
+                borderRadius: 16,
+                padding: spacing['space-4'],
+                marginTop: spacing['space-8'],
+              },
+            ]}
+          >
+            <Text style={[typography.label, { color: colors['ink-muted'] }]}>DIET QUALITY SCORE</Text>
+            <Text testID="dq-score" style={[typography['heading-m'], { color: colors['kecap-deep'] }]}>
+              {summary.dqScore} / 12
+            </Text>
+          </View>
+        )}
 
         <View style={{ marginTop: spacing['space-12'], gap: spacing['space-3'] }}>
           <PushButton

@@ -87,8 +87,7 @@ export default function Coach() {
             testID="coach-is-athlete"
             style={[typography['body-m'], { color: colors['ink-muted'], textAlign: 'center' }]}
           >
-            You are signed in as an athlete. Coaches use a separate account, and your own logs are
-            not shown here.
+            You’re signed in as an athlete. Use a coach account to see the dashboard.
           </Text>
           <PushButton
             label="Back to my day"
@@ -157,9 +156,6 @@ function CoachDashboard() {
               testID="coach-create-team"
               onPress={() => router.push('/coach/team')}
             />
-            <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
-              A coach code joins a team somebody else made. Creating your own makes you its owner.
-            </Text>
           </View>
 
           <TextInput
@@ -243,16 +239,6 @@ function CoachDashboard() {
           )}
         </View>
 
-        <Text
-          testID="coach-basis"
-          style={[
-            typography['body-s'],
-            { color: colors['ink-faint'], marginTop: spacing['space-8'], textAlign: 'center' },
-          ]}
-        >
-          Flags come from the programme&apos;s own thresholds, not the app&apos;s. Challenge photos
-          are not shown here.
-        </Text>
       </ScrollView>
 
       <CoachSidebar

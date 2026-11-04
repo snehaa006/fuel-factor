@@ -79,8 +79,7 @@ export default function CoachAccount() {
             { color: colors['ink-muted'], marginBottom: spacing['space-6'] },
           ]}
         >
-          Coaches sign in with an email so a team survives a new phone. Your squad sign in to
-          their own accounts, then join with the code from your link.
+          Sign in to manage your team.
         </Text>
 
         <CredentialFields

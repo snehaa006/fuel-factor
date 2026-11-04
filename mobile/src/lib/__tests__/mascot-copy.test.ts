@@ -45,7 +45,7 @@ describe('dayCue', () => {
 
 describe('badgeCue', () => {
   it('points a new athlete at the first rung', () => {
-    expect(badgeCue(0, 7).message).toMatch(/only asks you to log once/);
+    expect(badgeCue(0, 7).message).toMatch(/Log once to earn your first badge/);
   });
 
   it('counts the ones earned', () => {
@@ -97,7 +97,7 @@ describe('the mascot stays in its lane', () => {
     // The selections are still on screen when a write is refused, so the
     // line is accurate as well as kind.
     expect(SAVE_FAILED_CUE.motion).toBe('shake');
-    expect(SAVE_FAILED_CUE.message).toMatch(/Nothing is lost/);
+    expect(SAVE_FAILED_CUE.message).toMatch(/Try again/);
   });
 
   it('only ever asks for a motion the mascot has', () => {

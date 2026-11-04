@@ -38,4 +38,4 @@ export const CONSENT_FORM_QUESTION =
   'Has your parent or guardian signed the programme’s consent form on paper?';
 
 export const CONSENT_FORM_NOTE =
-  'This is the programme’s paper form, not this screen. If you are not sure, leave it unticked and ask your coach — it changes nothing about using the app.';
+  'Not sure? Leave it unticked and ask your coach.';

@@ -165,18 +165,6 @@ describe('the questionnaire', () => {
     expect(screen.getByText(/signed the programme’s consent form on paper/)).toBeTruthy();
   });
 
-  it('scores nothing and compares nobody', async () => {
-    // No BMI, no category, no band, no colour. The programme has defined none
-    // of them, and a weight beside a verdict is the one thing this app must
-    // never be.
-    await render(<Join />);
-    await reachQuestionnaire();
-    expect(screen.getByText(/Nothing here is scored or compared with anybody else/)).toBeTruthy();
-    for (const word of [/BMI/i, /healthy range/i, /underweight/i, /overweight/i, /ideal/i]) {
-      expect(screen.queryByText(word)).toBeNull();
-    }
-  });
-
   it('reports a units mistake rather than storing a clamped figure', async () => {
     await render(<Join />);
     await reachQuestionnaire();

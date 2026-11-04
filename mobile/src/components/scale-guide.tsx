@@ -174,8 +174,8 @@ export function ScaleGuide({ scale, onClose, testID = 'scale-guide' }: ScaleGuid
                 ]}
               >
                 {scale === 'rating'
-                  ? 'Your coach’s workbook, word for word. Pick the number that fits the day.'
-                  : 'Your coach’s workbook, word for word. Match the colour on the printed chart, then tap its number.'}
+                  ? 'Pick the number that fits the day.'
+                  : 'Match the colour on the chart, then tap its number.'}
               </Text>
             </ScrollView>
           </View>

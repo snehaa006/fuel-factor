@@ -79,14 +79,6 @@ describe('the Progress screen', () => {
     expect(screen.queryByText('Fitness tests')).toBeNull();
   });
 
-  it('says out loud that it passes no judgement', async () => {
-    // The direction of better is a nutrition call nobody has made.
-    await render(<ProgressScreen />);
-    expect(screen.getByTestId('progress-basis')).toHaveTextContent(
-      /Whether a change is good is for the programme to say, not the app/
-    );
-  });
-
   it('draws an athlete with nothing recorded without crashing', async () => {
     mockUseProgress.mockReturnValue({
       status: 'ready',

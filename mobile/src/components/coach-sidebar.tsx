@@ -43,7 +43,7 @@ export function CoachSidebar({
     {
       key: 'assessments',
       label: 'Assessments',
-      detail: 'Week 0 and Week 4 measures, and the before-and-after comparison.',
+      detail: 'Week 0 and Week 4 measures.',
       onPress: () => router.push('/coach/assessments'),
     },
     {

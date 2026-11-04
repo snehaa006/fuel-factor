@@ -56,9 +56,7 @@ export default function AssessmentsScreen() {
           Assessments
         </Text>
         <Text style={[typography['body-m'], { color: colors['ink-muted'], marginTop: spacing['space-2'] }]}>
-          Your baseline (Week 0) and follow-up (Week 4) measures. Diet, fluid, energy, recovery
-          and urine colour are filled from your food recall where you have one; anything you type
-          wins. Leave anything you did not measure empty.
+          Week 0 and Week 4 measures. Leave anything you didn&apos;t measure empty.
         </Text>
         {OPEN_BOTH_FOR_TESTING && (
           <Text

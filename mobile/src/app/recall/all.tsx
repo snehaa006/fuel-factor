@@ -251,8 +251,7 @@ function Round({
               { color: colors['ink-muted'], marginTop: spacing['space-6'] },
             ]}
           >
-            No meals written in yet. The day will still be saved, but it cannot go through the food
-            database without them.
+            No meals written in yet.
           </Text>
         )}
 
@@ -302,9 +301,6 @@ function Round({
             >
               <Text style={[typography['heading-m'], { color: colors['daun-deep'] }]}>
                 All three days are in.
-              </Text>
-              <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-                You can still open any of them above and change what you wrote.
               </Text>
               <PushButton label="Done" fullWidth testID="all-finish" onPress={onDone} />
             </View>

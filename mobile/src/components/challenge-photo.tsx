@@ -186,7 +186,7 @@ export function ChallengePhoto({
 
       {url === null && (
         <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-          Only you can see this. It is never shown to your team.
+          Only you can see this.
         </Text>
       )}
     </View>

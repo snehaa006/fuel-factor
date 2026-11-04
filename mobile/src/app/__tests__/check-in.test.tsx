@@ -125,10 +125,6 @@ describe('the form', () => {
     expect(counters).not.toHaveTextContent(/target|goal|of \d|\/ ?\d/i);
   });
 
-  it('says the diet quality score is not this form’s to set', async () => {
-    await render(<CheckInScreen />);
-    expect(screen.getByText(/set by the programme, not by this form/i)).toBeTruthy();
-  });
 });
 
 describe('the counters', () => {
@@ -159,13 +155,13 @@ describe('the urine scale', () => {
     await render(<CheckInScreen />);
     fireEvent.press(screen.getByTestId('urine-7'));
     await waitFor(() =>
-      expect(screen.getByTestId('urine-wording')).toHaveTextContent(/Match against the chart/)
+      expect(screen.getByTestId('urine-wording')).toHaveTextContent(/Match the chart/)
     );
   });
 
   it('points at the workbook rather than showing an approximated swatch', async () => {
     await render(<CheckInScreen />);
-    expect(screen.getByTestId('urine-wording')).toHaveTextContent(/chart in your workbook/i);
+    expect(screen.getByTestId('urine-wording')).toHaveTextContent(/Match the chart/i);
   });
 });
 
@@ -237,7 +233,7 @@ describe('submitting', () => {
   it('explains a disabled button when no athlete is claimed', async () => {
     mockParticipant.mockReturnValue(null);
     await render(<CheckInScreen />);
-    expect(screen.getByTestId('cannot-save')).toHaveTextContent(/has not claimed an athlete/);
+    expect(screen.getByTestId('cannot-save')).toHaveTextContent(/Sign in as an athlete to save/);
   });
 });
 

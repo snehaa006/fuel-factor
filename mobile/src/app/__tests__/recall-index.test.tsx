@@ -59,7 +59,7 @@ describe('the follow-up round', () => {
   it('says why, rather than greying out silently', async () => {
     await render(<RecallIndex />);
     expect(screen.getByTestId('round-follow-up-locked')).toHaveTextContent(
-      /Your three baseline days come first/
+      /weeks after the start/
     );
   });
 
@@ -106,7 +106,7 @@ describe('filling them', () => {
     // the follow-up is four weeks after a date nobody has set.
     ready({ status: 'none', reason: 'no-programme-date' }, [1, 2, 3], null);
     await render(<RecallIndex />);
-    expect(screen.getByTestId('recall-no-date')).toHaveTextContent(/has not set the programme/);
+    expect(screen.getByTestId('recall-no-date')).toHaveTextContent(/hasn.t set a start date/);
     expect(screen.getByTestId('round-follow-up-locked')).toBeTruthy();
   });
 });
