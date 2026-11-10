@@ -174,7 +174,9 @@ describe('an answer already on record', () => {
     expect(screen.getByTestId('recall-breakfast').props.value).toBe('Nasi putih');
     expect(screen.getByTestId('recall-sleep').props.value).toBe('8');
     expect(screen.getByTestId('recall-fluid').props.value).toBe('1500');
-    expect(screen.getByTestId('recall-date').props.value).toBe('2026-11-01');
+    // The date is a calendar field now, so it reads back as the date rather
+    // than as the ISO string it still stores.
+    expect(screen.getByTestId('recall-date-value')).toHaveTextContent('Sunday 1 November 2026');
   });
 });
 

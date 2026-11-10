@@ -50,6 +50,16 @@ type Step = 'consent' | 'about-you';
  * of the brief makes it blocking on every route in and `join_team` refuses
  * without it.
  *
+ * **Asked once per athlete, not once per screen.** There are two ways here and
+ * only one of them starts here. An athlete who came through `/welcome` has
+ * already read this text and ticked the box -- the roster gate shows it before
+ * it will even take a team code -- so being asked again on the next screen was
+ * the same question twice in one sitting, which teaches a 14 year old that the
+ * tick is paperwork. `/welcome` therefore sends its tick along and this screen
+ * opens on the questionnaire. An invite link opened cold has passed no gate,
+ * so it still gets one; `join_team` refuses a false answer either way, so the
+ * skip can never widen into a route in without consent.
+ *
  * Then the questionnaire. Every question is a column of the PARTICIPANTS
  * sheet, which is what the dietitian described: "if a participant gets into
  * the app, he'll have to fill in his height, weight, and certain parameters."
@@ -64,13 +74,21 @@ type Step = 'consent' | 'about-you';
  */
 export default function Join() {
   const router = useRouter();
-  const { code } = useLocalSearchParams<{ code: string }>();
+  // `consented` is set by `/welcome`, which has already shown this exact
+  // text and taken the tick two steps earlier. An invite link opened cold
+  // arrives without it and gets the gate, because for that athlete this
+  // screen is the start.
+  const { code, consented: carried } = useLocalSearchParams<{
+    code: string;
+    consented?: string;
+  }>();
   const { colors, radius, spacing, typography } = useTheme();
 
   const joinCode = normaliseCode(code ?? '');
+  const alreadyConsented = carried === '1';
 
-  const [step, setStep] = useState<Step>('consent');
-  const [consented, setConsented] = useState(false);
+  const [step, setStep] = useState<Step>(alreadyConsented ? 'about-you' : 'consent');
+  const [consented, setConsented] = useState(alreadyConsented);
   const [teamName, setTeamName] = useState<string | null>(
     null
   );
@@ -237,6 +255,16 @@ export default function Join() {
         {step === 'about-you' && (
           <View style={{ gap: spacing['space-6'] }}>
             {heading('About you')}
+            {/* Which squad, said on whichever step is the first one shown:
+                skipping the consent step must not skip the confirmation. */}
+            {alreadyConsented && teamName !== null && (
+              <Text
+                testID="join-team-name"
+                style={[typography['heading-m'], { color: colors['pisang-deep'] }]}
+              >
+                You have been invited to {teamName}.
+              </Text>
+            )}
             <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
               Only your name is required. Leave anything you don&apos;t know blank.
             </Text>

@@ -12,7 +12,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { DateField } from '@/components/calendar';
 import { PushButton } from '@/components/push-button';
+import { copyText } from '@/lib/clipboard';
 import { messageOf } from '@/lib/errors';
 import { inviteMessage, inviteUrl } from '@/lib/invite';
 import { isIsoDate, PROGRAMME_WEEKS } from '@/lib/recall-window';
@@ -37,6 +39,15 @@ export default function CoachTeamScreen() {
   const [name, setName] = useState('');
   const [startsOn, setStartsOn] = useState('');
   const [shareError, setShareError] = useState<string | null>(null);
+  // Which thing was just copied, so the button can say so. 'failed' is a real
+  // answer: the clipboard is refusable and a silent no-op is worse.
+  const [copied, setCopied] = useState<'code' | 'message' | 'failed' | null>(null);
+
+  function copy(what: 'code' | 'message', text: string) {
+    copyText(text)
+      .then((ok) => setCopied(ok ? what : 'failed'))
+      .catch(() => setCopied('failed'));
+  }
 
   const back = (
     <Pressable onPress={() => router.back()} accessibilityRole="button" testID="team-back">
@@ -122,24 +133,18 @@ export default function CoachTeamScreen() {
           <Text style={[typography.label, { color: colors['ink-muted'] }]}>
             FIRST DAY OF THE PROGRAMME
           </Text>
-          <TextInput
-            value={startsOn}
-            onChangeText={setStartsOn}
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor={colors['ink-faint']}
-            autoCapitalize="none"
-            autoCorrect={false}
+          {/* A calendar, not a typed date: this is the one field the whole
+              app counts from, and a typo in it moved the follow-up recall. */}
+          <DateField
+            value={startsOn === '' ? null : startsOn}
+            onChange={(date) => setStartsOn(date ?? '')}
+            placeholder="Pick the first day"
+            openAt={todayIso()}
+            today={todayIso()}
+            title="FIRST DAY OF THE PROGRAMME"
+            hint="Logging, the ring and the streak open on this day."
             accessibilityLabel="First day of the programme"
             testID="team-start"
-            style={[
-              typography['body-l'],
-              {
-                backgroundColor: colors['surface-sunken'],
-                borderRadius: radius['radius-lg'],
-                color: colors.ink,
-                padding: spacing['space-4'],
-              },
-            ]}
           />
           <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
             {/* Asked once, and not optional, because the whole app is counted
@@ -148,22 +153,6 @@ export default function CoachTeamScreen() {
             Logging, the ring and the streak open on it, and the app asks for the recall again{' '}
             {PROGRAMME_WEEKS} weeks later. You can move it afterwards.
           </Text>
-          <Pressable
-            onPress={() => setStartsOn(todayIso())}
-            accessibilityRole="button"
-            accessibilityLabel="Start today"
-            testID="team-start-today"
-            hitSlop={8}
-          >
-            <Text style={[typography['body-s'], styles.link, { color: colors['air-deep'] }]}>
-              Starting today? Use {todayIso()}
-            </Text>
-          </Pressable>
-          {dateTyped !== '' && !dateOk && (
-            <Text testID="team-start-error" style={[typography['body-s'], { color: colors['cabai-deep'] }]}>
-              That is not a date. Use YYYY-MM-DD, like {todayIso()}.
-            </Text>
-          )}
         </View>
 
         {state.actionError !== null && (
@@ -212,12 +201,47 @@ export default function CoachTeamScreen() {
         <Text style={[typography.label, { color: colors['pisang-deep'] }]}>
           TEAM CODE — SHARE THIS
         </Text>
-        <Text testID="team-join-code" style={[typography['stat-hero'], { color: colors.ink }]}>
+        <Text
+          selectable
+          testID="team-join-code"
+          style={[typography['stat-hero'], { color: colors.ink }]}
+        >
           {team.joinCode}
         </Text>
         <Text selectable style={[typography['body-s'], { color: colors['ink-muted'] }]}>
           {inviteUrl(team.joinCode)}
         </Text>
+
+        {/* The paste half of handing out a code. "Send the invite" opens the
+            share sheet, which is the better route when a coach has not
+            already got WhatsApp open; this is for when they have. */}
+        <View style={{ flexDirection: 'row', gap: spacing['space-2'] }}>
+          <View style={{ flex: 1 }}>
+            <PushButton
+              label={copied === 'code' ? 'Copied ✓' : 'Copy the code'}
+              variant={copied === 'code' ? 'success' : 'ghost'}
+              fullWidth
+              testID="team-copy-code"
+              onPress={() => copy('code', team.joinCode)}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <PushButton
+              label={copied === 'message' ? 'Copied ✓' : 'Copy the message'}
+              variant={copied === 'message' ? 'success' : 'ghost'}
+              fullWidth
+              testID="team-copy-message"
+              onPress={() => copy('message', inviteMessage(team.name, team.joinCode))}
+            />
+          </View>
+        </View>
+        {copied === 'failed' && (
+          <Text testID="team-copy-failed" style={[typography['body-s'], { color: colors['ink-muted'] }]}>
+            {/* Said rather than faked: the code is selectable text above. */}
+            Could not reach the clipboard. Press and hold the code to copy it.
+          </Text>
+        )}
+
         <View style={{ marginTop: spacing['space-2'] }}>
           <PushButton
             label="Send the invite"
@@ -317,7 +341,7 @@ function ProgrammeStart({
   busy: boolean;
   onSet: (date: string) => void;
 }) {
-  const { colors, radius, spacing, typography } = useTheme();
+  const { colors, spacing, typography } = useTheme();
   const [draft, setDraft] = useState(startsOn ?? '');
   const typed = draft.trim();
   const ok = isIsoDate(typed);
@@ -330,24 +354,15 @@ function ProgrammeStart({
           ? 'Not set yet. Logging opens on this date.'
           : `Day one: ${startsOn}. Follow-up recall opens ${PROGRAMME_WEEKS} weeks later.`}
       </Text>
-      <TextInput
-        value={draft}
-        onChangeText={setDraft}
-        placeholder="YYYY-MM-DD"
-        placeholderTextColor={colors['ink-faint']}
-        autoCapitalize="none"
-        autoCorrect={false}
+      <DateField
+        value={draft === '' ? null : draft}
+        onChange={(date) => setDraft(date ?? '')}
+        placeholder="Pick the first day"
+        openAt={startsOn ?? todayIso()}
+        today={todayIso()}
+        title="FIRST DAY OF THE PROGRAMME"
         accessibilityLabel="First day of the programme"
         testID="team-programme-input"
-        style={[
-          typography['body-l'],
-          {
-            backgroundColor: colors['surface-sunken'],
-            borderRadius: radius['radius-lg'],
-            color: colors.ink,
-            padding: spacing['space-4'],
-          },
-        ]}
       />
       <View style={{ flexDirection: 'row', gap: spacing['space-2'] }}>
         <View style={{ flex: 1 }}>
@@ -374,11 +389,6 @@ function ProgrammeStart({
           />
         </View>
       </View>
-      {typed !== '' && !ok && (
-        <Text testID="team-programme-error" style={[typography['body-s'], { color: colors['cabai-deep'] }]}>
-          That is not a date. Use YYYY-MM-DD.
-        </Text>
-      )}
     </View>
   );
 }
@@ -387,5 +397,4 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   centre: { alignItems: 'center', justifyContent: 'center' },
   content: { paddingBottom: 48 },
-  link: { textDecorationLine: 'underline' },
 });

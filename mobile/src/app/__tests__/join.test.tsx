@@ -14,7 +14,7 @@ jest.mock('@/lib/use-account');
 
 const mockReplace = jest.fn();
 const mockRedirect = jest.fn();
-let mockParams: { code?: string } = { code: 'ABC234' };
+let mockParams: { code?: string; consented?: string } = { code: 'ABC234' };
 jest.mock('expo-router', () => ({
   useRouter: () => ({ replace: mockReplace, push: jest.fn(), back: jest.fn() }),
   useLocalSearchParams: () => mockParams,
@@ -216,5 +216,57 @@ describe('an invite link opened without an account', () => {
     signedInAs({ role: 'signed-out' });
     await render(<Join />);
     expect(mockTeamByCode).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Consent is asked once per athlete, not once per screen.
+ *
+ * `/welcome` shows this exact text and takes the tick before it will even
+ * accept a team code, so an athlete arriving from there has already answered.
+ * Being asked again on the next screen taught a 14 year old that the tick is
+ * paperwork. An invite link opened cold has passed no gate and still gets one.
+ */
+describe('consent carried from the roster gate', () => {
+  it('opens on the questionnaire when the gate already took the tick', async () => {
+    mockParams = { code: 'ABC234', consented: '1' };
+    await render(<Join />);
+    await waitFor(() => expect(screen.getByTestId('join-name')).toBeTruthy());
+    expect(screen.queryByTestId('join-consent')).toBeNull();
+  });
+
+  it('still says which squad, which was only on the step it skipped', async () => {
+    mockParams = { code: 'ABC234', consented: '1' };
+    await render(<Join />);
+    await waitFor(() =>
+      expect(screen.getByTestId('join-team-name')).toHaveTextContent(
+        'You have been invited to Jakarta U16.'
+      )
+    );
+  });
+
+  it('joins with consent recorded, so the database is told the truth', async () => {
+    // `join_team` takes consent as an argument and refuses without it. The
+    // skip must pass the tick on, never fake a missing one.
+    mockParams = { code: 'ABC234', consented: '1' };
+    await render(<Join />);
+    await waitFor(() => expect(screen.getByTestId('join-name')).toBeTruthy());
+    fireEvent.changeText(screen.getByTestId('join-name'), 'Budi');
+    await waitFor(() =>
+      expect(screen.getByTestId('join-submit').props.accessibilityState.disabled).toBe(false)
+    );
+    fireEvent.press(screen.getByTestId('join-submit'));
+    await waitFor(() =>
+      expect(mockJoinTeam).toHaveBeenCalledWith('ABC234', expect.anything(), true)
+    );
+  });
+
+  it('asks an invite link opened cold, because for them this is the start', async () => {
+    mockParams = { code: 'ABC234' };
+    await render(<Join />);
+    await waitFor(() => expect(screen.getByTestId('join-consent')).toBeTruthy());
+    expect(screen.queryByTestId('join-name')).toBeNull();
+    // And will not go on until it is ticked.
+    expect(screen.getByTestId('join-continue').props.accessibilityState.disabled).toBe(true);
   });
 });

@@ -138,7 +138,14 @@ describe('the team code step', () => {
     await render(<Welcome />);
     await advanceToTeam();
     await lookUp('NEWONE');
-    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/join/NEWONE'));
+    // The consent tick two steps back travels with them, so the
+    // questionnaire does not ask the same question again.
+    await waitFor(() =>
+      expect(mockPush).toHaveBeenCalledWith({
+        pathname: '/join/[code]',
+        params: { code: 'NEWONE', consented: '1' },
+      })
+    );
     expect(screen.queryByTestId('gate-error')).toBeNull();
   });
 

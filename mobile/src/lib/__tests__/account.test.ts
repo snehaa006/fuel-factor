@@ -1,4 +1,5 @@
 import { resolveAccount, signInAthlete, signOut, signUpAthlete } from '@/lib/account';
+import { EMAIL_REDIRECT_URL } from '@/lib/supabase-config';
 import { claimedParticipantId } from '@/lib/auth';
 import { isCoach } from '@/lib/coach';
 import { supabase } from '@/lib/supabase';
@@ -134,5 +135,29 @@ describe('who is signed in', () => {
     // An anonymous session from before accounts existed still has to resolve.
     mockGetSession.mockResolvedValue({ data: { session: { user: { id: 'u-1' } } } });
     expect(await resolveAccount()).toEqual({ role: 'unlinked', email: null });
+  });
+});
+
+/**
+ * The confirmation email has to land somewhere that exists.
+ *
+ * It landed on `http://localhost:3000` -- the Supabase project's Site URL,
+ * used because the app asked for nothing else. That is a page on one laptop
+ * and on no phone, so every athlete who tapped "confirm" in their email got a
+ * browser error and an account that stayed unconfirmed.
+ */
+describe('where the confirmation email lands', () => {
+  it('asks for a reachable https page, not the project default', async () => {
+    await signUpAthlete('athlete@example.test', 'secret');
+    expect(mockSignUp).toHaveBeenCalledWith(
+      expect.objectContaining({ options: { emailRedirectTo: EMAIL_REDIRECT_URL } })
+    );
+  });
+
+  it('is an https URL on a host that is not localhost', () => {
+    // The whole bug in one assertion: a redirect nobody outside the dev
+    // machine can open is the same as no redirect at all.
+    expect(EMAIL_REDIRECT_URL.startsWith('https://')).toBe(true);
+    expect(EMAIL_REDIRECT_URL).not.toMatch(/localhost|127\.0\.0\.1/);
   });
 });

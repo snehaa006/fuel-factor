@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
-import { monthGrid, shortDate, TimeMachine } from '@/components/time-machine';
-import { setSimulatedDate, simulatedDate } from '@/lib/clock';
+import { monthGrid, shortDate } from '@/components/calendar';
+import { TimeMachine } from '@/components/time-machine';
+import { setSimulatedDate, shiftDate, simulatedDate } from '@/lib/clock';
 import { todayIso } from '@/lib/today';
 
 afterEach(async () => {
@@ -16,16 +17,21 @@ describe('the time machine pill', () => {
   });
 
   it('steps a day at a time, which is how a month gets logged in one sitting', async () => {
+    // Anchored well away from the real today, in both directions. Stepping
+    // *onto* the real date clears the simulation by design, so a test with a
+    // hardcoded anchor passes until the calendar reaches it and then fails
+    // for a day -- which is exactly what happened on 11 November 2026.
+    const anchor = shiftDate(todayIso(new Date()), -30);
     // Nothing is mounted yet, so nothing re-renders and no act is needed.
-    setSimulatedDate('2026-11-10');
+    setSimulatedDate(anchor);
     await render(<TimeMachine />);
     expect(screen.getByText('TIME MACHINE')).toBeTruthy();
 
     await fireEvent.press(screen.getByTestId('time-machine-forward'));
-    expect(simulatedDate()).toBe('2026-11-11');
+    expect(simulatedDate()).toBe(shiftDate(anchor, 1));
     await fireEvent.press(screen.getByTestId('time-machine-back'));
     await fireEvent.press(screen.getByTestId('time-machine-back'));
-    expect(simulatedDate()).toBe('2026-11-09');
+    expect(simulatedDate()).toBe(shiftDate(anchor, -1));
   });
 
   it('jumps to a day picked from the calendar, and back to the real today', async () => {
@@ -35,11 +41,14 @@ describe('the time machine pill', () => {
 
     await fireEvent.press(screen.getByTestId('time-machine-open'));
     expect(screen.getByTestId('time-machine-month')).toHaveTextContent('November 2026');
-    await fireEvent.press(screen.getByTestId('time-machine-day-2026-11-23'));
-    expect(simulatedDate()).toBe('2026-11-23');
+    // The 23rd, unless the real today is the 23rd, in which case picking it
+    // would clear the simulation rather than jump to it.
+    const pick = todayIso(new Date()) === '2026-11-23' ? '2026-11-24' : '2026-11-23';
+    await fireEvent.press(screen.getByTestId(`time-machine-day-${pick}`));
+    expect(simulatedDate()).toBe(pick);
 
     await fireEvent.press(screen.getByTestId('time-machine-open'));
-    await fireEvent.press(screen.getByTestId('time-machine-reset'));
+    await fireEvent.press(screen.getByTestId('time-machine-footer'));
     expect(simulatedDate()).toBeNull();
   });
 });

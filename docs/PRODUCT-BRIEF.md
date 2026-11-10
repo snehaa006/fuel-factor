@@ -29,7 +29,7 @@ These came out of the call and should not be re-litigated — they are decisions
 | 8 | **Under-18 consent screen is mandatory** | Sofia | Consent gate before any data capture. Blocking requirement |
 | 9 | **Halal / cultural constraint** — keep pork etc. out | Theo | App must never *suggest* pork. Logging stays non-judgemental |
 | 10 | **Branding** — rocket made of nutrients, blasting up; yellow / green / red, vibrant | Theo | Logo + palette direction settled |
-| 11 | **4-week program, one theme per week**, Week 1 = carbohydrates | Sofia + Theo | Learn section has a fixed 4-slot shape |
+| 11 | **4-week programme, one theme per week**, Week 1 = carbohydrates | Sofia + Theo | Learn section has a fixed 4-slot shape |
 | 12 | **A circular gap metric** — "this is ideal, this is where you stand" | Sofia | The fuel ring is an explicitly requested UI element |
 
 ---
@@ -104,7 +104,7 @@ as a working spreadsheet.
   the judges will see.
 - A's daily log naturally *emits* the data B needs → one CSV export, columns matched to the
   ASSESSMENTS and COMPARISON tabs. That is the integration, and it is an afternoon's work.
-- **Do not move the live study onto a half-built app mid-November.** The post-program data
+- **Do not move the live study onto a half-built app mid-November.** The post-programme data
   (recall 30 Nov – 2 Dec) is what makes the entire pitch work. If athletes have to learn a new
   tool while the intervention is running, and it has a bug, the post data is lost and there is
   no second chance before the bullpen. The app ships *seeded with their real baseline*, and the
@@ -167,7 +167,7 @@ formula, and a diet quality score is nutrition, so the app does not invent one. 
 off the check-in being submitted instead — behavioural, not nutritional — so the engagement loop
 works regardless.
 
-**5. Learn — the 4-week program**
+**5. Learn — the 4-week programme**
 Week 1 Carbohydrates as in-app cards built from the existing PDF (myth vs fact, the glycogen
 depletion timeline, pre/during/post timing, the Jakarta food table, targets by day type).
 Weeks 2–4 locked with teasers. Each week carries its **challenge** with a check-in and photo —
@@ -195,7 +195,7 @@ spreadsheet data for the demo; genuinely populated once the December recall land
 |---|---|---|
 | Seed advice rules → Sofia's reviewed rules | Her review, ~20 Nov | Replace rows in `advice_rules`. No code change |
 | Seed food DB (13 items from the deck) → full TKPI set | TKPI + Sofia | Insert rows into `food_items`. No code change |
-| Post-program numbers | 30 Nov – 2 Dec recall | Rows. The before/after screen renders baseline-only until then |
+| Post-programme numbers | 30 Nov – 2 Dec recall | Rows. The before/after screen renders baseline-only until then |
 | Confirmed heights/weights | Theo, 8 Nov | A field update. Targets recompute automatically |
 
 ### What makes the swap trivial
@@ -335,7 +335,7 @@ user is in one city: put Supabase in Singapore (`ap-southeast-1`), ~30 ms from J
 Cloudflare only if cost at scale starts to matter, which is a post-bullpen problem.
 
 > **Deployment risk:** Supabase free-tier projects **pause after 7 days of inactivity**. If the
-> project sits quiet between the November program and the December pitch, it can be paused on
+> project sits quiet between the November programme and the December pitch, it can be paused on
 > the morning of the bullpen. Mitigation: Pro (\$25) for December, or confirm it is awake the
 > day before. Do not leave this to chance on a one-shot pitch.
 
@@ -390,7 +390,7 @@ them in their own tier means they can be dropped whole without touching a resear
 | 10–11 Nov | **Working prototype on a real device**, shared via Expo Go; sync call | All |
 | 11–25 Nov | Feedback rounds. Coach dashboard, learn section, polish | Sneha |
 | 26 Nov | Last Week 4 material goes out | Sofia |
-| 30 Nov – 2 Dec | Post-program 3-day recall (one weekend + two weekdays) | Theo |
+| 30 Nov – 2 Dec | Post-programme 3-day recall (one weekend + two weekdays) | Theo |
 | ~3–5 Dec | Post data into the app; before/after screens go live with real numbers | Sneha + Sofia |
 | Week 1–2 Dec | **Bullpen pitch** (date still unconfirmed) | Theo |
 
@@ -420,7 +420,7 @@ review and that cannot be rushed at the end. Everything else has a working defau
 
 ## 10. Flags worth raising with the team
 
-- **Fluid intake has never been collected**, yet hydration is one of the program's pillars and
+- **Fluid intake has never been collected**, yet hydration is one of the programme's pillars and
   Theo's own urine readings sit at "drink immediately" for three straight days. This needs to
   start being recorded immediately, with or without the app.
 - **No dates on any recall row.** Trivial to fix now, impossible to reconstruct later, and a

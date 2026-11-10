@@ -44,4 +44,5 @@ example
 
 # Expo Go self-hosted update (built on Vercel)
 dist-native/
+dist-web/
 public/

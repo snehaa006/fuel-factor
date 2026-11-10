@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { DateField } from '@/components/calendar';
 import { DayTypeSwitch } from '@/components/day-type-switch';
 import { FoodPicker, type PickedFood } from '@/components/food-picker';
 import { RatingScale } from '@/components/rating-scale';
@@ -19,6 +20,7 @@ import {
   type RecallEntry,
   type RecallFood,
 } from '@/lib/recall';
+import { DAY_CHOICE_GUIDANCE } from '@/lib/recall-window';
 import { todayIso } from '@/lib/today';
 import { useTheme } from '@/theme';
 
@@ -117,16 +119,21 @@ export function RecallFields({
         <>
           <View style={{ gap: spacing['space-2'] }}>
             {label('Which day was it')}
-            <TextInput
-              value={draft.dateText}
-              onChangeText={(text) => onChange({ ...draft, dateText: text })}
-              placeholder={todayIso()}
-              placeholderTextColor={colors['ink-faint']}
-              autoCapitalize="none"
-              autoCorrect={false}
-              accessibilityLabel="Which day was it, as a date"
+            {/* A calendar rather than a typed date. A recall is about a day
+                already lived, so the useful half of the calendar is the days
+                up to today and `max` says so. */}
+            <DateField
+              value={draft.dateText === '' ? null : draft.dateText}
+              onChange={(date) => onChange({ ...draft, dateText: date ?? '' })}
+              placeholder="Pick the day"
+              openAt={todayIso()}
+              today={todayIso()}
+              max={todayIso()}
+              title="WHICH DAY WAS IT"
+              hint={DAY_CHOICE_GUIDANCE}
+              clearable
+              accessibilityLabel="Which day was it"
               testID={`${testPrefix}-date`}
-              style={inputStyle}
             />
           </View>
           <DayTypeSwitch

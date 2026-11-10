@@ -70,7 +70,12 @@ export default function Welcome() {
           setError('No team with that code.');
           return;
         }
-        router.push(`/join/${normaliseCode(joinCode)}`);
+        // Consent was taken two steps ago and travels with them, so the
+        // questionnaire does not ask the same question a second time.
+        router.push({
+          pathname: '/join/[code]',
+          params: { code: normaliseCode(joinCode), consented: '1' },
+        });
         return;
       }
       setRoster(entries);
@@ -193,7 +198,9 @@ export default function Welcome() {
             </Text>
             <TextInput
               value={joinCode}
-              onChangeText={setJoinCode}
+              // Normalised here, not just asked of the keyboard: see
+              // `normaliseCodeText`. A pasted invite link lands as its code.
+              onChangeText={(text) => setJoinCode(normaliseCode(text))}
               autoCapitalize="characters"
               autoCorrect={false}
               placeholder="K7XRMP"
@@ -277,7 +284,12 @@ export default function Welcome() {
                 row, which is the only way a participant row is created from a
                 phone. */}
             <Pressable
-              onPress={() => router.push(`/join/${normaliseCode(joinCode)}`)}
+              onPress={() =>
+                router.push({
+                  pathname: '/join/[code]',
+                  params: { code: normaliseCode(joinCode), consented: '1' },
+                })
+              }
               accessibilityRole="button"
               testID="not-listed"
               style={{ paddingVertical: spacing['space-3'] }}

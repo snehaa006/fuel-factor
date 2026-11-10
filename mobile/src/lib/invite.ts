@@ -21,7 +21,23 @@ export const SCHEME = 'fuelfactor';
 export const JOIN_CODE_LENGTH = 6;
 
 /**
- * Tidy a code a human typed or pasted.
+ * Upper case, letters and digits and nothing else.
+ *
+ * Both codes in this app are generated from an unambiguous upper-case
+ * alphabet, so a lower-case character is always a typing artefact rather than
+ * a different code. `autoCapitalize="characters"` asks the *keyboard* to help
+ * and is the whole answer on neither platform that matters: it does nothing on
+ * web, where a coach opens the dashboard, and nothing for a paste anywhere. So
+ * the value is normalised on the way in rather than the keyboard being asked
+ * nicely -- a lookup that failed on `k7xrmp` was indistinguishable from a
+ * wrong code, and the screen said "No team with that code."
+ */
+export function normaliseCodeText(input: string): string {
+  return input.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+/**
+ * Tidy a join code a human typed or pasted.
  *
  * Lower case, stray spaces and a pasted URL all arrive here, because a squad
  * copies the whole message rather than six characters out of the middle of it.
@@ -30,8 +46,7 @@ export function normaliseCode(input: string): string {
   const trimmed = input.trim();
   // A pasted link: take the last path segment, ignoring any query or fragment.
   const fromUrl = /(?:^|\/)join\/([^/?#\s]+)/i.exec(trimmed);
-  const candidate = fromUrl ? fromUrl[1] : trimmed;
-  return candidate.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  return normaliseCodeText(fromUrl ? fromUrl[1] : trimmed);
 }
 
 /** The deep link for a join code. */

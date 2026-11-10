@@ -14,8 +14,24 @@
 
 export const CONSENT_HEADING = 'Before you start';
 
+/**
+ * What the app is, in the athlete's words.
+ *
+ * It used to say a dietitian would be reading along: "so your coach and the
+ * programme's dietitian can see how the squad is fuelling". That was true of
+ * the four-week study and is the opposite of what the app is for. A dietitian
+ * watching each athlete's log is the thing that does not scale past one squad
+ * -- "we cannot customize nutrition plan, it would be a generalized advice,
+ * because there has to be a one-on-one communication" -- and the app exists so
+ * that a squad gets the gap pointed out without one.
+ *
+ * So it names what the app does -- records, and shows the gaps -- and who sees
+ * it: the athlete and their coach. Nothing is promised that the app does not
+ * do, and the sentence after this one still rules out the things it will never
+ * do.
+ */
 export const CONSENT_WHAT_IT_IS =
-  'Fuel Factor records what you eat and drink so your coach and the programme’s dietitian can see how the squad is fuelling. It is part of a school nutrition programme.';
+  'Fuel Factor records what you eat and shows you and your coach where your fuel gaps are. It is part of a school nutrition programme.';
 
 export const CONSENT_WHAT_IT_IS_NOT =
   'It never sets a weight goal, never tells you to eat less, and never calls a food bad. Nothing it shows you is a substitute for advice from a dietitian or a doctor.';

@@ -31,3 +31,34 @@
 export const DEFAULT_SUPABASE_URL = 'https://nprvrlpkdrgckzceyryc.supabase.co';
 
 export const DEFAULT_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_jNqeT7TTB3-V1SGCM4UKeQ_eNUcbW7t';
+
+/**
+ * Where the confirmation email's link lands.
+ *
+ * It landed on `http://localhost:3000`, which is a page that exists on one
+ * laptop and on no phone. An athlete who tapped "confirm" in their email got
+ * a browser error, and the account stayed unconfirmed -- so the one screen
+ * standing between a squad and the app failed for everybody who was not
+ * sitting at a dev machine.
+ *
+ * The cause is a default rather than a bug: Supabase sends the link to
+ * `{SUPABASE_URL}/auth/v1/verify?...&redirect_to=...`, and when no
+ * `redirect_to` is asked for -- or one is asked for that the project has not
+ * allow-listed -- it falls back to the project's **Site URL**, which is
+ * `localhost:3000` until somebody changes it in the dashboard.
+ *
+ * So two things have to agree, and only one of them lives in this repository:
+ *
+ * 1. The app asks for this URL by name (`emailRedirectTo` in `account.ts`).
+ * 2. The Supabase project has to allow it. Both the **Site URL** and the
+ *    **Redirect URLs** allow-list are dashboard settings under Authentication
+ *    → URL Configuration, and no key in this bundle can change them. Until
+ *    this URL is in that list, Supabase ignores it and falls back to the Site
+ *    URL -- which is the bug. See docs/RUNNING-IT.md.
+ *
+ * The page it points at confirms the account and sends the athlete back to
+ * the app. It is deliberately not the web build: an athlete opening this on a
+ * phone wants one sentence and a way back, not the whole app booted in a
+ * mobile browser.
+ */
+export const EMAIL_REDIRECT_URL = 'https://fuel-factor-tamannas-projects-ab505aa3.vercel.app';

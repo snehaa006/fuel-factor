@@ -2,6 +2,7 @@ import { claimedParticipantId } from './auth';
 import { isCoach } from './coach';
 import { messageOf } from './errors';
 import { supabase } from './supabase';
+import { EMAIL_REDIRECT_URL } from './supabase-config';
 
 /**
  * Who is signed in, and as what.
@@ -71,7 +72,15 @@ async function clearSession(): Promise<void> {
   if (data.session) await supabase.auth.signOut();
 }
 
-/** Create an athlete account. Supabase decides whether a confirmation is needed. */
+/**
+ * Create an athlete account. Supabase decides whether a confirmation is needed.
+ *
+ * `emailRedirectTo` is where the confirmation link lands. Without it the link
+ * goes to the project's Site URL, which was `localhost:3000` -- a page that
+ * exists on one laptop and on no phone, so confirming an account from a phone
+ * simply failed. See `EMAIL_REDIRECT_URL` for the half of this that lives in
+ * the Supabase dashboard rather than here.
+ */
 export async function signUpAthlete(
   email: string,
   password: string
@@ -80,6 +89,7 @@ export async function signUpAthlete(
   const { data, error } = await supabase.auth.signUp({
     email: cleanEmail(email),
     password,
+    options: { emailRedirectTo: EMAIL_REDIRECT_URL },
   });
   if (error) throw new AccountError(messageOf(error));
   // No session means the project asks for an email confirmation first, which

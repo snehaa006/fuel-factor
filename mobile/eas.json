@@ -5,6 +5,7 @@
   },
   "build": {
     "share": {
+      "developmentClient": false,
       "android": {
         "buildType": "apk"
       },
@@ -16,6 +17,7 @@
       "channel": "share"
     },
     "live": {
+      "developmentClient": false,
       "android": {
         "buildType": "apk"
       },
@@ -27,6 +29,7 @@
       }
     },
     "production": {
+      "developmentClient": false,
       "android": {
         "buildType": "app-bundle"
       },

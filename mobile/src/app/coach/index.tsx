@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CoachSidebar } from '@/components/coach-sidebar';
 import { PushButton } from '@/components/push-button';
 import { SidebarButton } from '@/components/sidebar';
+import { normaliseCodeText } from '@/lib/invite';
 import { useAccount } from '@/lib/use-account';
 import { useCoach } from '@/lib/use-coach';
 import { useTheme } from '@/theme';
@@ -161,7 +162,9 @@ function CoachDashboard() {
           <TextInput
             testID="coach-code"
             value={code}
-            onChangeText={setCode}
+            // Normalised here, not just asked of the keyboard: a coach opens
+            // this on the web, where autoCapitalize does nothing at all.
+            onChangeText={(text) => setCode(normaliseCodeText(text))}
             autoCapitalize="characters"
             autoCorrect={false}
             placeholder="COACH01"

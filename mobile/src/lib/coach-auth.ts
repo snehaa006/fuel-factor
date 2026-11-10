@@ -1,5 +1,6 @@
 import { asError, messageOf } from './errors';
 import { supabase } from './supabase';
+import { EMAIL_REDIRECT_URL } from './supabase-config';
 
 /**
  * The coach's account, and the team they own.
@@ -52,12 +53,19 @@ async function clearSession(): Promise<void> {
   if (data.session) await supabase.auth.signOut();
 }
 
-/** Create a coach account. Supabase decides whether a confirmation is needed. */
+/**
+ * Create a coach account. Supabase decides whether a confirmation is needed.
+ *
+ * `emailRedirectTo` for the same reason as the athlete's sign-up: without it
+ * the confirmation link lands on the project's Site URL, which was
+ * `localhost:3000`. A coach confirming from a phone had nowhere to land.
+ */
 export async function signUpCoach(email: string, password: string): Promise<{ confirmed: boolean }> {
   await clearSession();
   const { data, error } = await supabase.auth.signUp({
     email: email.trim(),
     password,
+    options: { emailRedirectTo: EMAIL_REDIRECT_URL },
   });
   if (error) throw new CoachAuthError(messageOf(error));
   // No session means the project asks for an email confirmation first, which
