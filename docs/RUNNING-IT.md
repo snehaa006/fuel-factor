@@ -16,7 +16,8 @@ flag, profile or script can produce a build that draws from sample data.
 | **Supabase** `nprvrlpkdrgckzceyryc` | 18 migrations; weeks 1–2, badges, the food database; one team, Team Jakarta buddies |
 
 Supabase, the repository and both phone channels were brought into line on
-3 November 2026.
+11 November 2026. The `preview` and `share` channels both carry commit
+`06f07f9`: the confirmation-email fix, the calendars, and the gap analysis.
 
 **Pushing to GitHub does not change the phones.** A bundle moves only when
 somebody runs `eas update` (below). The two are separate systems.
