@@ -243,25 +243,55 @@ advice rules, challenges and the badge ladder. No team and no athlete is
 seeded. The real squad is **Team Jakarta buddies** (join code `4YPUJR`),
 created by its coach in the app; its athletes join by link.
 
-## The test squad
+## The test squads
 
-There is one team in the live project that nobody joined: **ZZ Test Squad
-(demo data)**, join code `TEST01`, coach code `TESTCOACH1`, one athlete called
-**Demo Athlete** with a month of logs behind him — 27 daily logs, 216 items,
+There are two teams in the live project that nobody joined. Neither is seeded
+from this folder: both were written straight into the project and no file here
+will recreate them. Both are named to sort last and every participant carries
+a `TEST-` code, so `participant_code like 'TEST-%'` drops them from an export.
+
+### 1. ZZ Test Squad (demo data) — `TEST01`
+
+Coach code `TESTCOACH1`, one athlete called **Demo Athlete** with a month of
+logs behind him — 27 daily logs, 216 items,
 both three-day recall rounds and a Week 0 / Week 4 assessment set.
 
-It exists so the gap charts and the before/after screens can be *shown* rather
-than described, and it is **not seeded from this folder**: it was written
-straight into the live project on 18 November 2026 and no file here will
-recreate it. Deleting it is one statement and costs nothing.
+Invented data, on purpose: it exists so the gap charts and the before/after
+screens can be *shown* rather than described. The month climbs from 183 g of
+carbohydrate on a week-1 training day against a 310-434 g band to 382 g by
+week 4, every item a real portion from the composition table, so no day is
+left unjudged.
 
-It is named to sort last and labelled in three places -- the team name, the
-participant's `notes`, and the `TEST-` participant code -- because the one
-thing it must never do is get mistaken for a research row on export. Filter
-`participant_code like 'TEST-%'` to drop it.
+### 2. ZZ Tracker Baseline (test) — `TRACK1`
 
-The athlete is unclaimed on purpose. Open the app, sign up with any address,
-enter `TEST01`, pick Demo Athlete, and the whole month is there.
+Coach code `TRACKCOACH`. The research tracker's five baseline athletes, loaded
+from `Fuel Factor - Research Tracker.xlsx` on 18 November 2026: the roster's
+measurements, all fifteen three-day recall rows with their meals, supplements
+and urine readings verbatim, and the ASSESSMENTS tab's pre values.
+
+**The names are the tracker's ID codes -- J-01, T-01, JA-01, K-01, N-01 --
+and not the athletes' names.** A join code is shareable; a named 14-year-old's
+eating and hydration behind one is not. Four of the five have no signed
+consent form recorded in the tracker, which is the second reason. The numbers
+are untouched, so nothing of the data's value is lost; swapping the codes for
+names is one `update` if the consent position says it is fine.
+
+Two things were deliberately not loaded, rather than guessed at:
+
+* **Every Post column is empty.** The follow-up assessment is scheduled for
+  30 November - 2 December and has not happened, so only `pre_value` is set
+  and the app says "re-tested in week 4", which is the truth.
+* **`Breakfast Frequency` reads 46084** for three athletes, which is an Excel
+  date serial and not a count of days out of three. Left out; worth a look in
+  the sheet.
+
+`Average Fluid Intake` is "Not recorded" for all five, which is the gap the
+brief already names.
+
+### Opening either one
+
+The athletes are unclaimed on purpose. Open the app, sign up with any address,
+enter the join code, pick an athlete, and the data is there.
 
 The seeded demo squad is gone, from this folder and from the live project
 (3 November). It was `0003_baseline_roster` (three footballers, nine baseline
