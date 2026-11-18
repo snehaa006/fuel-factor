@@ -237,18 +237,23 @@ the whole bug. Two dashboard fields have to be set, once, by hand:
 Until both are set the link still goes to `localhost:3000`, however many times
 the app is rebuilt.
 
-**As of 18 November 2026 they are still not set.** This is checkable without
-signing anybody up — ask the verify endpoint for our page with a junk token and
-see where it sends you:
+**Both were set on 18 November 2026, and the redirect works.** It is checkable
+without signing anybody up — ask the verify endpoint for our page with a junk
+token and see where it sends you:
 
 ```bash
 curl -s -o /dev/null -D - "https://nprvrlpkdrgckzceyryc.supabase.co/auth/v1/verify?token=junk&type=signup&redirect_to=https://fuel-factor-tamannas-projects-ab505aa3.vercel.app" | grep -i ^location:
 ```
 
-If the `location:` header says `localhost:3000`, the fields are still unset and
-**no athlete can confirm an account**. When they are set it will name the
-Vercel page instead. The restore did not change this either way; it has been
-true since the project was created.
+The `location:` header now names the Vercel page, for `signup`, `recovery`,
+`magiclink` and `invite` alike, and with no `redirect_to` at all — so the Site
+URL fallback is right too. If it ever says `localhost:3000` again, the fields
+have been cleared and **no athlete can confirm an account** until they are set
+back.
+
+Both fields belong to the project rather than to any bundle, so they survive a
+rebuild and an `eas update` — but they would not survive the project being
+recreated from scratch under a new ref.
 
 ### Redeploying that page
 
