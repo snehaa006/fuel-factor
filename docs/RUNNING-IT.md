@@ -173,6 +173,38 @@ assessments all follow it; the time of day stays real.
 **It writes real rows.** A simulated day is a real `daily_logs` row in the live
 database. Test with a test athlete on a test team.
 
+## The project pauses itself, and that takes the whole app down
+
+**It happened once already.** Supabase pauses a free project after about a week
+with no traffic. Between 11 and 18 November 2026 nobody opened the app, so it
+paused — and a paused project's hostname stops resolving altogether:
+
+```
+$ nslookup nprvrlpkdrgckzceyryc.supabase.co
+** server can't find nprvrlpkdrgckzceyryc.supabase.co: NXDOMAIN
+```
+
+Every build points at that host, so the APK, the Expo Go link and the web
+build all failed at sign-in for days. Nothing was wrong with any bundle, and
+republishing would have fixed nothing.
+
+Restoring it from the dashboard brought back **everything** — all 18
+migrations, the 1,369 foods, the 22 lesson cards, the badges and advice rules,
+and the teams and logs people had entered. No data was lost. The publishable
+key survived unchanged, so no rebuild and no `eas update` was needed either:
+the app started working again the moment the project came back.
+
+**Before the 12 December pitch, open the app once every few days**, or the
+project will pause again and the demo will fail on the day with a dead host
+and nothing in the repository to blame. Checking takes one command:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" https://nprvrlpkdrgckzceyryc.supabase.co/rest/v1/ -H "apikey: sb_publishable_jNqeT7TTB3-V1SGCM4UKeQ_eNUcbW7t"
+```
+
+`401` is healthy — it means the host answered and wanted a session. `000`
+means it is paused again.
+
 ## The confirmation email, and the one setting that is not in this repository
 
 The sign-up email's link used to land on `http://localhost:3000` — a page on
@@ -203,8 +235,20 @@ the whole bug. Two dashboard fields have to be set, once, by hand:
 > | **Redirect URLs** | `https://fuel-factor-tamannas-projects-ab505aa3.vercel.app/**` |
 
 Until both are set the link still goes to `localhost:3000`, however many times
-the app is rebuilt. **Test it by signing up with a real address and opening the
-email on a phone**, not by reading this file.
+the app is rebuilt.
+
+**As of 18 November 2026 they are still not set.** This is checkable without
+signing anybody up — ask the verify endpoint for our page with a junk token and
+see where it sends you:
+
+```bash
+curl -s -o /dev/null -D - "https://nprvrlpkdrgckzceyryc.supabase.co/auth/v1/verify?token=junk&type=signup&redirect_to=https://fuel-factor-tamannas-projects-ab505aa3.vercel.app" | grep -i ^location:
+```
+
+If the `location:` header says `localhost:3000`, the fields are still unset and
+**no athlete can confirm an account**. When they are set it will name the
+Vercel page instead. The restore did not change this either way; it has been
+true since the project was created.
 
 ### Redeploying that page
 
