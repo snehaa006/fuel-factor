@@ -230,15 +230,38 @@ schema, and ran after them.
 | `0010_week2_programme.sql` | Week 2's challenge and its 4 protein advice rules |
 | `0011_week2_foods.sql` | The Week 2 deck's protein table: 6 foods with protein figures, plus tahu and susu with none |
 | `0012_week2_lessons.sql` | Week 2's lesson cards. Seeding these is what unlocks week 2 on Learn |
+| `0013_week3_lessons.sql` | Week 3, "Recovery: Sleep + Hydration", from the Week 3 PDF and its WhatsApp message |
+| `0014_week4_lessons.sql` | Week 4, "Integration & Game Day", from the ten Week 4 slides and its message — **not** from the week 4 PDF, which is a practitioner reference naming individual athletes |
 
 **Every migration and every seed here is on the live project** (checked
-3 November): 18 migrations; weeks 1 and 2, the badges and the composition
-table. Nothing else is in it but what people have entered in the app.
+18 November): 18 migrations; all four weeks, the badges and the composition
+table. Nothing else is in it but what people have entered in the app, and one
+test squad (below).
 
 **Seeds hold the programme's content and nothing else** — foods, lessons,
 advice rules, challenges and the badge ladder. No team and no athlete is
 seeded. The real squad is **Team Jakarta buddies** (join code `4YPUJR`),
 created by its coach in the app; its athletes join by link.
+
+## The test squad
+
+There is one team in the live project that nobody joined: **ZZ Test Squad
+(demo data)**, join code `TEST01`, coach code `TESTCOACH1`, one athlete called
+**Demo Athlete** with a month of logs behind him — 27 daily logs, 216 items,
+both three-day recall rounds and a Week 0 / Week 4 assessment set.
+
+It exists so the gap charts and the before/after screens can be *shown* rather
+than described, and it is **not seeded from this folder**: it was written
+straight into the live project on 18 November 2026 and no file here will
+recreate it. Deleting it is one statement and costs nothing.
+
+It is named to sort last and labelled in three places -- the team name, the
+participant's `notes`, and the `TEST-` participant code -- because the one
+thing it must never do is get mistaken for a research row on export. Filter
+`participant_code like 'TEST-%'` to drop it.
+
+The athlete is unclaimed on purpose. Open the app, sign up with any address,
+enter `TEST01`, pick Demo Athlete, and the whole month is there.
 
 The seeded demo squad is gone, from this folder and from the live project
 (3 November). It was `0003_baseline_roster` (three footballers, nine baseline
