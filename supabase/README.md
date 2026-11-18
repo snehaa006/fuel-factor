@@ -269,12 +269,22 @@ from `Fuel Factor - Research Tracker.xlsx` on 18 November 2026: the roster's
 measurements, all fifteen three-day recall rows with their meals, supplements
 and urine readings verbatim, and the ASSESSMENTS tab's pre values.
 
-**The names are the tracker's ID codes -- J-01, T-01, JA-01, K-01, N-01 --
-and not the athletes' names.** A join code is shareable; a named 14-year-old's
-eating and hydration behind one is not. Four of the five have no signed
-consent form recorded in the tracker, which is the second reason. The numbers
-are untouched, so nothing of the data's value is lost; swapping the codes for
-names is one `update` if the consent position says it is fine.
+**The athletes are under their own names in the database**, confirmed on
+18 November 2026 after the question was put -- a join code is shareable and a
+named 14 year old's eating and hydration behind one is not something to decide
+unasked. `participant_code` keeps the tracker's ID (`TEST-J-01` and so on), so
+a row still matches back to the sheet.
+
+The names are deliberately **not written down here**. This repository is
+public; the database is not, and row level security answers who may read a
+participant row. Nothing about running the project needs the names, so the
+tracker IDs are what this file uses.
+
+**`consent_signed` still reads false for four of them**, because that column
+mirrors the tracker's own Consent Signed? column and the sheet has it blank
+for everyone but Theo. The consent position was confirmed in conversation;
+the record has not caught up. The sheet is the source of truth for that
+column, so it is the sheet that wants updating -- not this table.
 
 Two things were deliberately not loaded, rather than guessed at:
 
