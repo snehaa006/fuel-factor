@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { longDate } from '@/components/calendar';
 import { PushButton } from '@/components/push-button';
+import { TeamCodeCard } from '@/components/team-code-card';
 import { measurementsOf, type AthleteProfile, type CoachProfile } from '@/lib/profile';
 import { PROGRAMME_WEEKS } from '@/lib/recall-window';
 import { useProfile } from '@/lib/use-profile';
@@ -168,6 +170,17 @@ function Athlete({ profile }: { profile: AthleteProfile }) {
         </Text>
       </View>
 
+      {/* An athlete hands the code to a teammate as often as a coach does,
+          and this used to be loaded and never shown. */}
+      {profile.joinCode !== null && (
+        <TeamCodeCard
+          code={profile.joinCode}
+          teamName={profile.teamName}
+          hint="Teammates join with this code. Copy it into your team chat."
+          testID="profile-team-code"
+        />
+      )}
+
       {card(
         'THE PROGRAMME',
         <>
@@ -175,7 +188,9 @@ function Athlete({ profile }: { profile: AthleteProfile }) {
           {row('Age', profile.ageBand ?? 'Not recorded')}
           {row(
             'Programme starts',
-            profile.programmeStartsOn ?? 'Your coach has not set it',
+            profile.programmeStartsOn === null
+              ? 'Your coach has not set it'
+              : longDate(profile.programmeStartsOn),
             'profile-programme'
           )}
           {profile.programmeStartsOn !== null && (
@@ -211,7 +226,7 @@ function Athlete({ profile }: { profile: AthleteProfile }) {
           )}
           {row(
             'Accepted in the app',
-            profile.consentAckAt === null ? 'Not recorded' : profile.consentAckAt.slice(0, 10),
+            profile.consentAckAt === null ? 'Not recorded' : longDate(profile.consentAckAt.slice(0, 10)),
             'profile-consent-ack'
           )}
           <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
@@ -253,9 +268,16 @@ function Coach({ profile, onOpenTeam }: { profile: CoachProfile; onOpenTeam: () 
         </Text>
         {profile.team !== null && (
           <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-            {profile.team.athletes} {profile.team.athletes === 1 ? 'athlete' : 'athletes'} · code{' '}
-            {profile.team.joinCode}
+            {profile.team.athletes} {profile.team.athletes === 1 ? 'athlete' : 'athletes'}
           </Text>
+        )}
+        {profile.team !== null && (
+          <TeamCodeCard
+            code={profile.team.joinCode}
+            teamName={profile.team.name}
+            hint="The squad joins with this code."
+            testID="profile-coach-team-code"
+          />
         )}
         <View style={{ marginTop: spacing['space-2'] }}>
           <PushButton

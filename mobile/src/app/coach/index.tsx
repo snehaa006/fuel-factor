@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CoachSidebar } from '@/components/coach-sidebar';
 import { PushButton } from '@/components/push-button';
 import { SidebarButton } from '@/components/sidebar';
+import { TeamCodeCard } from '@/components/team-code-card';
 import { normaliseCodeText } from '@/lib/invite';
 import { useAccount } from '@/lib/use-account';
 import { useCoach } from '@/lib/use-coach';
@@ -242,6 +243,20 @@ function CoachDashboard() {
           )}
         </View>
 
+        {/* The code a coach pastes into the squad's group chat, one tap from
+            the screen they actually open, rather than a long-press away on
+            another one. */}
+        {view.joinCode !== null && (
+          <View style={{ marginTop: spacing['space-6'] }}>
+            <TeamCodeCard
+              code={view.joinCode}
+              teamName={view.teamName}
+              hint="Athletes join with this code."
+              testID="coach-join-code"
+            />
+          </View>
+        )}
+
       </ScrollView>
 
       <CoachSidebar
@@ -255,6 +270,7 @@ function CoachDashboard() {
 }
 
 function AthleteCard({ athlete }: { athlete: CoachAthlete }) {
+  const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
 
   return (
@@ -312,6 +328,20 @@ function AthleteCard({ athlete }: { athlete: CoachAthlete }) {
           <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>{flag.detail}</Text>
         </View>
       ))}
+
+      {/* The days behind the count: intake against the programme's targets,
+          as bar charts, the same ones the athlete sees. */}
+      <View style={{ marginTop: spacing['space-1'] }}>
+        <PushButton
+          label="See fuel gaps"
+          variant="ghost"
+          fullWidth
+          testID={`athlete-${athlete.participantId}-gaps`}
+          onPress={() =>
+            router.push({ pathname: '/coach/athlete/[id]', params: { id: athlete.participantId } })
+          }
+        />
+      </View>
     </View>
   );
 }

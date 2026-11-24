@@ -91,7 +91,7 @@ describe('what there is to do before day one', () => {
     recall([1, 2]);
     await render(<BeforeYouStart />);
     expect(screen.getByTestId('before-count')).toHaveTextContent(/2 of 3 days in/);
-    expect(screen.getByTestId('before-day-1-state')).toHaveTextContent(/2026-11-28/);
+    expect(screen.getByTestId('before-day-1-state')).toHaveTextContent('Sat 28 Nov');
     expect(screen.getByTestId('before-day-3-state')).toHaveTextContent(/Not answered/);
   });
 

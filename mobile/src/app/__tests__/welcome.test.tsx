@@ -51,8 +51,8 @@ beforeEach(() => {
   mockClaim.mockResolvedValue('participant-uuid');
 });
 
-/** Accept consent and move on to the team code. */
-async function advanceToTeam() {
+/** Tick the consent box and press Continue. */
+async function acceptConsent() {
   fireEvent.press(screen.getByTestId('consent-checkbox'));
   // The Continue button only enables on the re-render, so let it land before
   // pressing it — otherwise the press lands on the disabled one.
@@ -60,6 +60,11 @@ async function advanceToTeam() {
     expect(screen.getByTestId('consent-continue').props.accessibilityState.disabled).toBe(false)
   );
   fireEvent.press(screen.getByTestId('consent-continue'));
+}
+
+/** Accept consent and move on to the team code. */
+async function advanceToTeam() {
+  await acceptConsent();
   await waitFor(() => expect(screen.getByTestId('team-code')).toBeTruthy());
 }
 
@@ -91,6 +96,18 @@ describe('the consent gate', () => {
     expect(screen.getByTestId('team-code')).toBeTruthy();
   });
 
+  it('says what the app does in the words the pitch uses', async () => {
+    // The app is what points out a squad's fuel gaps, so no dietitian has to
+    // read each athlete's log. The old line promised that one would.
+    await render(<Welcome />);
+    expect(
+      screen.getByText(
+        /^Fuel Factor records what you eat and shows you and your coach where your fuel gaps are\./
+      )
+    ).toBeTruthy();
+    expect(screen.queryByText(/dietitian can see/i)).toBeNull();
+  });
+
   it('promises what the programme promised, and no weight goal', async () => {
     await render(<Welcome />);
     expect(screen.getByText(/never sets a weight goal/i)).toBeTruthy();
@@ -104,6 +121,15 @@ describe('the consent gate', () => {
 });
 
 describe('the team code step', () => {
+  it('capitalises a code typed in lower case, and looks up the capitalised one', async () => {
+    await render(<Welcome />);
+    await advanceToTeam();
+    fireEvent.changeText(screen.getByTestId('team-code'), 'k7xrmp');
+    await waitFor(() => expect(screen.getByTestId('team-code').props.value).toBe('K7XRMP'));
+    fireEvent.press(screen.getByTestId('find-team'));
+    await waitFor(() => expect(mockRoster).toHaveBeenCalledWith('K7XRMP'));
+  });
+
   it('shows the roster for a code', async () => {
     await render(<Welcome />);
     await advanceToTeam();
@@ -149,11 +175,45 @@ describe('the team code step', () => {
     expect(screen.queryByTestId('gate-error')).toBeNull();
   });
 
-  it('carries a code from the invite link so nobody retypes it', async () => {
+  it('keeps an invite link’s code filled in when its lookup fails', async () => {
+    // Nobody retypes a code they were sent, even when it needs a second try.
+    mockParams = { code: 'fuel01' };
+    mockRoster.mockRejectedValue({ message: 'Network request failed' });
+    await render(<Welcome />);
+    await acceptConsent();
+    await waitFor(() =>
+      expect(screen.getByTestId('gate-error')).toHaveTextContent(/Network request failed/)
+    );
+    expect(screen.getByTestId('team-code').props.value).toBe('FUEL01');
+  });
+
+  it('looks the invite link’s team up as soon as consent is given', async () => {
+    // The link already says which team. Ticking the one consent box is the
+    // only thing standing between the athlete and their roster.
     mockParams = { code: 'fuel01' };
     await render(<Welcome />);
+    await acceptConsent();
+    await waitFor(() => expect(mockRoster).toHaveBeenCalledWith('FUEL01'));
+    await waitFor(() => expect(screen.getByTestId('athlete-T-01')).toBeTruthy());
+  });
+
+  it('sends an invite to a new team on to the questionnaire with consent given', async () => {
+    mockParams = { code: 'newone' };
+    mockRoster.mockResolvedValue([]);
+    await render(<Welcome />);
+    await acceptConsent();
+    await waitFor(() =>
+      expect(mockPush).toHaveBeenCalledWith({
+        pathname: '/join/[code]',
+        params: { code: 'NEWONE', consented: '1' },
+      })
+    );
+  });
+
+  it('waits for a typed code when nobody brought one', async () => {
+    await render(<Welcome />);
     await advanceToTeam();
-    expect(screen.getByTestId('team-code').props.value).toBe('FUEL01');
+    expect(mockRoster).not.toHaveBeenCalled();
   });
 });
 

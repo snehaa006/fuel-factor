@@ -1,4 +1,11 @@
-import { JOIN_CODE_LENGTH, SCHEME, inviteMessage, inviteUrl, normaliseCode } from '@/lib/invite';
+import {
+  JOIN_CODE_LENGTH,
+  SCHEME,
+  WEB_APP_URL,
+  inviteMessage,
+  inviteUrl,
+  normaliseCode,
+} from '@/lib/invite';
 
 describe('normaliseCode', () => {
   it('tidies what a squad actually types', () => {
@@ -12,6 +19,7 @@ describe('normaliseCode', () => {
     expect(normaliseCode('fuelfactor://join/ABC234')).toBe('ABC234');
     expect(normaliseCode('https://example.test/join/abc234?utm=x')).toBe('ABC234');
     expect(normaliseCode('Join Jakarta U16: fuelfactor://join/ABC234')).toBe('ABC234');
+    expect(normaliseCode(`${WEB_APP_URL}/join/abc234`)).toBe('ABC234');
   });
 
   it('is empty for nothing, rather than guessing', () => {
@@ -21,15 +29,17 @@ describe('normaliseCode', () => {
 });
 
 describe('inviteUrl', () => {
-  it('uses the scheme app.json registers', () => {
-    // Changing the scheme breaks every link already sent, so it is pinned here
-    // as well as in app.json.
+  it('is an https link, which WhatsApp makes tappable and any phone can open', () => {
+    expect(inviteUrl('ABC234')).toBe('https://fuel-factor-expo-go.vercel.app/join/ABC234');
+  });
+
+  it('keeps the scheme app.json registers pinned', () => {
+    // Links sent before the web build existed still use it.
     expect(SCHEME).toBe('fuelfactor');
-    expect(inviteUrl('ABC234')).toBe('fuelfactor://join/ABC234');
   });
 
   it('normalises on the way in, so a sloppy code still makes a valid link', () => {
-    expect(inviteUrl(' abc234 ')).toBe('fuelfactor://join/ABC234');
+    expect(inviteUrl(' abc234 ')).toBe(`${WEB_APP_URL}/join/ABC234`);
   });
 });
 
@@ -41,12 +51,10 @@ describe('inviteMessage', () => {
   });
 
   it('carries the code in words as well as the link', () => {
-    // A custom scheme only opens if the app is installed, and there is no
-    // https fallback because the web build is deployed nowhere. Without the
-    // code in the text, a phone without the app gets a dead message.
-    expect(message).toContain('fuelfactor://join/ABC234');
-    expect(message).toContain('ABC234');
-    expect(message).toMatch(/if that link does not open/i);
+    // The link opens in a browser; somebody with the app installed would
+    // rather type the code into it.
+    expect(message).toContain(`${WEB_APP_URL}/join/ABC234`);
+    expect(message).toMatch(/enter the team code ABC234/);
   });
 
   it('says nothing about food, weight or nutrition', () => {

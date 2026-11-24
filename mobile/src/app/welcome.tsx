@@ -185,7 +185,16 @@ export default function Welcome() {
               fullWidth
               disabled={!consented}
               testID="consent-continue"
-              onPress={() => setStep('team')}
+              onPress={() => {
+                setStep('team');
+                // An invite link already carries the code: look it up now
+                // rather than showing a box with it typed in and asking for
+                // one more tap. On a lookup failure they are left on the
+                // team-code step, code filled in, with the reason under it.
+                if (normaliseCode(code ?? '') !== '') {
+                  findTeam().catch((e: unknown) => setError(messageOf(e)));
+                }
+              }}
             />
           </View>
         )}

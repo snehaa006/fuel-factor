@@ -30,21 +30,22 @@ export function windowFrom(today: string, days = GAP_WINDOW_DAYS): string {
 }
 
 /**
- * The signed-in athlete's gap analysis, as of today.
+ * A gap analysis as of today: the signed-in athlete's own, or -- given an id
+ * -- one of a coach's athletes.
  *
  * Today is the time machine's today when one is set, so the screen looks on
  * any simulated date the way it would really have looked on that date -- which
  * is also how a fortnight of logs gets onto it for a demo without waiting a
  * fortnight.
  */
-export function useGaps(): GapsState {
+export function useGaps(participantId?: string): GapsState {
   const [state, setState] = useState<GapsState>({ status: 'loading' });
 
   useEffect(() => {
     let active = true;
 
     const today = todayIso();
-    fetchGaps(windowFrom(today), today)
+    fetchGaps(windowFrom(today), today, participantId)
       .then((analysis) => {
         if (!active) return;
         setState(
@@ -58,7 +59,7 @@ export function useGaps(): GapsState {
     return () => {
       active = false;
     };
-  }, []);
+  }, [participantId]);
 
   return state;
 }

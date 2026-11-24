@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { DateField } from '@/components/calendar';
+import { DateField, longDate } from '@/components/calendar';
 import { PushButton } from '@/components/push-button';
 import { copyText } from '@/lib/clipboard';
 import { messageOf } from '@/lib/errors';
@@ -263,10 +263,8 @@ export default function CoachTeamScreen() {
           </Text>
         )}
         <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-          {/* The honest limit of a custom-scheme link, said rather than
-              discovered by a parent on a phone without the app. */}
-          The link only opens if Fuel Factor is already installed, so the message carries the code
-          as well.
+          The link opens Fuel Factor in any phone&apos;s browser, with nothing to install. The
+          message carries the code too, for anyone who already has the app.
         </Text>
       </View>
 
@@ -352,7 +350,7 @@ function ProgrammeStart({
       <Text testID="team-programme" style={[typography['body-m'], { color: colors['ink-muted'] }]}>
         {startsOn === null
           ? 'Not set yet. Logging opens on this date.'
-          : `Day one: ${startsOn}. Follow-up recall opens ${PROGRAMME_WEEKS} weeks later.`}
+          : `Day one: ${longDate(startsOn)}. Follow-up recall opens ${PROGRAMME_WEEKS} weeks later.`}
       </Text>
       <DateField
         value={draft === '' ? null : draft}

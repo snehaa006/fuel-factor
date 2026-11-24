@@ -47,7 +47,7 @@ describe('the gap analysis screen', () => {
     ready([day(), day({ date: '2026-11-02' }), day({ date: '2026-11-03' })]);
     await render(<Gaps />);
     expect(screen.getByTestId('gaps-window')).toHaveTextContent(
-      '3 days logged between 2026-11-01 and 2026-11-14.'
+      '3 days logged between Sun 1 Nov and Sat 14 Nov.'
     );
   });
 
@@ -55,7 +55,7 @@ describe('the gap analysis screen', () => {
     ready([]);
     await render(<Gaps />);
     expect(screen.getByTestId('gaps-window')).toHaveTextContent(
-      'No days logged between 2026-11-01 and 2026-11-14.'
+      'No days logged between Sun 1 Nov and Sat 14 Nov.'
     );
     expect(screen.getByTestId('gap-carb-empty')).toBeTruthy();
     expect(screen.getByTestId('gap-protein-empty')).toBeTruthy();

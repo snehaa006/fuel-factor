@@ -602,7 +602,43 @@ opened it expecting the real one. So demo mode is gone, not switched off:
 `docs/RUNNING-IT.md` was rewritten around this. Earlier steps below still
 describe demo mode, the fixture's day one and `web:demo`, as history.
 
-**1116 tests pass.**
+**Step 21** — The employer's feedback list, finished (24 November). The list
+was handed over a second time because the first pass (commit `06f07f9`) left
+some of it undone. Each item was re-checked against the code, the live
+Supabase project and the bundle Expo Go actually serves. What changed:
+
+- **Join screen: no consent checkbox at all.** The first pass only skipped the
+  repeated gate when arriving from `/welcome`; the questionnaire still asked
+  the paper-form consent question, and a cold invite link still showed the
+  whole gate. Now consent is taken once, on `/welcome`. A cold invite link is
+  redirected there with its code, and ticking consent looks the team up
+  straight away. `consent_signed` (the paper form) is no longer asked of the
+  athlete; it defaults to false and is the research team's to record.
+- **Copy-to-clipboard for athletes too.** `TeamCodeCard` (code, Copy, Share)
+  is on the athlete's Profile and Team screens, the coach's Profile and the
+  coach dashboard. The athlete side had loaded the code and never shown it.
+- **The dev menu.** It was being seen in Expo Go, whose menu no app code can
+  disable. The fix is a release build people can open from a link: the web
+  app is now built and served from the same Vercel project and host as the
+  Expo Go route (`scripts/build-web.mjs`, `vercel.json`). Browsers get the
+  app; Expo Go's header still gets its manifest. Invites are now an https link
+  to it. RUNNING-IT.md says how it is served and how to check both audiences.
+- **Coach fuel gaps.** `/coach/athlete/[id]`, from "See fuel gaps" on each
+  dashboard card, draws the same charts as the athlete's `/gaps` through one
+  shared `GapReport`. `fetchGaps` takes an optional participant id; RLS
+  (`can_see_participant`) already limits a coach to their own squad.
+- **Programme / program.** Nothing said "program" — not the source, the seeds,
+  git history or the live Expo Go bundle. `spelling.test.ts` now fails on any
+  "program" in the app or its seeded content, so it stays that way.
+- Dates the app *shows* read as "Tuesday 10 November 2026" rather than ISO
+  (profile, coach team, gap window, baseline days); entry was already a
+  calendar everywhere.
+- Already done and verified live: the email redirect (Supabase sends every
+  verify link to the Vercel page, not localhost), the calendars, the code
+  capitalisation and the "Before you start" sentence. Tests now pin the last
+  two on screen.
+
+**1198 tests pass.**
 
 `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
@@ -619,7 +655,11 @@ test athlete.
 | `mobile/src/app/today.tsx` | Today. Behind the programme gate |
 | `mobile/src/app/before-you-start.tsx` | The athlete's whole app before day one: the countdown and the three baseline days |
 | `mobile/src/app/welcome.tsx` | Consent gate, team code, claim an athlete. Takes `?code=` from a link |
-| `mobile/src/app/join/[code].tsx` | The invite link's landing: consent, then the PARTICIPANTS questionnaire |
+| `mobile/src/app/join/[code].tsx` | The PARTICIPANTS questionnaire. No consent here: a cold invite link is sent through `/welcome` first |
+| `mobile/src/app/coach/athlete/[id].tsx` | One athlete's fuel gaps, for their coach |
+| `mobile/src/components/gap-report.tsx` | The gap charts and legend, shared by athlete and coach |
+| `mobile/src/components/team-code-card.tsx` | The join code with Copy and Share, wherever a code is shown |
+| `mobile/scripts/build-web.mjs` | Lays the web build beside the Expo Go update on Vercel |
 | `mobile/src/app/profile.tsx` | Athlete or coach. Measurements shown, never editable |
 | `mobile/src/app/recall/index.tsx` | The two rounds and which days are in |
 | `mobile/src/app/recall/[day].tsx` | One recall day. Every RECALL column but `est_calories` |

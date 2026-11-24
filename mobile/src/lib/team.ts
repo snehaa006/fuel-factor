@@ -53,6 +53,8 @@ export type RankedRow = LeaderboardRow & {
 
 export type Leaderboard = {
   teamName: string | null;
+  /** The squad's join code, so an athlete can hand it to a teammate. */
+  joinCode: string | null;
   rows: RankedRow[];
   /**
    * Who leads the window. Empty when nobody has logged at all, and more than
@@ -150,7 +152,7 @@ export async function fetchLeaderboard(
   windowDays: number = WINDOW_DAYS
 ): Promise<Leaderboard> {
   const [team, rows] = await Promise.all([
-    supabase.from('teams').select('name').limit(1).maybeSingle(),
+    supabase.from('teams').select('name, join_code').limit(1).maybeSingle(),
     readBoard(today, windowDays),
   ]);
 
@@ -158,6 +160,7 @@ export async function fetchLeaderboard(
 
   return {
     teamName: team.data?.name ?? null,
+    joinCode: team.data?.join_code ?? null,
     rows: rank(rows),
     mvp: mvp(rows),
     windowDays,

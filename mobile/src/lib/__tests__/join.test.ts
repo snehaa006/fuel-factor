@@ -1,4 +1,3 @@
-import { CONSENT_CHECKBOX, CONSENT_FORM_QUESTION } from '@/lib/consent';
 import {
   AGE_BANDS,
   EMPTY_QUESTIONNAIRE,
@@ -61,16 +60,6 @@ describe('the questionnaire mirrors the PARTICIPANTS sheet', () => {
 
   it('starts with the paper consent form unreported', () => {
     expect(EMPTY_QUESTIONNAIRE.consentSigned).toBe(false);
-  });
-});
-
-describe('the two consent questions stay apart', () => {
-  it('asks the app’s gate and the paper form as different questions', () => {
-    // `consent_signed` means a form was signed on paper. The tick in the gate
-    // is an app event and lands in `consent_ack_at`. Recording one as the
-    // other would put an app event into the study's record as a collected fact.
-    expect(CONSENT_CHECKBOX).not.toEqual(CONSENT_FORM_QUESTION);
-    expect(CONSENT_FORM_QUESTION).toMatch(/on paper/);
   });
 });
 

@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppSidebar } from '@/components/app-sidebar';
+import { shortDate } from '@/components/calendar';
 import { MascotBanner } from '@/components/mascot-banner';
 import { PushButton } from '@/components/push-button';
 import { SidebarButton } from '@/components/sidebar';
@@ -189,7 +190,7 @@ export default function BeforeYouStart() {
                     {entry === undefined
                       ? 'Not answered'
                       : entry.hasMeals
-                        ? (entry.recallDate ?? 'Answered')
+                        ? (entry.recallDate === null ? 'Answered' : shortDate(entry.recallDate))
                         : 'No meals recorded'}
                   </Text>
                 </Pressable>

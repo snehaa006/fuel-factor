@@ -120,7 +120,7 @@ describe('fetchLeaderboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFrom.mockReturnValue({
-      select: () => ({ limit: () => ({ maybeSingle: async () => ({ data: { name: 'Jakarta U16' }, error: null }) }) }),
+      select: () => ({ limit: () => ({ maybeSingle: async () => ({ data: { name: 'Jakarta U16', join_code: 'K7XRMP' }, error: null }) }) }),
     });
     mockRpc.mockReturnValue({
       returns: async () => ({
@@ -147,6 +147,8 @@ describe('fetchLeaderboard', () => {
   it('maps the rows and ranks them', async () => {
     const board = await fetchLeaderboard('2026-10-31');
     expect(board.teamName).toBe('Jakarta U16');
+    // The athlete's copy button reads this.
+    expect(board.joinCode).toBe('K7XRMP');
     expect(board.rows.map((r) => [r.name, r.position])).toEqual([
       ['Jeongho', 1],
       ['Theo', 2],
@@ -168,7 +170,9 @@ describe('fetchLeaderboard', () => {
     mockFrom.mockReturnValue({
       select: () => ({ limit: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }),
     });
-    expect((await fetchLeaderboard('2026-10-31')).teamName).toBeNull();
+    const board = await fetchLeaderboard('2026-10-31');
+    expect(board.teamName).toBeNull();
+    expect(board.joinCode).toBeNull();
   });
 
   it('reports a refused call the way supabase-js refuses', async () => {
