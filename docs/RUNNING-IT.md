@@ -16,9 +16,18 @@ flag, profile or script can produce a build that draws from sample data.
 | **Confirmation page**, Vercel `fuel-factor` | Where the sign-up email lands. Static, one file |
 | **Supabase** `nprvrlpkdrgckzceyryc` | 18 migrations; weeks 1–2, badges, the food database; one team, Team Jakarta buddies |
 
-Supabase, the repository and both phone channels were brought into line on
-11 November 2026. The `preview` and `share` channels both carry commit
-`06f07f9`: the confirmation-email fix, the calendars, and the gap analysis.
+Both phone channels were published on 25 November 2026 from commit
+`bca3c55` (branch `claude/compassionate-albattani-64lxnx`, not yet merged to
+`main`): no consent checkbox on Join, the team-code card with Copy and Share,
+the coach's fuel-gap charts, https invite links and readable dates.
+
+| Channel | Update group | Previous group, to roll back to |
+|---|---|---|
+| `preview` | `8156bed1-ab67-4116-b231-eddd5c9d1533` | `37b2238c-603d-44f1-818c-3f099e46302e` |
+| `share` | `eb5f5d13-d2b7-4751-a050-13483f985bf5` | `ec138c3b-3086-4c33-8cde-88db6c7ea897` |
+
+The web app and the self-hosted Expo Go route follow `main` on Vercel, so they
+pick these changes up only when the branch is merged.
 
 **Pushing to GitHub does not change the phones.** A bundle moves only when
 somebody runs `eas update` (below). The two are separate systems.
@@ -109,7 +118,14 @@ cd mobile && npx eas-cli@latest update --branch share --environment preview --pl
 ```
 
 This needs an Expo access token with publish rights, set as `EXPO_TOKEN` in
-the environment — never pasted into a chat. The Supabase URL and publishable
+the environment — never pasted into a chat. In a Claude Code cloud session on
+the **`fuel-factor`** environment the token is saved as a network secret for
+`api.expo.dev`: the proxy adds it to every request, so run the commands with
+`EXPO_TOKEN=proxy-injected` (the CLI wants the variable set; the value is
+replaced). That environment's network is limited to the hosts this project
+uses, which does not include Expo's asset CDN, so a bundle cannot be
+downloaded back from there to check it — compare its hash with the local
+`dist/` export instead. The Supabase URL and publishable
 key ride in every bundle from `mobile/src/lib/supabase-config.ts`, so nothing
 else has to be exported first.
 
