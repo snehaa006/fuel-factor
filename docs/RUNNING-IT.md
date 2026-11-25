@@ -17,14 +17,15 @@ flag, profile or script can produce a build that draws from sample data.
 | **Supabase** `nprvrlpkdrgckzceyryc` | 18 migrations; all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
 
 Both phone channels were last published on 25 November 2026 from commit
-`7aa69d9`: everything in the feedback list, the coach's fuel-gap charts, the
-long-team-name fix, and **the week 3 and week 4 challenges on Today**
-(urine colour + pre-sleep snack; the morning protocol).
+`83398bc`: everything in the feedback list, the coach's fuel-gap charts, the
+long-team-name fix, the week 3 and week 4 challenges on Today, and **the
+week 3 and week 4 advice cards** (pre-sleep snack, urine 3–4, the top-up
+snack the hour before a session).
 
 | Channel | Update group | Previous group, to roll back to |
 |---|---|---|
-| `preview` | `9dbf2a48-15f7-4060-b5ce-c2d02057e992` | `4af37b74-62dc-4a39-a009-ae989880a481` |
-| `share` | `6fe0554c-09c8-47c6-9e04-c205405bff5b` | `7cbb761c-8967-40c6-9183-22354a03a4e2` |
+| `preview` | `82159e9f-e899-4bd3-85c5-45e4495a3baa` | `9dbf2a48-15f7-4060-b5ce-c2d02057e992` |
+| `share` | `8b8129a6-d1d1-4ec8-ba46-8efa7cea40ca` | `6fe0554c-09c8-47c6-9e04-c205405bff5b` |
 
 The web app and the self-hosted Expo Go route follow `main` on Vercel.
 
