@@ -216,7 +216,9 @@ function CoachDashboard() {
       <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-4'] }]}>
         <View style={styles.title}>
           <SidebarButton onPress={() => setMenuOpen(true)} testID="coach-menu" />
-          <View>
+          {/* Shrinks beside the menu button so a long team name wraps onto a
+              second line instead of running off the screen. */}
+          <View style={styles.titleText}>
             <Text style={[typography.label, { color: colors['ink-muted'] }]}>COACH</Text>
             <Text style={[typography['display-l'], { color: colors.ink }]}>
               {view.teamName ?? 'Your squad'}
@@ -352,5 +354,6 @@ const styles = StyleSheet.create({
   content: { paddingBottom: 48 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  titleText: { flex: 1 },
   dot: { width: 14, height: 14 },
 });
