@@ -17,15 +17,14 @@ flag, profile or script can produce a build that draws from sample data.
 | **Supabase** `nprvrlpkdrgckzceyryc` | 18 migrations; all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
 
 Both phone channels were last published on 25 November 2026 from commit
-`39fce90`, which is also what `main` carries: no consent checkbox on Join,
-the team-code card with Copy and Share, the coach's fuel-gap charts (and a
-long team name that wraps on the coach dashboard), https invite links and
-readable dates.
+`7aa69d9`: everything in the feedback list, the coach's fuel-gap charts, the
+long-team-name fix, and **the week 3 and week 4 challenges on Today**
+(urine colour + pre-sleep snack; the morning protocol).
 
 | Channel | Update group | Previous group, to roll back to |
 |---|---|---|
-| `preview` | `4af37b74-62dc-4a39-a009-ae989880a481` | `8156bed1-ab67-4116-b231-eddd5c9d1533` |
-| `share` | `7cbb761c-8967-40c6-9183-22354a03a4e2` | `eb5f5d13-d2b7-4751-a050-13483f985bf5` |
+| `preview` | `9dbf2a48-15f7-4060-b5ce-c2d02057e992` | `4af37b74-62dc-4a39-a009-ae989880a481` |
+| `share` | `6fe0554c-09c8-47c6-9e04-c205405bff5b` | `7cbb761c-8967-40c6-9183-22354a03a4e2` |
 
 The web app and the self-hosted Expo Go route follow `main` on Vercel.
 
