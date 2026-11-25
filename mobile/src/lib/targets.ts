@@ -80,3 +80,9 @@ export const PROTEIN_PER_MEAL_MAX_G = 35;
 
 /** Protein is taught in week 2, so nothing about it is shown or said before. */
 export const PROTEIN_WEEK = 2;
+
+/** Week 3, "Recovery: Sleep + Hydration": the pre-sleep snack and the 3–4 urine band. */
+export const RECOVERY_WEEK = 3;
+
+/** Week 4, "Integration & Game Day": the top-up snack the hour before a session. */
+export const GAME_DAY_WEEK = 4;

@@ -1,5 +1,5 @@
 import { asError } from './errors';
-import { hasNutrient, type Nutrient } from './nutrients';
+import { hasNutrient, isPreSleepFood, type Nutrient } from './nutrients';
 import { daysBetween } from './recall-window';
 import { supabase } from './supabase';
 import type { IsoDate } from './streak';
@@ -121,18 +121,8 @@ export const CHALLENGES: Readonly<Record<number, ChallengeSpec>> = {
   },
 };
 
-/** The pre-sleep foods week 3 names: "warm milk or a banana". */
-const PRE_SLEEP_WORDS = ['susu', 'pisang', 'milk', 'banana'];
-
-/**
- * Whether a logged food is one of them. Read by the food's first word, the
- * way `nutrients.ts` reads a source, so "Susu Sapi" and "Pisang Mas" count and
- * "Jantung Pisang" (banana heart) does not.
- */
-export function isPreSleepFood(name: string | undefined): boolean {
-  const head = (name ?? '').trim().split(/\s+/)[0]?.toLowerCase() ?? '';
-  return PRE_SLEEP_WORDS.includes(head);
-}
+/** Week 3's milk-or-banana check, shared with the advice engine. */
+export { isPreSleepFood };
 
 export type ChallengeItem = Pick<
   LoggedItem,

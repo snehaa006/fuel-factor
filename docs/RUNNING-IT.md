@@ -347,18 +347,34 @@ week can be shown on any day.
 
 ### Showing them on the day
 
-The charts read real logs. The live project holds **ZZ Test Squad**
-(join code `TEST01`, coach code `TESTCOACH1`) with a month of invented logs
-for *Demo Athlete*, there precisely so these screens can be shown:
+The charts read real logs, and the pitch shows the demo squad,
+**Jakarta Youth Football** (day one 28 October 2026): one coach and three
+athletes, **Theo**, **Jeongho** and **Jacob**, all accounts the developer
+holds. Their logins and the squad's codes are not written here, because this
+repository is public; the codes are on the coach's *Team and codes* screen.
+What in the squad is the tracker's and what is constructed is in
+`supabase/README.md`.
 
-1. **Athlete view:** open the web app, sign in (or make an account), enter
-   `TEST01`, pick *Demo Athlete*, open *Fuel gaps*.
-2. **Coach view:** with a coach account, enter coach code `TESTCOACH1` on the
-   dashboard, then **See fuel gaps** on *Demo Athlete*.
+**Set the time machine to 24 November first.** The squad's logs end on
+24 November 2026, the last day of the programme, on purpose: nothing exists
+for a day that has not happened. The charts read the 14 days up to *today*,
+so on 12 December they would be empty. Tap the date on the pill at the
+bottom of the screen and pick 24 November; the pill turns orange-red, every
+screen follows, and the date survives a reload.
 
-The window is the 14 days up to *today*. If Demo Athlete's month is further
-back than that on the day, use the **time machine** pill to step back to a
-date inside it — every screen follows. Rehearse this once before 12 December.
+1. **Athlete view:** open the web app, sign in as Theo, Jeongho or Jacob,
+   set the pill to 24 November, open *Fuel gaps* from the menu.
+2. **Coach view:** sign in as the coach, set the pill to 24 November, then
+   **See fuel gaps** on any athlete's card on the dashboard.
+
+Theo's is the chart with the story: his carbohydrate climbs every week and
+reaches his band on rest days, but stays below it on training days, so the
+coach sees the under-fuelling flag. Jeongho and Jacob reach their band by
+week 4.
+
+Rehearse this once before 12 December. **Log nothing while the pill is
+set**: a simulated day writes a real row into the squad's logs. Afterwards,
+*Back to the real today* in the calendar puts it back.
 
 Fresh athletes have nothing to chart. There is no sample-data mode; to fill
 a test athlete's charts, use the time machine: step back a fortnight, log a
