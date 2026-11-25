@@ -309,9 +309,16 @@ carbohydrate on a week-1 training day against a 310-434 g band to 382 g by
 week 4, every item a real portion from the composition table, so no day is
 left unjudged.
 
-### 2. ZZ Tracker Baseline (test) — `TRACK1`
+### 2. ZZ Tracker Baseline (test)
 
-Coach code `TRACKCOACH`. The research tracker's five baseline athletes, loaded
+Its join and coach codes are deliberately not written here (removed
+25 November 2026). This squad holds five real athletes' baseline data under
+their own names, the repository is public, a coach code opens every
+athlete's logs, and a join code lets anybody signed in claim an unclaimed
+athlete and read his record. Both codes are still in this file's git history,
+so they should be changed in the database, not just dropped from here.
+
+The research tracker's five baseline athletes, loaded
 from `Fuel Factor - Research Tracker.xlsx` on 18 November 2026: the roster's
 measurements, all fifteen three-day recall rows with their meals, supplements
 and urine readings verbatim, and the ASSESSMENTS tab's pre values.
