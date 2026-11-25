@@ -240,12 +240,59 @@ test squad (below).
 
 **Seeds hold the programme's content and nothing else** — foods, lessons,
 advice rules, challenges and the badge ladder. No team and no athlete is
-seeded. The real squad is **Team Jakarta buddies** (join code `4YPUJR`),
-created by its coach in the app; its athletes join by link.
+seeded.
+
+**Team Jakarta buddies (`4YPUJR`) is gone** (deleted 25 November 2026). It was
+never a real squad: its coach and its one athlete were the developer's own
+test accounts, and it held one logged day and one recall. A backup of the rows
+was kept outside the repository before they were deleted. The team called
+**FF** (`DAPXNX`) was made by someone else and was left as it is.
+
+## The demo squad for the pitch: Jakarta Youth Football
+
+Made 25 November 2026 for the 12 December pitch. Day one **28 October 2026** (so the follow-up recall opened on 25 November, the
+same day the tracker's own follow-up rows start). One coach and three athletes,
+all accounts the developer holds. The logins, the join code and the coach
+code are deliberately not written here: this repository is public, and a
+coach code opens every athlete's logs. They are on the coach's *Team and
+codes* screen.
+
+| Athlete | Code | From the research tracker |
+|---|---|---|
+| Theo | `TEST-DEMO-T01` | T-01: roster row, 3 baseline recall days, 4 weekly check-ins, pre assessments, Cooper pre/post |
+| Jeongho | `TEST-DEMO-J01` | J-01: roster row, 3 baseline recall days, 4 weekly check-ins, pre assessments |
+| Jacob | `TEST-DEMO-JA01` | JA-01: roster row, 3 baseline recall days, 4 weekly check-ins, pre assessments, Cooper pre/post |
+
+**What is the tracker's, verbatim:** names, sport, measurements, consent
+(the tracker now reads "Yes" for all five athletes), the recall text, sleep,
+supplements, urine and calories, and every assessment figure. Two readings
+were needed: a breakfast recorded as "None" is stored empty, because Progress
+counts any breakfast text as a breakfast eaten; and Jacob's breakfast frequency
+cell, which Excel turned into 3 March, is stored as 3 (of 3 days).
+
+**What is constructed:** the daily logs. The programme collected weekly
+check-ins, not daily food logs, and the gap charts need days. Each athlete's
+days (28 October to **14 December**, so the 14-day window is full on pitch
+day) are built from the foods in his own three recalled days, mapped to
+Indonesian food-table (TKPI) entries that carry both a carbohydrate and a
+protein figure, plus what each week taught: a carb at every meal (week 1),
+protein at breakfast and after training (week 2), and a pre-match meal (week 4).
+Training energy, urine colour, fluid, breakfast every day and each week's
+check-in answer (as a note on the week's last day) are the tracker's weekly
+figures. The baseline recalls carry food-table items too, so their nutrition
+is computed by `compute_recall_nutrition`; it lands close to the tracker's own
+3-day averages (Theo about 93 g carbohydrate and 140 g protein, against 87 g
+and 134 g).
+
+The result tells the tracker's story: Theo stays below the carbohydrate band
+on every day (his baseline was 87 g a day), so his coach sees the
+under-fuelling flag; Jeongho and Jacob climb into the band by week 4.
+The participant codes start `TEST-`, so an export drops them like the other
+test squads.
 
 ## The test squads
 
-There are two teams in the live project that nobody joined. Neither is seeded
+There are two more teams in the live project that nobody joined. Neither is seeded
 from this folder: both were written straight into the project and no file here
 will recreate them. Both are named to sort last and every participant carries
 a `TEST-` code, so `participant_code like 'TEST-%'` drops them from an export.
