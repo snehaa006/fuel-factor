@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BadgeGrid } from '@/components/badge-grid';
 import { MascotBanner } from '@/components/mascot-banner';
 import { LeaderboardRow } from '@/components/leaderboard-row';
+import { TeamCodeCard } from '@/components/team-code-card';
 import { earnedCount } from '@/lib/badges';
 import { badgeCue } from '@/lib/mascot-copy';
 import { MONTH_DAYS, myRow } from '@/lib/team';
@@ -160,6 +161,18 @@ export default function Team() {
               ? 'Log a meal today and you are on the board.'
               : `You are ${ordinal(me.position)} on ${me.daysLogged} of ${board.windowDays} days.`}
           </Text>
+        )}
+
+        {/* Bringing a teammate in is a paste into the team chat. */}
+        {board.joinCode !== null && (
+          <View style={{ marginTop: spacing['space-8'] }}>
+            <TeamCodeCard
+              code={board.joinCode}
+              teamName={board.teamName}
+              hint="Someone missing from the board? Send them this code."
+              testID="team-join-code"
+            />
+          </View>
         )}
 
         {view.badges.length > 0 && (

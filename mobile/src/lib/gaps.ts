@@ -96,6 +96,8 @@ export type NutrientGap = {
 };
 
 export type GapAnalysis = {
+  /** Whose days these are. Set by `fetchGaps`; the coach's screen titles itself with it. */
+  athleteName?: string;
   weightKg: number | null;
   from: IsoDate;
   to: IsoDate;
@@ -268,18 +270,27 @@ export function sumItems(rows: ItemRow[]): Record<
 }
 
 /**
- * The signed-in athlete's gap analysis over a window.
+ * One athlete's gap analysis over a window.
  *
- * Which athlete is never a parameter: row level security answers that from the
- * session, the same way `fetchToday` does, so a caller cannot ask about
- * somebody else's eating.
+ * With no `participantId` it is the signed-in athlete's own: row level
+ * security answers which row that is from the session, the same way
+ * `fetchToday` does.
+ *
+ * A coach passes the athlete's id. That is not a way round anything: the same
+ * policies (`can_see_participant`) decide, and they let a coach read the
+ * participants, logs and items of their own squad and nobody else's. An id
+ * from another team reads as no row at all, and the screen says so.
  */
-export async function fetchGaps(from: IsoDate, to: IsoDate): Promise<GapAnalysis | null> {
-  const { data: participant, error: participantError } = await supabase
-    .from('participants')
-    .select('id, weight_kg')
-    .limit(1)
-    .maybeSingle();
+export async function fetchGaps(
+  from: IsoDate,
+  to: IsoDate,
+  participantId?: string
+): Promise<GapAnalysis | null> {
+  const query = supabase.from('participants').select('id, name, weight_kg');
+  const { data: participant, error: participantError } = await (participantId === undefined
+    ? query.limit(1)
+    : query.eq('id', participantId)
+  ).maybeSingle();
 
   if (participantError) throw asError(participantError);
   if (!participant) return null;
@@ -298,7 +309,8 @@ export async function fetchGaps(from: IsoDate, to: IsoDate): Promise<GapAnalysis
   if (logsError) throw asError(logsError);
 
   const rows = logs ?? [];
-  if (rows.length === 0) return analyse([], weightKg, from, to);
+  const athleteName = participant.name ?? undefined;
+  if (rows.length === 0) return { ...analyse([], weightKg, from, to), athleteName };
 
   const { data: items, error: itemsError } = await supabase
     .from('log_items')
@@ -330,5 +342,5 @@ export async function fetchGaps(from: IsoDate, to: IsoDate): Promise<GapAnalysis
     };
   });
 
-  return analyse(days, weightKg, from, to);
+  return { ...analyse(days, weightKg, from, to), athleteName };
 }

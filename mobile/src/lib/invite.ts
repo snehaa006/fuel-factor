@@ -3,19 +3,25 @@
  *
  * Pure, so the wording and the URL are both testable without a device.
  *
- * **The link alone is not enough, and the message says so.** A custom scheme
- * only opens if the app is already installed, and there is no https link to
- * fall back on: the app's web build exists and is deployed nowhere, so there
- * is no domain to hang a universal link off. A squad gets this over WhatsApp,
- * where a `fuelfactor://` link on a phone without the app does nothing at all.
+ * **The link is an ordinary https link now.** It used to be `fuelfactor://`,
+ * which WhatsApp does not even turn into a link and which opens nothing on a
+ * phone without the app. The web build is deployed (see `WEB_APP_URL`), so the
+ * link opens the real app in any phone's browser with nothing to install, and
+ * lands on the squad's join flow with the code already in it.
  *
- * So the code travels in words beside the link, and the message gives the
- * manual route. When the web build is deployed, `inviteUrl` gains an https
- * form and the shape of this message does not change.
+ * The code still travels in words beside the link, for an athlete who already
+ * has the app installed and would rather type six characters into it.
  */
 
 /** The scheme registered in app.json. Changing it there breaks every link already sent. */
 export const SCHEME = 'fuelfactor';
+
+/**
+ * Where the app's web build is served: a release build, so it has no
+ * developer menu, and the same host Expo Go loads its update from (see
+ * `scripts/build-web.mjs`). Changing it breaks every invite already sent.
+ */
+export const WEB_APP_URL = 'https://fuel-factor-expo-go.vercel.app';
 
 /** A join code as the database generates it: 6 characters from an unambiguous alphabet. */
 export const JOIN_CODE_LENGTH = 6;
@@ -49,9 +55,9 @@ export function normaliseCode(input: string): string {
   return normaliseCodeText(fromUrl ? fromUrl[1] : trimmed);
 }
 
-/** The deep link for a join code. */
+/** The link for a join code: opens the join flow in any browser. */
 export function inviteUrl(joinCode: string): string {
-  return `${SCHEME}://join/${normaliseCode(joinCode)}`;
+  return `${WEB_APP_URL}/join/${normaliseCode(joinCode)}`;
 }
 
 /**
@@ -68,6 +74,6 @@ export function inviteMessage(teamName: string, joinCode: string): string {
     '',
     inviteUrl(code),
     '',
-    `If that link does not open, install Fuel Factor and enter the team code ${code}.`,
+    `Already have the Fuel Factor app? Open it and enter the team code ${code}.`,
   ].join('\n');
 }

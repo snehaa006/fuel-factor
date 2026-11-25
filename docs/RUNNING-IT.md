@@ -11,7 +11,8 @@ flag, profile or script can produce a build that draws from sample data.
 |---|---|
 | **Expo Go link**, `preview` channel | `main`, the real app |
 | **Android APK**, `share` channel | `main`, the real app (installs update on next launch) |
-| **Web / coach dashboard** | `main`, the real app (run it locally, see below — it is not hosted) |
+| **Web app**, <https://fuel-factor-expo-go.vercel.app> | `main`, the real app, opened in any phone's or laptop's browser. **The demo build**: a release build, no dev menu, nothing to install. Deployed by Vercel on every push to `main` |
+| **Expo Go route**, same host | `main`, for Expo Go only (`exps://fuel-factor-expo-go.vercel.app`). A developer tool: shake opens Expo Go's menu |
 | **Confirmation page**, Vercel `fuel-factor` | Where the sign-up email lands. Static, one file |
 | **Supabase** `nprvrlpkdrgckzceyryc` | 18 migrations; weeks 1–2, badges, the food database; one team, Team Jakarta buddies |
 
@@ -66,7 +67,13 @@ the architectures that are actually phones roughly halves it — add this to the
 **Apple does not allow an app to be installed from a link.** There is no iOS
 equivalent of the APK above, and no free way to make one.
 
-### Expo Go, free
+### The web app, free — use this one for demos
+
+Open <https://fuel-factor-expo-go.vercel.app> in Safari. It is the real app,
+on the live database, as a release build: no dev menu on shake. *Share → Add
+to Home Screen* gives it an icon and a full screen.
+
+### Expo Go, free (a developer tool)
 
 1. Install **Expo Go** from the App Store.
 2. Open this on the phone:
@@ -141,22 +148,60 @@ cd mobile && npx expo export --platform web
 ```
 
 That writes `dist/`. It uses absolute paths, so it has to be served from the
-root of a host.
+root of a host. You do not need to do this by hand: Vercel builds and serves it
+on every push to `main` (see *How the web app is served* below).
 
 ## The dev menu, and which builds have one
 
-Shaking the phone opens React Native's dev menu. Where that happens is a
-property of the **build**, not of this code:
+Shaking the phone opens a developer menu **only inside Expo Go** (and a dev
+server). That menu belongs to Expo Go, not to Fuel Factor, and nothing in this
+app's code can switch it off — which is why "hide it in the demo build" is
+answered by *not demoing from Expo Go*, rather than by a setting.
 
 | Surface | Dev menu on shake? |
 |---|---|
-| **APK**, `share` / `live` / `production` | **No.** These are release builds and the menu is not compiled in. `developmentClient: false` is now explicit in `eas.json` so a profile cannot drift into shipping one. |
-| **Expo Go** | **Yes, and it cannot be turned off.** The menu belongs to Expo Go, not to Fuel Factor. No app-side setting reaches it. |
+| **Web app**, <https://fuel-factor-expo-go.vercel.app> | **No.** A production web build in the phone's browser. Works on iPhone and Android with nothing installed. |
+| **APK**, `share` / `live` / `production` | **No.** Release builds; the menu is not compiled in. `developmentClient: false` is explicit in `eas.json` and `expo-dev-client` is not a dependency, so a profile cannot drift into shipping one. |
+| **Expo Go** (either link) | **Yes, and the app cannot turn it off.** It is Expo Go's own menu. |
 | `expo start` | Yes, by design. |
 
-So: **demo from the APK, not from Expo Go**, and the shake gesture does
-nothing. The Expo Go link stays the iPhone route, where the menu is Expo Go's
-own and the only way round it is a TestFlight build.
+**Demo from the web app link** — on an iPhone it is the only release build
+there is without a $99 Apple account, and on Android it saves an install. Open
+it in Safari or Chrome and, for a full-screen icon, *Share → Add to Home
+Screen*. The APK is the other release build, for Android.
+
+### How the web app is served
+
+Same Vercel project and host as the Expo Go route (`fuel-factor-expo-go`,
+Git-connected, root `mobile/`). `vercel.json` builds both and
+`scripts/build-web.mjs` lays the web build beside the Expo Go update:
+
+- A request for `/` **with** an `expo-platform` header (Expo Go) is rewritten
+  to `ios.json` / `android.json`, exactly as before.
+- Any other path that is not a file is rewritten to `app.html`, the web app.
+
+The web build's `index.html` is deliberately renamed `app.html`: Vercel serves
+a real file before it applies a rewrite, so an `index.html` would answer
+Expo Go's `/` with HTML and break the Expo Go route. The script refuses to
+overwrite any file of the Expo Go update. Check both audiences after a deploy:
+
+```bash
+curl -s https://fuel-factor-expo-go.vercel.app/ -H "expo-platform: ios" | head -c 120
+```
+
+```bash
+curl -s https://fuel-factor-expo-go.vercel.app/join/ABC234 | grep -o "<title>[^<]*</title>"
+```
+
+The first must print JSON starting `{"id":`; the second `<title>Fuel Factor</title>`.
+
+### The invite link is the web app
+
+A coach's invite is `https://fuel-factor-expo-go.vercel.app/join/<CODE>`, an
+ordinary link WhatsApp makes tappable. It opens the join flow in the browser
+with the code already filled in. (It used to be `fuelfactor://join/<CODE>`,
+which WhatsApp does not linkify and which opens nothing on a phone without
+the APK.) The message still carries the code in words for anyone in the app.
 
 ## Testing a month in one sitting: the time machine
 
@@ -263,28 +308,47 @@ under `tamannas-projects-ab505aa3`). It carries no build step and nothing in
 
 ## The two screens the pitch needs (12 December)
 
-**Nutritional gap analysis — `/gaps`**, in the athlete's menu as *Fuel gaps*.
-A fortnight of logged days as bar charts against the programme's own bands:
-carbohydrate at 5–7 / 6–8 / 3–4 g/kg by day type (Week 1 deck) and protein at
-1.6–2.2 g/kg (Week 2 deck). Each chart prints whose number the band is, and
-days the band cannot be applied to are drawn hollow and explained rather than
+**Nutritional gap analysis — two views of the same charts.**
+
+- **Athlete: `/gaps`**, in the athlete's menu as *Fuel gaps*.
+- **Coach: `/coach/athlete/<id>`**, from **See fuel gaps** on each athlete's
+  card on the coach dashboard. Added 24 November: the consent screen tells
+  athletes the app "shows you and your coach where your fuel gaps are", and
+  until then only the athlete could see the charts.
+
+Both draw a fortnight of logged days as bar charts against the programme's
+own bands: carbohydrate at 5–7 / 6–8 / 3–4 g/kg by day type (Week 1 deck) and
+protein at 1.6–2.2 g/kg (Week 2 deck). They are one component
+(`components/gap-report.tsx`), so the coach and the athlete can never see the
+same fortnight differently. Each chart prints whose number the band is; days
+the band cannot be applied to are drawn hollow and explained rather than
 dropped or counted as zero. No other nutrient is charted, because the
-programme has set no other band — fluid has never been collected and energy is
-computed with no stated target.
+programme has set no other band.
 
-**A sample weekly module — `/learn/1` and `/learn/2`.** Already built and
-already seeded: week 1 is 10 lesson cards, week 2 is 12, both rendered from
-`lesson_cards` / `lesson_points` rows rather than written in the app. Weeks 3
-and 4 are locked because nobody has written them, and the screen says so
-instead of inventing a theme.
+**A sample weekly module — `/learn/1` to `/learn/4`.** All four weeks are
+seeded (10, 12, 12 and 11 cards) and rendered from `lesson_cards` /
+`lesson_points` rows. A week unlocks when its rows exist, not by date, so any
+week can be shown on any day.
 
-### Filling the gap charts before the pitch
+### Showing them on the day
 
-They read real logs, so they draw whatever the database holds — which for a
-fresh test athlete is nothing. There is no sample-data mode and there will not
-be one. Use the **time machine** instead: sign in as a test athlete on a test
-team, step back a fortnight, log a few days, step forward a day at a time. Ten
-minutes gets a chart with a shape in it, and every bar on it is a real row.
+The charts read real logs. The live project holds **ZZ Test Squad**
+(join code `TEST01`, coach code `TESTCOACH1`) with a month of invented logs
+for *Demo Athlete*, there precisely so these screens can be shown:
+
+1. **Athlete view:** open the web app, sign in (or make an account), enter
+   `TEST01`, pick *Demo Athlete*, open *Fuel gaps*.
+2. **Coach view:** with a coach account, enter coach code `TESTCOACH1` on the
+   dashboard, then **See fuel gaps** on *Demo Athlete*.
+
+The window is the 14 days up to *today*. If Demo Athlete's month is further
+back than that on the day, use the **time machine** pill to step back to a
+date inside it — every screen follows. Rehearse this once before 12 December.
+
+Fresh athletes have nothing to chart. There is no sample-data mode; to fill
+a test athlete's charts, use the time machine: step back a fortnight, log a
+few days, step forward a day at a time. Every bar is a real row, so do it on
+a test team.
 
 ## Identity, once and never again
 

@@ -11,18 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CheckBox } from '@/components/check-box';
-import { Mascot } from '@/components/mascot';
 import { PushButton } from '@/components/push-button';
-
-import {
-  CONSENT_CHECKBOX,
-  CONSENT_FORM_NOTE,
-  CONSENT_FORM_QUESTION,
-  CONSENT_HEADING,
-  CONSENT_WHAT_IT_IS,
-  CONSENT_WHAT_IT_IS_NOT,
-} from '@/lib/consent';
 import { messageOf } from '@/lib/errors';
 import { normaliseCode } from '@/lib/invite';
 import { useAccount } from '@/lib/use-account';
@@ -37,47 +26,44 @@ import {
   type MeasurementField,
   type Questionnaire,
 } from '@/lib/join';
-import { WELCOME_CUE } from '@/lib/mascot-copy';
 import { useTheme } from '@/theme';
 
-type Step = 'consent' | 'about-you';
-
 /**
- * The invite link's landing screen.
+ * The squad's questionnaire: an athlete the research team has not typed in yet.
  *
- * A coach creates a team and sends a link; this is where it lands. Consent
- * first and always, the same words the roster gate shows, because decision 8
- * of the brief makes it blocking on every route in and `join_team` refuses
- * without it.
+ * **No checkbox of any kind lives here.** Consent is taken once, at the start,
+ * on `/welcome` -- the "Before you start" screen every athlete passes before
+ * the app will take a team code. This screen used to show that same text and
+ * tick a second time, then ask a second consent question about the paper form
+ * on top of it, so one sitting asked a 14 year old to tick "consent" twice.
+ * Feedback from the people running the programme: it is a duplicate, remove it.
  *
- * **Asked once per athlete, not once per screen.** There are two ways here and
- * only one of them starts here. An athlete who came through `/welcome` has
- * already read this text and ticked the box -- the roster gate shows it before
- * it will even take a team code -- so being asked again on the next screen was
- * the same question twice in one sitting, which teaches a 14 year old that the
- * tick is paperwork. `/welcome` therefore sends its tick along and this screen
- * opens on the questionnaire. An invite link opened cold has passed no gate,
- * so it still gets one; `join_team` refuses a false answer either way, so the
- * skip can never widen into a route in without consent.
+ * So there are two ways in, and both have already passed the gate:
  *
- * Then the questionnaire. Every question is a column of the PARTICIPANTS
- * sheet, which is what the dietitian described: "if a participant gets into
- * the app, he'll have to fill in his height, weight, and certain parameters."
- * Only the name is required -- a 14 year old guessing at their calf
- * circumference is worse data than a blank, and the research team measures
- * these properly.
+ * - From `/welcome`, which sends `consented=1` along with the code.
+ * - From an invite link. That one has passed no gate, so it is sent to
+ *   `/welcome` with its code, takes the tick there, and comes straight back
+ *   here without retyping anything.
  *
- * An athlete already on the squad's roster goes the other way, to `/welcome`,
- * where they claim the row the research team already typed. That path keeps
- * the three seeded footballers' measured heights and weights intact instead of
- * overwriting them with a self-report.
+ * `join_team` still takes consent as an argument and refuses a false one, so
+ * the gate is enforced in the database whichever way somebody arrives.
+ *
+ * The paper form (`consent_signed` on the PARTICIPANTS sheet) is no longer
+ * asked of the athlete at all. It is a fact about a piece of paper, which the
+ * research team records in its tracker; a 14 year old's guess about it was
+ * never better data than the team's own record. It defaults to false, which
+ * reads "not recorded as signed" on the profile -- the truth.
+ *
+ * Every question left is a column of the PARTICIPANTS sheet, which is what
+ * the dietitian described: "if a participant gets into the app, he'll have to
+ * fill in his height, weight, and certain parameters." Only the name is
+ * required -- a 14 year old guessing at their calf circumference is worse data
+ * than a blank, and the research team measures these properly.
  */
 export default function Join() {
   const router = useRouter();
-  // `consented` is set by `/welcome`, which has already shown this exact
-  // text and taken the tick two steps earlier. An invite link opened cold
-  // arrives without it and gets the gate, because for that athlete this
-  // screen is the start.
+  // `consented` is set by `/welcome`, the one consent gate, which has shown
+  // the text and taken the tick before sending anybody here.
   const { code, consented: carried } = useLocalSearchParams<{
     code: string;
     consented?: string;
@@ -85,10 +71,8 @@ export default function Join() {
   const { colors, radius, spacing, typography } = useTheme();
 
   const joinCode = normaliseCode(code ?? '');
-  const alreadyConsented = carried === '1';
+  const consented = carried === '1';
 
-  const [step, setStep] = useState<Step>(alreadyConsented ? 'about-you' : 'consent');
-  const [consented, setConsented] = useState(alreadyConsented);
   const [teamName, setTeamName] = useState<string | null>(
     null
   );
@@ -108,7 +92,9 @@ export default function Join() {
   const signedIn = account.status === 'ready' && account.account.role !== 'signed-out';
 
   useEffect(() => {
-    if (!signedIn) return;
+    // Nothing is asked of the database for a visitor about to be sent to the
+    // gate: they come back with the tick and this runs then.
+    if (!signedIn || !consented) return;
     let active = true;
 
     async function start() {
@@ -131,7 +117,7 @@ export default function Join() {
     return () => {
       active = false;
     };
-  }, [joinCode, signedIn]);
+  }, [joinCode, signedIn, consented]);
 
   function setMeasurement(field: MeasurementField, text: string) {
     setMeasurementText((current) => ({ ...current, [field]: text }));
@@ -185,6 +171,13 @@ export default function Join() {
     return <Redirect href={{ pathname: '/sign-in', params: { joinCode } }} />;
   }
 
+  // An invite link opened by somebody who has not been through the gate.
+  // Consent is asked in one place, at the start, so they go there with the
+  // code and `/welcome` brings them back here once it is ticked.
+  if (account.status === 'ready' && !consented) {
+    return <Redirect href={{ pathname: '/welcome', params: { code: joinCode } }} />;
+  }
+
   if (loading || !signedIn) {
     return (
       <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
@@ -196,212 +189,145 @@ export default function Join() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
       <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-6'] }]}>
-
-        {step === 'consent' && (
-          <View style={{ gap: spacing['space-4'] }}>
-            <View style={{ alignItems: 'center' }}>
-              <Mascot
-                pose={WELCOME_CUE.pose}
-                size={176}
-                motion={WELCOME_CUE.motion}
-                testID="join-mascot"
-              />
-            </View>
-            {heading(CONSENT_HEADING)}
-            {teamName !== null && (
-              <Text testID="join-team-name" style={[typography['heading-m'], { color: colors['pisang-deep'] }]}>
-                You have been invited to {teamName}.
-              </Text>
-            )}
-            <Text style={[typography['body-l'], { color: colors.ink }]}>{CONSENT_WHAT_IT_IS}</Text>
-            <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-              {CONSENT_WHAT_IT_IS_NOT}
-            </Text>
-
-            <CheckBox
-              label={CONSENT_CHECKBOX}
-              checked={consented}
-              onChange={setConsented}
-              testID="join-consent"
-            />
-
-            <PushButton
-              label="Continue"
-              fullWidth
-              disabled={!consented || teamName === null}
-              testID="join-continue"
-              onPress={() => setStep('about-you')}
-            />
-
-            {/* The other route in, said plainly rather than left to be
-                guessed at by somebody whose coach already added them. */}
-            <Pressable
-              onPress={() => router.replace(`/welcome?code=${joinCode}`)}
-              accessibilityRole="button"
-              testID="join-already-listed"
+        <View style={{ gap: spacing['space-6'] }}>
+          {heading('About you')}
+          {/* Which squad they are joining, said before anything is asked. */}
+          {teamName !== null && (
+            <Text
+              testID="join-team-name"
+              style={[typography['heading-m'], { color: colors['pisang-deep'] }]}
             >
-              <Text
-                style={[
-                  typography['body-s'],
-                  { color: colors['air-deep'], textAlign: 'center' },
-                ]}
-              >
-                Already on the squad list? →
-              </Text>
-            </Pressable>
-          </View>
-        )}
-
-        {step === 'about-you' && (
-          <View style={{ gap: spacing['space-6'] }}>
-            {heading('About you')}
-            {/* Which squad, said on whichever step is the first one shown:
-                skipping the consent step must not skip the confirmation. */}
-            {alreadyConsented && teamName !== null && (
-              <Text
-                testID="join-team-name"
-                style={[typography['heading-m'], { color: colors['pisang-deep'] }]}
-              >
-                You have been invited to {teamName}.
-              </Text>
-            )}
-            <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-              Only your name is required. Leave anything you don&apos;t know blank.
+              You have been invited to {teamName}.
             </Text>
+          )}
+          <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
+            Only your name is required. Leave anything you don&apos;t know blank.
+          </Text>
 
-            <View style={{ gap: spacing['space-2'] }}>
-              {label('Name')}
-              <TextInput
-                value={form.name}
-                onChangeText={(name) => setForm((c) => ({ ...c, name }))}
-                placeholder="Your name"
-                placeholderTextColor={colors['ink-faint']}
-                accessibilityLabel="Name"
-                testID="join-name"
-                style={inputStyle}
-              />
-            </View>
-
-            <View style={{ gap: spacing['space-2'] }}>
-              {label('Sport')}
-              <TextInput
-                value={form.sport}
-                onChangeText={(sport) => setForm((c) => ({ ...c, sport }))}
-                placeholder="Football"
-                placeholderTextColor={colors['ink-faint']}
-                accessibilityLabel="Sport"
-                testID="join-sport"
-                style={inputStyle}
-              />
-            </View>
-
-            <View style={{ gap: spacing['space-2'] }}>
-              {label('Age')}
-              <View style={styles.bands}>
-                {AGE_BANDS.map((band) => {
-                  const selected = form.ageBand === band;
-                  return (
-                    <Pressable
-                      key={band}
-                      onPress={() => setForm((c) => ({ ...c, ageBand: selected ? null : band }))}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected }}
-                      accessibilityLabel={`Age ${band}`}
-                      testID={`join-age-${band}`}
-                      style={{
-                        backgroundColor: selected ? colors.pisang : colors['surface-sunken'],
-                        borderRadius: radius['radius-pill'],
-                        paddingVertical: spacing['space-2'],
-                        paddingHorizontal: spacing['space-4'],
-                      }}
-                    >
-                      <Text
-                        style={[
-                          typography['body-s'],
-                          { color: selected ? colors['on-bright'] : colors['ink-muted'] },
-                        ]}
-                      >
-                        {band}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-
-            <View style={{ gap: spacing['space-3'] }}>
-              {label('Measurements — all optional')}
-              {MEASUREMENTS.map((m) => (
-                <View key={m.field} style={{ gap: spacing['space-1'] }}>
-                  <Text style={[typography['body-m'], { color: colors.ink }]}>
-                    {m.label} ({m.unit})
-                  </Text>
-                  {m.hint !== undefined && (
-                    <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-                      {m.hint}
-                    </Text>
-                  )}
-                  <TextInput
-                    value={measurementText[m.field] ?? ''}
-                    onChangeText={(text) => setMeasurement(m.field, text)}
-                    keyboardType="decimal-pad"
-                    placeholder="—"
-                    placeholderTextColor={colors['ink-faint']}
-                    accessibilityLabel={`${m.label} in ${m.unit}`}
-                    testID={`join-${m.field}`}
-                    style={inputStyle}
-                  />
-                </View>
-              ))}
-            </View>
-
-            <CheckBox
-              label={CONSENT_FORM_QUESTION}
-              note={CONSENT_FORM_NOTE}
-              checked={form.consentSigned}
-              onChange={(consentSigned) => setForm((c) => ({ ...c, consentSigned }))}
-              testID="join-consent-form"
-            />
-
-            <View style={{ gap: spacing['space-2'] }}>
-              {label('Parent or guardian contact')}
-              <TextInput
-                value={form.parentContact}
-                onChangeText={(parentContact) => setForm((c) => ({ ...c, parentContact }))}
-                placeholder="Optional"
-                placeholderTextColor={colors['ink-faint']}
-                autoCapitalize="none"
-                accessibilityLabel="Parent or guardian contact"
-                testID="join-parent-contact"
-                style={inputStyle}
-              />
-            </View>
-
-            <View style={{ gap: spacing['space-2'] }}>
-              {label('Anything else')}
-              <TextInput
-                value={form.notes}
-                onChangeText={(notes) => setForm((c) => ({ ...c, notes }))}
-                placeholder="Optional"
-                placeholderTextColor={colors['ink-faint']}
-                multiline
-                accessibilityLabel="Anything else"
-                testID="join-notes"
-                style={[...inputStyle, styles.multiline]}
-              />
-            </View>
-
-            <PushButton
-              label={busy ? 'Joining…' : `Join ${teamName ?? 'the team'}`}
-              fullWidth
-              disabled={busy || form.name.trim() === ''}
-              testID="join-submit"
-              onPress={() => {
-                submit().catch((e: unknown) => setError(messageOf(e)));
-              }}
+          <View style={{ gap: spacing['space-2'] }}>
+            {label('Name')}
+            <TextInput
+              value={form.name}
+              onChangeText={(name) => setForm((c) => ({ ...c, name }))}
+              placeholder="Your name"
+              placeholderTextColor={colors['ink-faint']}
+              accessibilityLabel="Name"
+              testID="join-name"
+              style={inputStyle}
             />
           </View>
-        )}
+
+          <View style={{ gap: spacing['space-2'] }}>
+            {label('Sport')}
+            <TextInput
+              value={form.sport}
+              onChangeText={(sport) => setForm((c) => ({ ...c, sport }))}
+              placeholder="Football"
+              placeholderTextColor={colors['ink-faint']}
+              accessibilityLabel="Sport"
+              testID="join-sport"
+              style={inputStyle}
+            />
+          </View>
+
+          <View style={{ gap: spacing['space-2'] }}>
+            {label('Age')}
+            <View style={styles.bands}>
+              {AGE_BANDS.map((band) => {
+                const selected = form.ageBand === band;
+                return (
+                  <Pressable
+                    key={band}
+                    onPress={() => setForm((c) => ({ ...c, ageBand: selected ? null : band }))}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={`Age ${band}`}
+                    testID={`join-age-${band}`}
+                    style={{
+                      backgroundColor: selected ? colors.pisang : colors['surface-sunken'],
+                      borderRadius: radius['radius-pill'],
+                      paddingVertical: spacing['space-2'],
+                      paddingHorizontal: spacing['space-4'],
+                    }}
+                  >
+                    <Text
+                      style={[
+                        typography['body-s'],
+                        { color: selected ? colors['on-bright'] : colors['ink-muted'] },
+                      ]}
+                    >
+                      {band}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          <View style={{ gap: spacing['space-3'] }}>
+            {label('Measurements — all optional')}
+            {MEASUREMENTS.map((m) => (
+              <View key={m.field} style={{ gap: spacing['space-1'] }}>
+                <Text style={[typography['body-m'], { color: colors.ink }]}>
+                  {m.label} ({m.unit})
+                </Text>
+                {m.hint !== undefined && (
+                  <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
+                    {m.hint}
+                  </Text>
+                )}
+                <TextInput
+                  value={measurementText[m.field] ?? ''}
+                  onChangeText={(text) => setMeasurement(m.field, text)}
+                  keyboardType="decimal-pad"
+                  placeholder="—"
+                  placeholderTextColor={colors['ink-faint']}
+                  accessibilityLabel={`${m.label} in ${m.unit}`}
+                  testID={`join-${m.field}`}
+                  style={inputStyle}
+                />
+              </View>
+            ))}
+          </View>
+
+          <View style={{ gap: spacing['space-2'] }}>
+            {label('Parent or guardian contact')}
+            <TextInput
+              value={form.parentContact}
+              onChangeText={(parentContact) => setForm((c) => ({ ...c, parentContact }))}
+              placeholder="Optional"
+              placeholderTextColor={colors['ink-faint']}
+              autoCapitalize="none"
+              accessibilityLabel="Parent or guardian contact"
+              testID="join-parent-contact"
+              style={inputStyle}
+            />
+          </View>
+
+          <View style={{ gap: spacing['space-2'] }}>
+            {label('Anything else')}
+            <TextInput
+              value={form.notes}
+              onChangeText={(notes) => setForm((c) => ({ ...c, notes }))}
+              placeholder="Optional"
+              placeholderTextColor={colors['ink-faint']}
+              multiline
+              accessibilityLabel="Anything else"
+              testID="join-notes"
+              style={[...inputStyle, styles.multiline]}
+            />
+          </View>
+
+          <PushButton
+            label={busy ? 'Joining…' : `Join ${teamName ?? 'the team'}`}
+            fullWidth
+            disabled={busy || form.name.trim() === ''}
+            testID="join-submit"
+            onPress={() => {
+              submit().catch((e: unknown) => setError(messageOf(e)));
+            }}
+          />
+        </View>
 
         {error !== null && (
           <Text

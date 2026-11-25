@@ -14,7 +14,8 @@ jest.mock('@/lib/use-account');
 
 const mockReplace = jest.fn();
 const mockRedirect = jest.fn();
-let mockParams: { code?: string; consented?: string } = { code: 'ABC234' };
+// The usual arrival: from `/welcome`, which took the tick and sends it along.
+let mockParams: { code?: string; consented?: string } = { code: 'ABC234', consented: '1' };
 jest.mock('expo-router', () => ({
   useRouter: () => ({ replace: mockReplace, push: jest.fn(), back: jest.fn() }),
   useLocalSearchParams: () => mockParams,
@@ -33,20 +34,14 @@ const signedInAs = (account: Account) =>
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockParams = { code: 'ABC234' };
+  mockParams = { code: 'ABC234', consented: '1' };
   signedInAs({ role: 'unlinked', email: 'athlete@example.com' });
   mockTeamByCode.mockResolvedValue({ name: 'Jakarta U16', programmeStartsOn: null });
   mockJoinTeam.mockResolvedValue('participant-uuid');
 });
 
-/** Accept consent and reach the questionnaire. */
+/** Wait for the questionnaire, which is the whole screen now. */
 async function reachQuestionnaire() {
-  await waitFor(() => expect(screen.getByTestId('join-consent')).toBeTruthy());
-  fireEvent.press(screen.getByTestId('join-consent'));
-  await waitFor(() =>
-    expect(screen.getByTestId('join-continue').props.accessibilityState.disabled).toBe(false)
-  );
-  fireEvent.press(screen.getByTestId('join-continue'));
   await waitFor(() => expect(screen.getByTestId('join-name')).toBeTruthy());
 }
 
@@ -59,7 +54,7 @@ describe('the invite link lands here', () => {
   });
 
   it('normalises a scruffy code out of the route', async () => {
-    mockParams = { code: 'abc234' };
+    mockParams = { code: 'abc234', consented: '1' };
     await render(<Join />);
     await waitFor(() => expect(mockTeamByCode).toHaveBeenCalledWith('ABC234'));
   });
@@ -71,20 +66,44 @@ describe('the invite link lands here', () => {
   });
 });
 
-describe('consent comes first, on this route too', () => {
-  it('will not continue until it is given', async () => {
-    // Decision 8 makes the gate blocking on every route in, and `join_team`
-    // refuses without it.
+/**
+ * Consent is asked once, at the start, and never on this screen.
+ *
+ * Feedback from the people running the programme: the Join screen's consent
+ * checkbox duplicated the gate every athlete had already passed. Both of its
+ * checkboxes are gone -- the repeated gate and the paper-form question -- and
+ * an invite link opened cold goes through the one gate instead.
+ */
+describe('no consent checkbox on the Join screen', () => {
+  it('has no checkbox of any kind', async () => {
     await render(<Join />);
-    await waitFor(() => expect(screen.getByTestId('join-continue')).toBeTruthy());
-    expect(screen.getByTestId('join-continue').props.accessibilityState.disabled).toBe(true);
+    await reachQuestionnaire();
+    expect(screen.queryByTestId('join-consent')).toBeNull();
+    expect(screen.queryByTestId('join-consent-form')).toBeNull();
+    expect(screen.queryByRole('checkbox')).toBeNull();
+    expect(screen.queryByText(/consent/i)).toBeNull();
   });
 
-  it('shows the same words the roster gate shows', async () => {
+  it('opens straight on the questionnaire', async () => {
     await render(<Join />);
-    await waitFor(() =>
-      expect(screen.getByText(/never sets a weight goal, never tells you to eat less/)).toBeTruthy()
-    );
+    await reachQuestionnaire();
+    expect(screen.queryByTestId('join-continue')).toBeNull();
+  });
+
+  it('sends an invite link opened cold through the one gate, with its code', async () => {
+    mockParams = { code: 'abc234' };
+    await render(<Join />);
+    expect(mockRedirect).toHaveBeenCalledWith({
+      pathname: '/welcome',
+      params: { code: 'ABC234' },
+    });
+    expect(screen.queryByTestId('join-name')).toBeNull();
+  });
+
+  it('asks the database nothing for a visitor on the way to the gate', async () => {
+    mockParams = { code: 'ABC234' };
+    await render(<Join />);
+    expect(mockTeamByCode).not.toHaveBeenCalled();
   });
 });
 
@@ -102,7 +121,6 @@ describe('the questionnaire', () => {
       'join-calf_cm',
       'join-parent-contact',
       'join-notes',
-      'join-consent-form',
     ]) {
       expect(screen.getByTestId(field)).toBeTruthy();
     }
@@ -157,12 +175,23 @@ describe('the questionnaire', () => {
     );
   });
 
-  it('asks about the paper consent form as a separate question', async () => {
-    // `consent_signed` means a form was signed on paper; the tick in the gate
-    // is an app event. The two are different records on purpose.
+  it('leaves the paper consent form for the research team to record', async () => {
+    // `consent_signed` means a form was signed on paper. The athlete is no
+    // longer asked about it; it goes in unreported, which is the truth.
     await render(<Join />);
     await reachQuestionnaire();
-    expect(screen.getByText(/signed the programme’s consent form on paper/)).toBeTruthy();
+    fireEvent.changeText(screen.getByTestId('join-name'), 'Budi');
+    await waitFor(() =>
+      expect(screen.getByTestId('join-submit').props.accessibilityState.disabled).toBe(false)
+    );
+    fireEvent.press(screen.getByTestId('join-submit'));
+    await waitFor(() =>
+      expect(mockJoinTeam).toHaveBeenCalledWith(
+        'ABC234',
+        expect.objectContaining({ consentSigned: false }),
+        true
+      )
+    );
   });
 
   it('reports a units mistake rather than storing a clamped figure', async () => {
@@ -219,24 +248,8 @@ describe('an invite link opened without an account', () => {
   });
 });
 
-/**
- * Consent is asked once per athlete, not once per screen.
- *
- * `/welcome` shows this exact text and takes the tick before it will even
- * accept a team code, so an athlete arriving from there has already answered.
- * Being asked again on the next screen taught a 14 year old that the tick is
- * paperwork. An invite link opened cold has passed no gate and still gets one.
- */
-describe('consent carried from the roster gate', () => {
-  it('opens on the questionnaire when the gate already took the tick', async () => {
-    mockParams = { code: 'ABC234', consented: '1' };
-    await render(<Join />);
-    await waitFor(() => expect(screen.getByTestId('join-name')).toBeTruthy());
-    expect(screen.queryByTestId('join-consent')).toBeNull();
-  });
-
-  it('still says which squad, which was only on the step it skipped', async () => {
-    mockParams = { code: 'ABC234', consented: '1' };
+describe('consent carried from the gate', () => {
+  it('says which squad before asking anything', async () => {
     await render(<Join />);
     await waitFor(() =>
       expect(screen.getByTestId('join-team-name')).toHaveTextContent(
@@ -247,10 +260,9 @@ describe('consent carried from the roster gate', () => {
 
   it('joins with consent recorded, so the database is told the truth', async () => {
     // `join_team` takes consent as an argument and refuses without it. The
-    // skip must pass the tick on, never fake a missing one.
-    mockParams = { code: 'ABC234', consented: '1' };
+    // gate's tick is passed on, never faked.
     await render(<Join />);
-    await waitFor(() => expect(screen.getByTestId('join-name')).toBeTruthy());
+    await reachQuestionnaire();
     fireEvent.changeText(screen.getByTestId('join-name'), 'Budi');
     await waitFor(() =>
       expect(screen.getByTestId('join-submit').props.accessibilityState.disabled).toBe(false)
@@ -259,14 +271,5 @@ describe('consent carried from the roster gate', () => {
     await waitFor(() =>
       expect(mockJoinTeam).toHaveBeenCalledWith('ABC234', expect.anything(), true)
     );
-  });
-
-  it('asks an invite link opened cold, because for them this is the start', async () => {
-    mockParams = { code: 'ABC234' };
-    await render(<Join />);
-    await waitFor(() => expect(screen.getByTestId('join-consent')).toBeTruthy());
-    expect(screen.queryByTestId('join-name')).toBeNull();
-    // And will not go on until it is ticked.
-    expect(screen.getByTestId('join-continue').props.accessibilityState.disabled).toBe(true);
   });
 });

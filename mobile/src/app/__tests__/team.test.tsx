@@ -17,7 +17,7 @@ function board(over: Partial<Leaderboard> = {}): Leaderboard {
     { participantCode: 'T-01', name: 'Theo', daysLogged: 6, loggedToday: true, isMe: true },
     { participantCode: 'JA-01', name: 'Jacob', daysLogged: 4, loggedToday: false, isMe: false },
   ]);
-  return { teamName: 'Jakarta U16', rows, mvp: ['Jeongho'], windowDays: 7, ...over };
+  return { teamName: 'Jakarta U16', joinCode: 'K7XRMP', rows, mvp: ['Jeongho'], windowDays: 7, ...over };
 }
 
 /** The whole screen's data, with the week's board overridable on its own. */
@@ -41,6 +41,18 @@ describe('the Team screen', () => {
   it('names the team', async () => {
     await render(<Team />);
     expect(screen.getByText('Jakarta U16')).toBeTruthy();
+  });
+
+  it('gives an athlete the team code to copy for a teammate', async () => {
+    await render(<Team />);
+    expect(screen.getByTestId('team-join-code-code')).toHaveTextContent('K7XRMP');
+    expect(screen.getByTestId('team-join-code-copy')).toHaveTextContent('Copy code');
+  });
+
+  it('shows no code card when the code did not load', async () => {
+    mockUseTeam.mockReturnValue({ status: 'ready', view: view({ joinCode: null }) });
+    await render(<Team />);
+    expect(screen.queryByTestId('team-join-code')).toBeNull();
   });
 
   it('falls back without inventing a team name', async () => {

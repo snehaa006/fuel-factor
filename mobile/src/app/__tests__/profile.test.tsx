@@ -58,6 +58,19 @@ describe('an athlete’s profile', () => {
     expect(screen.getByTestId('profile-code')).toHaveTextContent(/Jakarta U16/);
   });
 
+  it('shows their team code with a copy button, to paste into the team chat', async () => {
+    athlete({ joinCode: 'K7XRMP' });
+    await render(<Profile />);
+    expect(screen.getByTestId('profile-team-code-code')).toHaveTextContent('K7XRMP');
+    expect(screen.getByTestId('profile-team-code-copy')).toHaveTextContent('Copy code');
+  });
+
+  it('shows no code card for an athlete whose team did not load', async () => {
+    athlete({ joinCode: null });
+    await render(<Profile />);
+    expect(screen.queryByTestId('profile-team-code')).toBeNull();
+  });
+
   it('shows the measurements the tracker holds', async () => {
     await render(<Profile />);
     expect(screen.getByTestId('profile-measurements')).toHaveTextContent(/174 cm/);
@@ -111,7 +124,7 @@ describe('an athlete’s profile', () => {
   it('shows the programme date once there is one', async () => {
     athlete({ programmeStartsOn: '2026-11-10' });
     await render(<Profile />);
-    expect(screen.getByTestId('profile-programme')).toHaveTextContent('2026-11-10');
+    expect(screen.getByTestId('profile-programme')).toHaveTextContent('Tuesday 10 November 2026');
   });
 });
 
@@ -186,7 +199,8 @@ describe('a coach’s profile', () => {
     });
     await render(<Profile />);
     expect(screen.getByTestId('profile-team')).toHaveTextContent('Jakarta U16');
-    expect(screen.getByText(/ABC234/)).toBeTruthy();
+    expect(screen.getByTestId('profile-coach-team-code-code')).toHaveTextContent('ABC234');
+    expect(screen.getByTestId('profile-coach-team-code-copy')).toBeTruthy();
   });
 
   it('never shows the coach code here', async () => {

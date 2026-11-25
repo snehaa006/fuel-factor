@@ -499,6 +499,7 @@ export const DEMO_LESSON_CARDS_BY_WEEK: Record<number, LessonCard[]> = {
  */
 export const DEMO_LEADERBOARD: Leaderboard = {
   teamName: 'Jakarta U16',
+  joinCode: 'K7XRMP',
   rows: [
     { participantCode: 'J-01', name: DEMO_NAMES.first, daysLogged: 7, loggedToday: true, isMe: false, position: 1 },
     { participantCode: 'T-01', name: DEMO_NAMES.me, daysLogged: 6, loggedToday: true, isMe: true, position: 2 },
@@ -621,6 +622,7 @@ export const DEMO_PROGRESS: Progress = {
  */
 export const DEMO_COACH_VIEW: CoachView = {
   teamName: 'Jakarta U16',
+  joinCode: 'K7XRMP',
   windowDays: 14,
   loggedToday: 2,
   athletes: [

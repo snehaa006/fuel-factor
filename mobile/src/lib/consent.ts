@@ -1,11 +1,13 @@
 /**
  * The consent gate's words, in one place.
  *
- * Two screens now take consent -- the roster claim at `/welcome` and the
- * invite questionnaire at `/join/[code]` -- and the whole point of decision 8
- * being blocking is that every route into the app shows the same thing. Two
- * copies of this text would drift, and the half that drifted would be the one
- * a parent read.
+ * One screen takes consent: `/welcome`, the "Before you start" screen every
+ * athlete passes before the app will take a team code. The invite
+ * questionnaire at `/join/[code]` used to show this text and its tick a second
+ * time, and then a second consent question about the paper form; the people
+ * running the programme called it a duplicate, and it is gone. An invite link
+ * opened cold is sent through `/welcome` instead, so every route in still
+ * passes the same gate exactly once.
  *
  * `claim_participant` and `join_team` both take consent as an argument and
  * refuse without it, so the gate is enforced in the database either way. This
@@ -36,22 +38,10 @@ export const CONSENT_WHAT_IT_IS =
 export const CONSENT_WHAT_IT_IS_NOT =
   'It never sets a weight goal, never tells you to eat less, and never calls a food bad. Nothing it shows you is a substitute for advice from a dietitian or a doctor.';
 
-/** The box an athlete ticks. Not the parental form -- see below. */
+/**
+ * The box an athlete ticks, once, on `/welcome`. It lands in `consent_ack_at`
+ * (app tier), never in `participants.consent_signed`, which means the paper
+ * form and is the research team's to record.
+ */
 export const CONSENT_CHECKBOX =
   'I am under 18 and my parent or guardian has agreed to this.';
-
-/**
- * The questionnaire's separate question about the programme's paper form.
- *
- * Deliberately phrased as reporting rather than signing. `consent_signed` on
- * the PARTICIPANTS sheet means a parental consent form was signed on paper;
- * the athlete is answering a question about that form's existence. The tick
- * above is the app's own gate and lands in `consent_ack_at`, which is app
- * tier. Recording one as the other would put an app event into the study's
- * record dressed as a collected fact.
- */
-export const CONSENT_FORM_QUESTION =
-  'Has your parent or guardian signed the programme’s consent form on paper?';
-
-export const CONSENT_FORM_NOTE =
-  'Not sure? Leave it unticked and ask your coach.';

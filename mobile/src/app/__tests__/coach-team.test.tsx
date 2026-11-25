@@ -185,7 +185,7 @@ describe('copying the code', () => {
     await waitFor(() => expect(mockCopy).toHaveBeenCalledTimes(1));
     const sent = mockCopy.mock.calls[0][0];
     expect(sent).toContain('Join Jakarta U16 on Fuel Factor.');
-    expect(sent).toContain('fuelfactor://join/FUEL01');
+    expect(sent).toContain('https://fuel-factor-expo-go.vercel.app/join/FUEL01');
     expect(sent).toContain('enter the team code FUEL01');
   });
 

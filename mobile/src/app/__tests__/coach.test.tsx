@@ -12,9 +12,10 @@ jest.mock('@/lib/use-account');
 
 // A mock factory can only reach variables named mock*, so these are.
 const mockReplace = jest.fn();
+const mockPush = jest.fn();
 const mockRedirect = jest.fn();
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ back: jest.fn(), push: jest.fn(), replace: mockReplace }),
+  useRouter: () => ({ back: jest.fn(), push: mockPush, replace: mockReplace }),
   // Records where the guard sent the caller and renders nothing, which is
   // what the real one does to this tree.
   Redirect: ({ href }: { href: string }) => {
@@ -126,6 +127,14 @@ describe('the coach code gate', () => {
     expect(mockJoin).toHaveBeenCalledWith('COACH01');
   });
 
+  it('capitalises a code typed in lower case, so the lookup cannot miss on case', async () => {
+    await render(<Coach />);
+    fireEvent.changeText(screen.getByTestId('coach-code'), 'coach01');
+    await waitFor(() => expect(screen.getByTestId('coach-code').props.value).toBe('COACH01'));
+    fireEvent.press(screen.getByTestId('coach-join'));
+    expect(mockJoin).toHaveBeenCalledWith('COACH01');
+  });
+
   it('shows a refused code in the words the database used', async () => {
     mockUseCoach.mockReturnValue({
       status: 'needs-code',
@@ -188,6 +197,28 @@ describe('the coach dashboard', () => {
     mockUseCoach.mockReturnValue(ready({ athletes: [], loggedToday: 0 }));
     await render(<Coach />);
     expect(screen.getByTestId('coach-empty')).toBeTruthy();
+  });
+
+  it('opens each athlete’s fuel-gap charts', async () => {
+    await render(<Coach />);
+    const first = DEMO_COACH_VIEW.athletes[0];
+    fireEvent.press(screen.getByTestId(`athlete-${first.participantId}-gaps`));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/coach/athlete/[id]',
+      params: { id: first.participantId },
+    });
+  });
+
+  it('puts the join code and a copy button on the dashboard itself', async () => {
+    await render(<Coach />);
+    expect(screen.getByTestId('coach-join-code-code')).toHaveTextContent('K7XRMP');
+    expect(screen.getByTestId('coach-join-code-copy')).toHaveTextContent('Copy code');
+  });
+
+  it('offers the code to an empty squad, which is when it is needed most', async () => {
+    mockUseCoach.mockReturnValue(ready({ athletes: [], loggedToday: 0 }));
+    await render(<Coach />);
+    expect(screen.getByTestId('coach-join-code')).toBeTruthy();
   });
 
   it('shows a refusal in words', async () => {

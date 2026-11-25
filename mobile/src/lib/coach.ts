@@ -67,6 +67,8 @@ export type CoachAthlete = {
 
 export type CoachView = {
   teamName: string | null;
+  /** The squad's join code, for the copy button. Null if it did not load. */
+  joinCode: string | null;
   athletes: CoachAthlete[];
   /** How many of the squad logged today. The number a coach opens this for. */
   loggedToday: number;
@@ -144,7 +146,8 @@ export function toCoachView(
   carbs: CarbsByLog,
   today: IsoDate,
   windowDays: number,
-  teamName: string | null
+  teamName: string | null,
+  joinCode: string | null = null
 ): CoachView {
   const athletes = participants
     .map((p) => {
@@ -193,6 +196,7 @@ export function toCoachView(
 
   return {
     teamName,
+    joinCode,
     athletes,
     loggedToday: athletes.filter((a) => a.loggedToday).length,
     windowDays,
@@ -228,7 +232,7 @@ export async function fetchCoachView(
   windowDays: number
 ): Promise<CoachView> {
   const [team, participants, logs] = await Promise.all([
-    supabase.from('teams').select('name').limit(1).maybeSingle(),
+    supabase.from('teams').select('name, join_code').limit(1).maybeSingle(),
     // Row level security answers "whose athletes": a coach reads their team's
     // participants and nobody else's.
     supabase.from('participants').select('id, name, weight_kg').order('name'),
@@ -253,7 +257,8 @@ export async function fetchCoachView(
     carbs,
     today,
     windowDays,
-    team.data?.name ?? null
+    team.data?.name ?? null,
+    team.data?.join_code ?? null
   );
 }
 

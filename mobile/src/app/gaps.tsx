@@ -4,7 +4,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppSidebar } from '@/components/app-sidebar';
-import { GapBars } from '@/components/gap-bars';
+import { GapReport } from '@/components/gap-report';
 import { MascotBanner } from '@/components/mascot-banner';
 import { PushButton } from '@/components/push-button';
 import { SidebarButton } from '@/components/sidebar';
@@ -35,7 +35,7 @@ import { useTheme } from '@/theme';
  */
 export default function Gaps() {
   const router = useRouter();
-  const { colors, radius, spacing, typography } = useTheme();
+  const { colors, spacing, typography } = useTheme();
   const state = useGaps();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -69,7 +69,6 @@ export default function Gaps() {
   }
 
   const { analysis } = state;
-  const logged = analysis.days.length;
   const anyJudged = analysis.gaps.some((g) => g.judged > 0);
 
   return (
@@ -101,57 +100,7 @@ export default function Gaps() {
           />
         </View>
 
-        <Text
-          testID="gaps-window"
-          style={[
-            typography['body-s'],
-            { color: colors['ink-muted'], marginTop: spacing['space-4'] },
-          ]}
-        >
-          {logged === 0
-            ? `No days logged between ${analysis.from} and ${analysis.to}.`
-            : `${logged} ${logged === 1 ? 'day' : 'days'} logged between ${analysis.from} and ${analysis.to}.`}
-        </Text>
-
-        <View style={{ marginTop: spacing['space-4'], gap: spacing['space-3'] }}>
-          {analysis.gaps.map((gap) => (
-            <GapBars key={gap.nutrient} gap={gap} testID={`gap-${gap.nutrient}`} />
-          ))}
-        </View>
-
-        {analysis.weightKg === null && (
-          <Text
-            testID="gaps-no-weight"
-            style={[
-              typography['body-m'],
-              { color: colors['ink-muted'], marginTop: spacing['space-4'] },
-            ]}
-          >
-            {/* Both bands are per kilogram, so without a weight there is no
-                band to compare anything against. Said once, here, rather than
-                under each chart. */}
-            Both of the programme&apos;s bands are set per kilogram of body weight, and yours is
-            not recorded yet. Ask your coach to add it and these charts fill in.
-          </Text>
-        )}
-
-        {/* The legend, because three fills and a hollow bar is three things to
-            learn and the charts are worth nothing if they are misread. */}
-        <View
-          style={{
-            marginTop: spacing['space-6'],
-            backgroundColor: colors['surface-raised'],
-            borderRadius: radius['radius-lg'],
-            padding: spacing['space-4'],
-            gap: spacing['space-2'],
-          }}
-        >
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>READING THE CHARTS</Text>
-          <Key colour={colors.daun} text="Inside the programme’s band" />
-          <Key colour={colors.cabai} text="Below it" />
-          <Key colour={colors.pisang} text="Above it" />
-          <Key colour={null} text="Not enough recorded to say" />
-        </View>
+        <GapReport analysis={analysis} reader="athlete" testID="gaps" />
 
         <View style={{ marginTop: spacing['space-6'], gap: spacing['space-3'] }}>
           <PushButton
@@ -181,31 +130,9 @@ export default function Gaps() {
   );
 }
 
-/** One row of the legend. A hollow swatch for the unjudged days. */
-function Key({ colour, text }: { colour: string | null; text: string }) {
-  const { colors, radius, typography } = useTheme();
-  return (
-    <View style={styles.key}>
-      <View
-        style={{
-          width: 14,
-          height: 14,
-          borderRadius: radius['radius-sm'],
-          backgroundColor: colour ?? 'transparent',
-          borderWidth: colour === null ? 1.5 : 0,
-          borderColor: colors['ink-faint'],
-          borderStyle: colour === null ? 'dashed' : 'solid',
-        }}
-      />
-      <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>{text}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   centre: { alignItems: 'center', justifyContent: 'center' },
   content: { paddingBottom: 48 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  key: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 });
