@@ -6,8 +6,11 @@ import {
   fetchChallengeLogs,
   programmeWeek,
   weekDates,
+  isPreSleepFood,
   type ChallengeItem,
   type ChallengeLog,
+  type HabitChallengeSpec,
+  type MealChallengeSpec,
 } from '@/lib/meal-challenge';
 import { demoChallengeLogs } from '@/lib/__fixtures__/today';
 import { statusLine } from '@/components/meal-challenge-card';
@@ -17,8 +20,10 @@ jest.mock('@/lib/supabase', () => ({ supabase: { from: jest.fn() } }));
 const mockFrom = supabase.from as unknown as jest.Mock;
 
 const START = '2026-11-09'; // a Monday
-const WEEK1 = CHALLENGES[1];
-const WEEK2 = CHALLENGES[2];
+const WEEK1 = CHALLENGES[1] as MealChallengeSpec;
+const WEEK2 = CHALLENGES[2] as MealChallengeSpec;
+const WEEK3 = CHALLENGES[3] as HabitChallengeSpec;
+const WEEK4 = CHALLENGES[4] as HabitChallengeSpec;
 
 type Slot = ChallengeItem['slot'];
 const carb = (slot: Slot, carbs_g: number | null = 57): ChallengeItem => ({
@@ -54,9 +59,22 @@ describe('the challenges are the decks’ own', () => {
     });
   });
 
-  it('weeks 3 and 4 have no challenge until their decks arrive', () => {
-    expect(CHALLENGES[3]).toBeUndefined();
-    expect(CHALLENGES[4]).toBeUndefined();
+  it('week 3 is urine colour every morning, and milk or a banana before sleep', () => {
+    // "check your urine colour every morning ... on training nights, have warm
+    // milk or a banana 30 minutes before sleep."
+    expect(WEEK3).toMatchObject({ kind: 'habits', habits: ['urine', 'presleep'], daysNeeded: 7 });
+    expect(WEEK3.title).toBe('Log urine colour every morning + pre-sleep recovery');
+  });
+
+  it('week 4 is the morning protocol on one day, and says what it cannot check', () => {
+    // "run the full morning protocol one day -- 500mL water on waking,
+    // breakfast before training, check your urine colour."
+    expect(WEEK4).toMatchObject({ kind: 'habits', habits: ['breakfast', 'urine'], daysNeeded: 1 });
+    expect(WEEK4.unrecorded).toMatch(/water on waking/);
+  });
+
+  it('has nothing for a week the programme never wrote', () => {
+    expect(CHALLENGES[5]).toBeUndefined();
   });
 });
 
@@ -218,6 +236,97 @@ describe('challengeWeek, week 2', () => {
   });
 });
 
+const W3_START = '2026-11-23'; // week 3 of a programme starting 9 November
+const W4_START = '2026-11-30';
+const item = (slot: Slot, name: string): ChallengeItem => ({ slot, carbs_g: 10, protein_g: 3, name });
+const habitDay = (
+  date: string,
+  over: Partial<ChallengeLog> = {},
+  items: ChallengeItem[] = []
+): ChallengeLog => ({ date, items, urineColour: 3, dayType: 'training', ...over });
+
+describe('the pre-sleep foods week 3 names', () => {
+  it('counts milk and banana by the food’s first word', () => {
+    for (const name of ['Susu Sapi', 'Pisang Mas', 'Susu', 'Pisang', 'banana']) {
+      expect(isPreSleepFood(name)).toBe(true);
+    }
+  });
+
+  it('does not count a food that only mentions one', () => {
+    for (const name of ['Jantung Pisang', 'Roti Putih', '', undefined]) {
+      expect(isPreSleepFood(name)).toBe(false);
+    }
+  });
+});
+
+describe('week 3: urine colour every day, and the pre-sleep snack on training nights', () => {
+  const today = '2026-11-29'; // the week's last day
+
+  it('wins a training day with a urine colour and milk before sleep', () => {
+    const week = challengeWeek([habitDay(W3_START, {}, [item('evening_snack', 'Susu Sapi')])], START, today, WEEK3);
+    expect(week.days[0].status).toBe('done');
+    expect(week.days[0].checks.map((c) => [c.key, c.hit, c.applies])).toEqual([
+      ['urine', true, true],
+      ['presleep', true, true],
+    ]);
+  });
+
+  it('misses a training day with no pre-sleep snack', () => {
+    const week = challengeWeek([habitDay(W3_START, {}, [item('evening_snack', 'Apel')])], START, today, WEEK3);
+    expect(week.days[0].status).toBe('missed');
+  });
+
+  it('does not ask a rest night for the snack', () => {
+    const week = challengeWeek([habitDay(W3_START, { dayType: 'rest' })], START, today, WEEK3);
+    expect(week.days[0].status).toBe('done');
+    expect(week.days[0].checks.find((c) => c.key === 'presleep')?.applies).toBe(false);
+  });
+
+  it('misses a day with no urine colour', () => {
+    const week = challengeWeek(
+      [habitDay(W3_START, { urineColour: null }, [item('evening_snack', 'Pisang Mas')])],
+      START, today, WEEK3
+    );
+    expect(week.days[0].status).toBe('missed');
+  });
+
+  it('does not win a day nobody logged', () => {
+    const week = challengeWeek([], START, today, WEEK3);
+    expect(week.days.every((d) => d.status === 'missed' || d.status === 'today')).toBe(true);
+    expect(week.broken).toBe(true);
+  });
+
+  it('only counts a snack logged as the evening snack', () => {
+    const week = challengeWeek([habitDay(W3_START, {}, [item('breakfast', 'Susu Sapi')])], START, today, WEEK3);
+    expect(week.days[0].status).toBe('missed');
+  });
+});
+
+describe('week 4: the morning protocol on one day', () => {
+  it('is complete after one day with breakfast and a urine colour', () => {
+    const week = challengeWeek(
+      [habitDay('2026-12-01', {}, [item('breakfast', 'Telur Ayam')])],
+      START, '2026-12-03', WEEK4
+    );
+    expect(week.daysNeeded).toBe(1);
+    expect(week.complete).toBe(true);
+    expect(week.broken).toBe(false);
+    expect(statusLine(week)).toBe('Done. Challenge complete!');
+  });
+
+  it('is still winnable after missed days while a day is left', () => {
+    const week = challengeWeek([habitDay(W4_START, { urineColour: null })], START, '2026-12-03', WEEK4);
+    expect(week.complete).toBe(false);
+    expect(week.broken).toBe(false);
+    expect(statusLine(week)).toMatch(/^Not done yet/);
+  });
+
+  it('needs the breakfast too', () => {
+    const week = challengeWeek([habitDay(W4_START)], START, '2026-12-06', WEEK4);
+    expect(week.days[0].status).toBe('missed');
+  });
+});
+
 describe('fetchChallengeLogs', () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -254,6 +363,9 @@ describe('fetchChallengeLogs', () => {
       },
     ]);
     const logs = await fetchChallengeLogs(START, '2026-11-11', 1);
+    expect(String(calls.select?.[0])).toMatch(/urine_colour, day_type/);
+    // Weeks 3 and 4 read these; a row without them reads as not recorded.
+    expect(logs[0]).toMatchObject({ urineColour: null, dayType: null });
     expect(calls.gte).toEqual(['log_date', '2026-11-09']);
     expect(calls.lte).toEqual(['log_date', '2026-11-11']);
     expect(logs[0].items).toEqual([
