@@ -50,4 +50,29 @@ describe('MealChallengeCard', () => {
     expect(screen.getByText('WEEK 2 CHALLENGE')).toBeTruthy();
     expect(screen.getByText('B Breakfast · L Lunch · P Post-training · D Dinner')).toBeTruthy();
   });
+
+  it('draws week 3’s two habits, and a dash for the snack on a rest night', async () => {
+    const logs: ChallengeLog[] = [
+      { date: '2026-11-23', urineColour: 3, dayType: 'training',
+        items: [{ slot: 'evening_snack', carbs_g: 4, name: 'Susu Sapi' }] },
+      { date: '2026-11-24', urineColour: 2, dayType: 'rest', items: [] },
+    ];
+    await render(
+      <MealChallengeCard week={challengeWeek(logs, START, '2026-11-25', CHALLENGES[3])} testID="c" />
+    );
+    expect(screen.getByText('WEEK 3 CHALLENGE')).toBeTruthy();
+    expect(screen.getByText('U Urine colour · S Milk or banana before sleep (training nights)')).toBeTruthy();
+    expect(screen.getByTestId('c-2026-11-23-presleep')).toHaveTextContent('S');
+    expect(screen.getByTestId('c-2026-11-24-presleep')).toHaveTextContent('–');
+    expect(screen.getByTestId('c-status')).toHaveTextContent(/^2 of 7 days/);
+  });
+
+  it('says week 4’s water on waking is not something the app records', async () => {
+    await render(
+      <MealChallengeCard week={challengeWeek([], START, '2026-11-30', CHALLENGES[4])} testID="c" />
+    );
+    expect(screen.getByText('WEEK 4 CHALLENGE')).toBeTruthy();
+    expect(screen.getByTestId('c-unrecorded')).toHaveTextContent(/water on waking/);
+    expect(screen.getByText('B Breakfast · U Urine colour')).toBeTruthy();
+  });
 });

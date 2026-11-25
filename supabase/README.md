@@ -271,22 +271,39 @@ counts any breakfast text as a breakfast eaten; and Jacob's breakfast frequency
 cell, which Excel turned into 3 March, is stored as 3 (of 3 days).
 
 **What is constructed:** the daily logs. The programme collected weekly
-check-ins, not daily food logs, and the gap charts need days. Each athlete's
-days (28 October to **14 December**, so the 14-day window is full on pitch
-day) are built from the foods in his own three recalled days, mapped to
-Indonesian food-table (TKPI) entries that carry both a carbohydrate and a
-protein figure, plus what each week taught: a carb at every meal (week 1),
-protein at breakfast and after training (week 2), and a pre-match meal (week 4).
-Training energy, urine colour, fluid, breakfast every day and each week's
-check-in answer (as a note on the week's last day) are the tracker's weekly
-figures. The baseline recalls carry food-table items too, so their nutrition
-is computed by `compute_recall_nutrition`; it lands close to the tracker's own
+check-ins, not daily food logs, and the gap charts need days. The days are
+built to what the WEEKLY LOG reports (rebuilt 25 November so every week
+agrees with it):
+
+* **A log every day of the four weeks** (28 October to 24 November), with
+  breakfast every day -- the tracker has every athlete every week and
+  "Everyday" breakfast throughout. After the programme the same dates as
+  before stay logged, to **14 December**, so the 14-day window is full on
+  pitch day.
+* **Week 1:** a carbohydrate source at breakfast, lunch and dinner.
+  **Week 2:** a protein source at every meal, as all three answered.
+  **Week 3:** urine colour every day and milk or a banana before sleep on most
+  training nights. **Week 4:** breakfast and urine colour every day, so the
+  morning protocol is met, and a top-up snack before matches. Each week's
+  challenge on Today therefore reads 7/7 in weeks 1, 2 and 4 and 6-7/7 in
+  week 3.
+* Each athlete's meals are his own three recalled days, mapped to Indonesian
+  food-table (TKPI) entries that carry both a carbohydrate and a protein figure
+  and whose first word the app counts as a source (so `Makaroni`, not
+  `Spaghetti`; `Daging Sapi`, not `Rendang`).
+* Training energy, urine colour and fluid are each week's tracker averages,
+  and each week's check-in answer is a note on its last day.
+
+The baseline recalls carry food-table items too, so their nutrition is
+computed by `compute_recall_nutrition`; it lands close to the tracker's own
 3-day averages (Theo about 93 g carbohydrate and 140 g protein, against 87 g
 and 134 g).
 
-The result tells the tracker's story: Theo stays below the carbohydrate band
-on every day (his baseline was 87 g a day), so his coach sees the
-under-fuelling flag; Jeongho and Jacob climb into the band by week 4.
+The result tells the tracker's story: Theo's carbohydrate climbs every week
+(about 170 g a day in week 1 to 245 g in week 4, from a baseline of 87 g) and
+reaches his band on rest days, but stays below it on training days, so his
+coach sees the under-fuelling flag. Jeongho and Jacob reach their band by
+week 4.
 The participant codes start `TEST-`, so an export drops them like the other
 test squads.
 
