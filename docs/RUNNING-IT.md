@@ -14,20 +14,20 @@ flag, profile or script can produce a build that draws from sample data.
 | **Web app**, <https://fuel-factor-expo-go.vercel.app> | `main`, the real app, opened in any phone's or laptop's browser. **The demo build**: a release build, no dev menu, nothing to install. Deployed by Vercel on every push to `main` |
 | **Expo Go route**, same host | `main`, for Expo Go only (`exps://fuel-factor-expo-go.vercel.app`). A developer tool: shake opens Expo Go's menu |
 | **Confirmation page**, Vercel `fuel-factor` | Where the sign-up email lands. Static, one file |
-| **Supabase** `nprvrlpkdrgckzceyryc` | 18 migrations; weeks 1–2, badges, the food database; one team, Team Jakarta buddies |
+| **Supabase** `nprvrlpkdrgckzceyryc` | 18 migrations; all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
 
-Both phone channels were published on 25 November 2026 from commit
-`bca3c55` (branch `claude/compassionate-albattani-64lxnx`, not yet merged to
-`main`): no consent checkbox on Join, the team-code card with Copy and Share,
-the coach's fuel-gap charts, https invite links and readable dates.
+Both phone channels were last published on 25 November 2026 from commit
+`39fce90`, which is also what `main` carries: no consent checkbox on Join,
+the team-code card with Copy and Share, the coach's fuel-gap charts (and a
+long team name that wraps on the coach dashboard), https invite links and
+readable dates.
 
 | Channel | Update group | Previous group, to roll back to |
 |---|---|---|
-| `preview` | `8156bed1-ab67-4116-b231-eddd5c9d1533` | `37b2238c-603d-44f1-818c-3f099e46302e` |
-| `share` | `eb5f5d13-d2b7-4751-a050-13483f985bf5` | `ec138c3b-3086-4c33-8cde-88db6c7ea897` |
+| `preview` | `4af37b74-62dc-4a39-a009-ae989880a481` | `8156bed1-ab67-4116-b231-eddd5c9d1533` |
+| `share` | `7cbb761c-8967-40c6-9183-22354a03a4e2` | `eb5f5d13-d2b7-4751-a050-13483f985bf5` |
 
-The web app and the self-hosted Expo Go route follow `main` on Vercel, so they
-pick these changes up only when the branch is merged.
+The web app and the self-hosted Expo Go route follow `main` on Vercel.
 
 **Pushing to GitHub does not change the phones.** A bundle moves only when
 somebody runs `eas update` (below). The two are separate systems.
