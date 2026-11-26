@@ -295,3 +295,158 @@ describe('the week 2 protein rules', () => {
     );
   });
 });
+
+/** What the week 3 and 4 tests change on the base log. */
+type LogOver = {
+  day_type?: 'training' | 'match' | 'rest';
+  urine_colour?: number | null;
+  dinner?: boolean;
+  pre_training?: boolean;
+};
+
+describe('the week 3 recovery rules', () => {
+  const day = { ...log, breakfast: true };
+  // A dinner the week 2 protein rules have nothing to say about, so only week 3's speak.
+  const rice: LoggedItem = { slot: 'dinner', quantity: 1, carbs_g: 57, name: 'Nasi Putih', carbSource: true };
+  const chicken: LoggedItem = { slot: 'dinner', quantity: 1, carbs_g: 0, protein_g: 24, name: 'Ayam Dada', proteinSource: true };
+  const snack = (name: string): LoggedItem => ({ slot: 'evening_snack', quantity: 1, carbs_g: null, name });
+  const codes = (over: LogOver, items: LoggedItem[], week: number) =>
+    evaluate(summariseDay({ ...day, ...over }, items, 68), DEMO_RULES, NOON, week).map((n) => n.code);
+
+  describe('the pre-sleep snack', () => {
+    it('fires on a training night with dinner in and no milk or banana, from week 3', () => {
+      expect(codes({}, [rice, chicken], 3)).toEqual(['no_presleep_snack_training_night']);
+    });
+
+    it('says nothing in weeks 1 and 2, before sleep is taught', () => {
+      expect(codes({}, [rice, chicken], 1)).toEqual([]);
+      expect(codes({}, [rice, chicken], 2)).not.toContain('no_presleep_snack_training_night');
+    });
+
+    it('keeps firing in week 4', () => {
+      expect(codes({}, [rice, chicken], 4)).toContain('no_presleep_snack_training_night');
+    });
+
+    it('waits for dinner', () => {
+      // Before dinner the evening has not started.
+      expect(codes({}, [], 3)).not.toContain('no_presleep_snack_training_night');
+    });
+
+    it('counts a dinner ticked without items', () => {
+      expect(codes({ dinner: true }, [], 3)).toContain('no_presleep_snack_training_night');
+    });
+
+    it('stops once milk or a banana is the evening snack', () => {
+      for (const name of ['Susu Sapi', 'Pisang Ambon', 'milk', 'Banana']) {
+        expect(codes({}, [rice, chicken, snack(name)], 3)).not.toContain('no_presleep_snack_training_night');
+      }
+    });
+
+    it('still fires for another evening snack, or banana heart', () => {
+      expect(codes({}, [rice, chicken, snack('Roti Putih')], 3)).toContain('no_presleep_snack_training_night');
+      expect(codes({}, [rice, chicken, snack('Jantung Pisang')], 3)).toContain('no_presleep_snack_training_night');
+    });
+
+    it('does not count milk drunk at dinner as the evening snack', () => {
+      const milkAtDinner: LoggedItem = { slot: 'dinner', quantity: 1, carbs_g: null, name: 'Susu Sapi' };
+      expect(codes({}, [rice, chicken, milkAtDinner], 3)).toContain('no_presleep_snack_training_night');
+    });
+
+    it('fires on a match night, and not on a rest night', () => {
+      expect(codes({ day_type: 'match' }, [rice, chicken], 3)).toEqual(['no_presleep_snack_training_night']);
+      expect(codes({ day_type: 'rest' }, [rice, chicken], 3)).toEqual([]);
+    });
+
+    it('carries the deck’s sentence', () => {
+      const [nudge] = evaluate(summariseDay(day, [rice, chicken], 68), DEMO_RULES, NOON, 3);
+      expect(nudge.message).toBe('On training nights, have warm milk or a banana 30 minutes before sleep.');
+      expect(nudge.reviewed).toBe(false);
+      expect(nudge.source).toBe('week-3-deck');
+    });
+  });
+
+  describe('the 3–4 urine band', () => {
+    const rest = { day_type: 'rest' as const };
+
+    it('fires at 3 and at 4 from week 3', () => {
+      expect(codes({ ...rest, urine_colour: 3 }, [], 3)).toEqual(['urine_three_or_four']);
+      expect(codes({ ...rest, urine_colour: 4 }, [], 3)).toEqual(['urine_three_or_four']);
+      expect(codes({ ...rest, urine_colour: 4 }, [], 4)).toEqual(['urine_three_or_four']);
+    });
+
+    it('says nothing at 3 or 4 in weeks 1 and 2', () => {
+      for (const week of [1, 2]) {
+        expect(codes({ ...rest, urine_colour: 3 }, [], week)).toEqual([]);
+        expect(codes({ ...rest, urine_colour: 4 }, [], week)).toEqual([]);
+      }
+    });
+
+    it('stays quiet at 1 and 2, and before the check-in', () => {
+      expect(codes({ ...rest, urine_colour: 1 }, [], 3)).toEqual([]);
+      expect(codes({ ...rest, urine_colour: 2 }, [], 3)).toEqual([]);
+      expect(codes({ ...rest, urine_colour: null }, [], 3)).toEqual([]);
+    });
+
+    it('leaves 5 and above to the week 1 rule, so a reading never fires both', () => {
+      expect(codes({ ...rest, urine_colour: 5 }, [], 3)).toEqual(['urine_five_or_worse']);
+      expect(codes({ ...rest, urine_colour: 8 }, [], 3)).toEqual(['urine_five_or_worse']);
+    });
+
+    it('carries the deck’s band as written', () => {
+      const [nudge] = evaluate(summariseDay({ ...day, ...rest, urine_colour: 4 }, [], 68), DEMO_RULES, NOON, 3);
+      expect(nudge.message).toBe('3–4: drink more today.');
+      expect(nudge.domain).toBe('hydration');
+    });
+  });
+});
+
+describe('the week 4 top-up snack', () => {
+  const SESSION: TrainingSession = { startsAt: 16 * 60 + 30, endsAt: 18 * 60 };
+  const at = (h: number, m = 0) => h * 60 + m;
+  const day = { ...log, breakfast: true };
+  const codes = (now: number, week: number, over: LogOver = {}, rules = DEMO_RULES) =>
+    evaluate(summariseDay({ ...day, ...over }, [], 68, SESSION), rules, now, week).map((n) => n.code);
+
+  it('fires in the hour before the session from week 4, in place of the week 1 card', () => {
+    expect(codes(at(16), 4)).toEqual(['top_up_snack_hour_before']);
+  });
+
+  it('fires exactly at the hour mark', () => {
+    expect(codes(at(15, 30), 4)).toEqual(['top_up_snack_hour_before']);
+  });
+
+  it('leaves the hour before that to the week 1 card', () => {
+    expect(codes(at(15, 29), 4)).toEqual(['pre_training_meal']);
+    expect(codes(at(14, 30), 4)).toEqual(['pre_training_meal']);
+  });
+
+  it('says nothing in weeks 1 to 3, where the week 1 card runs to the start', () => {
+    for (const week of [1, 2, 3]) {
+      expect(codes(at(16), week)).not.toContain('top_up_snack_hour_before');
+      expect(codes(at(16), week)).toContain('pre_training_meal');
+    }
+  });
+
+  it('stops once the session has begun, or the pre-training slot is logged', () => {
+    expect(codes(at(16, 30), 4)).toEqual([]);
+    expect(codes(at(16), 4, { pre_training: true })).toEqual([]);
+  });
+
+  it('fires on a match day, and not on a rest day', () => {
+    expect(codes(at(16), 4, { day_type: 'match' })).toEqual(['top_up_snack_hour_before']);
+    expect(codes(at(16), 4, { day_type: 'rest' })).toEqual([]);
+  });
+
+  it('falls back to the week 1 card when the week 4 row is not in the table', () => {
+    const withoutTopUp = DEMO_RULES.filter((r) => r.code !== 'top_up_snack_hour_before');
+    expect(codes(at(16), 4, {}, withoutTopUp)).toEqual(['pre_training_meal']);
+  });
+
+  it('carries the slide’s row', () => {
+    const [nudge] = evaluate(summariseDay(day, [], 68, SESSION), DEMO_RULES, at(16), 4);
+    expect(nudge.message).toBe(
+      'Top-up snack + 500mL fluid. Pisang (banana) or roti + selai kacang (bread + peanut butter).'
+    );
+    expect(nudge.source).toBe('week-4-slides');
+  });
+});

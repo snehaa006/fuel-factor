@@ -352,3 +352,72 @@ describe('week 2 carries its deck and nothing else', () => {
     for (const kind of seeded) expect(allowed).toContain(`'${kind}'`);
   });
 });
+
+describe('the week 3 and 4 advice carries the decks’ words and nothing else', () => {
+  const advice = read('supabase/seed/0015_week3_week4_advice.sql');
+  const decks: Record<string, string> = {
+    'week-3-deck': read('supabase/seed/0013_week3_lessons.sql').replace(/''/g, "'"),
+    'week-4-slides': read('supabase/seed/0014_week4_lessons.sql').replace(/''/g, "'"),
+  };
+  const str = "'((?:[^']|'')*)'";
+  const rows = [
+    ...advice.matchAll(new RegExp(`\\('([a-z_]+)', '([a-z]+)',\\s*${str},\\s*${str},\\s*'([a-z0-9-]+)', (\\d)\\)`, 'g')),
+  ].map((m) => ({
+    code: m[1],
+    domain: m[2],
+    trigger: m[3].replace(/''/g, "'"),
+    message: m[4].replace(/''/g, "'"),
+    source: m[5],
+    severity: Number(m[6]),
+  }));
+
+  it('seeds the three rules', () => {
+    expect(rows.map((r) => r.code)).toEqual([
+      'no_presleep_snack_training_night',
+      'urine_three_or_four',
+      'top_up_snack_hour_before',
+    ]);
+  });
+
+  it('copies every sentence from its own week’s seeded deck', () => {
+    // A sentence may lose a list marker and gain a capital letter; it may not
+    // gain a word. Each one is found in the deck its source names.
+    for (const rule of rows) {
+      const deck = decks[rule.source];
+      expect(deck).toBeDefined();
+      for (const sentence of rule.message.split(/(?<=\.)\s+/)) {
+        const piece = sentence.replace(/\.$/, '');
+        const lowered = piece[0].toLowerCase() + piece.slice(1);
+        expect(`${rule.code}: ${deck.includes(piece) || deck.includes(lowered)}`).toBe(`${rule.code}: true`);
+      }
+    }
+  });
+
+  it('ships no rule as reviewed', () => {
+    const columns = /insert into public\.advice_rules \(([^)]*)\)/.exec(advice)?.[1] ?? '';
+    expect(columns).not.toContain('reviewed_by');
+  });
+
+  it('claims to check nothing the log does not record', () => {
+    // Water on waking is part of week 4's protocol and the check-in keeps a
+    // day's total, not when it was drunk.
+    for (const rule of rows) expect(rule.trigger).not.toMatch(/wak/i);
+  });
+
+  it('keeps the demo rules in step with the seed', () => {
+    for (const rule of rows) {
+      const demo = DEMO_RULES.find((r) => r.code === rule.code);
+      expect(demo).toMatchObject({
+        domain: rule.domain,
+        message_en: rule.message,
+        source: rule.source,
+        severity: rule.severity,
+        reviewed_by: null,
+      });
+    }
+  });
+
+  it('names no athlete', () => {
+    expect(advice).not.toMatch(/Theo|Nathan|Jeongho|Jacob|Joel|Budi/);
+  });
+});

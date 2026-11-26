@@ -17,14 +17,15 @@ flag, profile or script can produce a build that draws from sample data.
 | **Supabase** `nprvrlpkdrgckzceyryc` | 18 migrations; all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
 
 Both phone channels were last published on 25 November 2026 from commit
-`7aa69d9`: everything in the feedback list, the coach's fuel-gap charts, the
-long-team-name fix, and **the week 3 and week 4 challenges on Today**
-(urine colour + pre-sleep snack; the morning protocol).
+`83398bc`: everything in the feedback list, the coach's fuel-gap charts, the
+long-team-name fix, the week 3 and week 4 challenges on Today, and **the
+week 3 and week 4 advice cards** (pre-sleep snack, urine 3–4, the top-up
+snack the hour before a session).
 
 | Channel | Update group | Previous group, to roll back to |
 |---|---|---|
-| `preview` | `9dbf2a48-15f7-4060-b5ce-c2d02057e992` | `4af37b74-62dc-4a39-a009-ae989880a481` |
-| `share` | `6fe0554c-09c8-47c6-9e04-c205405bff5b` | `7cbb761c-8967-40c6-9183-22354a03a4e2` |
+| `preview` | `82159e9f-e899-4bd3-85c5-45e4495a3baa` | `9dbf2a48-15f7-4060-b5ce-c2d02057e992` |
+| `share` | `8b8129a6-d1d1-4ec8-ba46-8efa7cea40ca` | `6fe0554c-09c8-47c6-9e04-c205405bff5b` |
 
 The web app and the self-hosted Expo Go route follow `main` on Vercel.
 
@@ -347,18 +348,34 @@ week can be shown on any day.
 
 ### Showing them on the day
 
-The charts read real logs. The live project holds **ZZ Test Squad**
-(join code `TEST01`, coach code `TESTCOACH1`) with a month of invented logs
-for *Demo Athlete*, there precisely so these screens can be shown:
+The charts read real logs, and the pitch shows the demo squad,
+**Jakarta Youth Football** (day one 28 October 2026): one coach and three
+athletes, **Theo**, **Jeongho** and **Jacob**, all accounts the developer
+holds. Their logins and the squad's codes are not written here, because this
+repository is public; the codes are on the coach's *Team and codes* screen.
+What in the squad is the tracker's and what is constructed is in
+`supabase/README.md`.
 
-1. **Athlete view:** open the web app, sign in (or make an account), enter
-   `TEST01`, pick *Demo Athlete*, open *Fuel gaps*.
-2. **Coach view:** with a coach account, enter coach code `TESTCOACH1` on the
-   dashboard, then **See fuel gaps** on *Demo Athlete*.
+**Set the time machine to 24 November first.** The squad's logs end on
+24 November 2026, the last day of the programme, on purpose: nothing exists
+for a day that has not happened. The charts read the 14 days up to *today*,
+so on 12 December they would be empty. Tap the date on the pill at the
+bottom of the screen and pick 24 November; the pill turns orange-red, every
+screen follows, and the date survives a reload.
 
-The window is the 14 days up to *today*. If Demo Athlete's month is further
-back than that on the day, use the **time machine** pill to step back to a
-date inside it — every screen follows. Rehearse this once before 12 December.
+1. **Athlete view:** open the web app, sign in as Theo, Jeongho or Jacob,
+   set the pill to 24 November, open *Fuel gaps* from the menu.
+2. **Coach view:** sign in as the coach, set the pill to 24 November, then
+   **See fuel gaps** on any athlete's card on the dashboard.
+
+Theo's is the chart with the story: his carbohydrate climbs every week and
+reaches his band on rest days, but stays below it on training days, so the
+coach sees the under-fuelling flag. Jeongho and Jacob reach their band by
+week 4.
+
+Rehearse this once before 12 December. **Log nothing while the pill is
+set**: a simulated day writes a real row into the squad's logs. Afterwards,
+*Back to the real today* in the calendar puts it back.
 
 Fresh athletes have nothing to chart. There is no sample-data mode; to fill
 a test athlete's charts, use the time machine: step back a fortnight, log a

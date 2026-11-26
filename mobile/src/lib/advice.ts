@@ -1,6 +1,12 @@
-import { hasNutrient } from './nutrients';
+import { hasNutrient, isPreSleepFood } from './nutrients';
 import type { Minutes } from './session';
-import { hasSessionDay, PROTEIN_PER_MEAL_MAX_G, PROTEIN_WEEK } from './targets';
+import {
+  GAME_DAY_WEEK,
+  hasSessionDay,
+  PROTEIN_PER_MEAL_MAX_G,
+  PROTEIN_WEEK,
+  RECOVERY_WEEK,
+} from './targets';
 import type { DaySummary, MealSlot } from './today';
 import type { Tables } from './database.types';
 
@@ -30,6 +36,13 @@ export type Nudge = {
 const URINE_ACT_NOW = 5;
 
 /**
+ * The bottom of the Week 3 deck's "3–4: drink more today" band. Its top is
+ * {@link URINE_ACT_NOW}, where the week 1 rule takes over, so a reading never
+ * fires both.
+ */
+const URINE_DRINK_MORE = 3;
+
+/**
  * The two windows the timing rules measure, in minutes.
  *
  * Both are the programme's. The refuel rule's own trigger says "nothing has
@@ -39,6 +52,9 @@ const URINE_ACT_NOW = 5;
  */
 const REFUEL_WINDOW_MIN = 30;
 const PRE_TRAINING_WINDOW_MIN = 120;
+
+/** Week 4's game-day timeline: "1 HR BEFORE -- Top-up snack + 500mL fluid". */
+const TOP_UP_WINDOW_MIN = 60;
 
 /**
  * How many cards the screen will carry at once.
@@ -96,18 +112,28 @@ export function evaluate(
   const slotLogged = (slot: MealSlot) =>
     summary.slots.find((s) => s.slot === slot)?.logged ?? false;
 
-  // The last two hours before the session, and not after it has begun: once
-  // training has started, telling the athlete to eat two hours beforehand is
-  // advice about a moment that has gone.
-  if (
+  // The pre-training slot is still empty this many minutes or fewer before
+  // the session, and the session has not begun: once training has started,
+  // telling the athlete to eat beforehand is advice about a moment that has
+  // gone.
+  const preSessionUnfed = (windowMin: number) =>
     hasSessionDay(summary.dayType) &&
     startsAt !== null &&
     !slotLogged('pre_training') &&
-    now >= startsAt - PRE_TRAINING_WINDOW_MIN &&
-    now < startsAt
-  ) {
-    fired.push('pre_training_meal');
-  }
+    now >= startsAt - windowMin &&
+    now < startsAt;
+
+  // From week 4 the deck's game-day timeline puts a top-up snack in the last
+  // hour, and in that hour it takes over from the week 1 card: "a proper meal
+  // 2 to 3 hours before" is, by then, also a moment that has gone. Only when
+  // the row exists, so a database without it still shows the week 1 card.
+  const topUpDue =
+    programmeWeek >= GAME_DAY_WEEK &&
+    byCode.has('top_up_snack_hour_before') &&
+    preSessionUnfed(TOP_UP_WINDOW_MIN);
+
+  if (topUpDue) fired.push('top_up_snack_hour_before');
+  else if (preSessionUnfed(PRE_TRAINING_WINDOW_MIN)) fired.push('pre_training_meal');
 
   // The window has opened and nothing has gone into the post-training slot.
   // It stays up after the 30 minutes have run out, because the athlete who
@@ -138,6 +164,28 @@ export function evaluate(
     // that above 35 g a meal adds no muscle protein synthesis.
     const dinner = slot('dinner')?.protein_g ?? null;
     if (dinner !== null && dinner > PROTEIN_PER_MEAL_MAX_G) fired.push('protein_piled_at_dinner');
+  }
+
+  // Sleep and hydration are taught in week 3, and the same reasoning holds.
+  if (programmeWeek >= RECOVERY_WEEK) {
+    // "On training nights, have warm milk or a banana 30 minutes before
+    // sleep." Asked only once dinner is in: before then the evening has not
+    // started, and a card about bedtime at lunch is noise.
+    const snack = summary.slots.find((s) => s.slot === 'evening_snack');
+    if (
+      hasSessionDay(summary.dayType) &&
+      slotLogged('dinner') &&
+      !(snack?.items ?? []).some((i) => isPreSleepFood(i.name))
+    ) {
+      fired.push('no_presleep_snack_training_night');
+    }
+
+    // The deck's own band, "3–4: drink more today". Five and above is the
+    // week 1 rule's, so the two never fire together.
+    const urine = summary.urineColour;
+    if (urine !== null && urine >= URINE_DRINK_MORE && urine < URINE_ACT_NOW) {
+      fired.push('urine_three_or_four');
+    }
   }
 
   return fired

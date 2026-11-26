@@ -59,3 +59,22 @@ export function namesSource(name: string, words: readonly string[]): boolean {
 export function hasNutrient(item: NutrientItem, nutrient: Nutrient): boolean {
   return nutrient === 'carb' ? (item.carbSource ?? false) : (item.proteinSource ?? false);
 }
+
+/**
+ * The pre-sleep foods week 3 names: "on training nights, have warm milk or a
+ * banana 30 minutes before sleep".
+ *
+ * Here rather than in `meal-challenge.ts`, which reads the network, because
+ * the advice engine asks the same question and must stay import-free.
+ */
+export const PRE_SLEEP_WORDS: readonly string[] = ['susu', 'pisang', 'milk', 'banana'];
+
+/**
+ * Whether a logged food is one of them. Read by the food's first word, the
+ * way a source is, so "Susu Sapi" and "Pisang Mas" count and "Jantung Pisang"
+ * (banana heart) does not.
+ */
+export function isPreSleepFood(name: string | undefined): boolean {
+  const head = (name ?? '').trim().split(/\s+/)[0]?.toLowerCase() ?? '';
+  return PRE_SLEEP_WORDS.includes(head);
+}

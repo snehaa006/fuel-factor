@@ -232,10 +232,11 @@ schema, and ran after them.
 | `0012_week2_lessons.sql` | Week 2's lesson cards. Seeding these is what unlocks week 2 on Learn |
 | `0013_week3_lessons.sql` | Week 3, "Recovery: Sleep + Hydration", from the Week 3 PDF and its WhatsApp message |
 | `0014_week4_lessons.sql` | Week 4, "Integration & Game Day", from the ten Week 4 slides and its message — **not** from the week 4 PDF, which is a practitioner reference naming individual athletes |
+| `0015_week3_week4_advice.sql` | 3 advice rules, every message copied from 0013 and 0014: the week 3 pre-sleep snack and the deck's "3–4: drink more today", and the week 4 top-up snack the hour before a session. Unreviewed, like every rule |
 
 **Every migration and every seed here is on the live project** (checked
-18 November): 18 migrations; all four weeks, the badges and the composition
-table. Nothing else is in it but what people have entered in the app, and one
+18 November; `0015` loaded 25 November): 18 migrations; all four weeks, the
+12 advice rules, the badges and the composition table. Nothing else is in it but what people have entered in the app, and one
 test squad (below).
 
 **Seeds hold the programme's content and nothing else** — foods, lessons,
@@ -275,11 +276,12 @@ check-ins, not daily food logs, and the gap charts need days. The days are
 built to what the WEEKLY LOG reports (rebuilt 25 November so every week
 agrees with it):
 
-* **A log every day of the four weeks** (28 October to 24 November), with
-  breakfast every day -- the tracker has every athlete every week and
-  "Everyday" breakfast throughout. After the programme the same dates as
-  before stay logged, to **14 December**, so the 14-day window is full on
-  pitch day.
+* **A log every day of the four weeks**, **28 October – 24 November only**,
+  with breakfast every day -- the tracker has every athlete every week and
+  "Everyday" breakfast throughout. Nothing is logged after 24 November, the
+  last programme day, on purpose: nothing exists for a day that has not
+  happened. The gap charts read the 14 days up to *today*, so for the pitch
+  the time machine is set to 24 November first (see `docs/RUNNING-IT.md`).
 * **Week 1:** a carbohydrate source at breakfast, lunch and dinner.
   **Week 2:** a protein source at every meal, as all three answered.
   **Week 3:** urine colour every day and milk or a banana before sleep on most

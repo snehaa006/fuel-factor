@@ -638,7 +638,37 @@ Supabase project and the bundle Expo Go actually serves. What changed:
   capitalisation and the "Before you start" sentence. Tests now pin the last
   two on screen.
 
-**1198 tests pass.**
+**Step 22** — Advice cards for weeks 3 and 4 (25 November). Three rules in
+`supabase/seed/0015_week3_week4_advice.sql`, gated in `advice.ts` the way
+protein is (`RECOVERY_WEEK = 3`, `GAME_DAY_WEEK = 4` in `targets.ts`). Every
+message is copied from the week 3 and 4 seeds, and a schema test fails if a
+sentence is not found in its own week's deck.
+
+| Rule | From | Fires when |
+|---|---|---|
+| `no_presleep_snack_training_night` | Week 3: "On training nights, have warm milk or a banana 30 minutes before sleep." | A training or match day, dinner logged, and no evening-snack food whose first word is susu, pisang, milk or banana |
+| `urine_three_or_four` | Week 3: "3–4: drink more today." | Urine colour 3 or 4. Five and above stays `urine_five_or_worse`, so one reading never fires both |
+| `top_up_snack_hour_before` | Week 4 slides, the "1 HR BEFORE" row: "Top-up snack + 500mL fluid. Pisang (banana) or roti + selai kacang (bread + peanut butter)." | A training or match day with a session time, the pre-training slot still empty, in the last hour before it starts |
+
+In the last hour before a session, from week 4, the top-up card **replaces**
+`pre_training_meal` rather than sitting beside it: "a proper meal 2 to 3 hours
+before" is by then a moment that has gone, the same reason that card already
+stops at the start. If the week 4 row is missing, the week 1 card still shows.
+
+Re-used rather than duplicated: "breakfast before training" is
+`no_breakfast_training_day`; "recovery within 30 minutes" is
+`refuel_window_open` and `post_training_no_protein`. Nothing checks water on
+waking, which the check-in does not record. Two sentences are trimmed: the
+snack loses its "Second: " list marker, and the top-up joins the slide row's
+two cells with a full stop. Both, the three severities (1 each) and the 3–4
+band are Sofia's to confirm — the workbook's own scale reads 3 as
+"Acceptable — keep drinking", which the week 3 deck groups with 4 as
+"drink more today".
+
+`isPreSleepFood` moved to `nutrients.ts` so the engine can use the week 3
+challenge's own test without importing the Supabase client.
+
+**1242 tests pass.**
 
 `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.

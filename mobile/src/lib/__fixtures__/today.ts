@@ -126,6 +126,32 @@ export const DEMO_RULES: AdviceRule[] = [
     reviewed_by: null,
     source: 'week-2-deck',
   },
+  // Weeks 3 and 4, mirroring supabase/seed/0015_week3_week4_advice.sql.
+  {
+    code: 'no_presleep_snack_training_night',
+    domain: 'timing',
+    message_en: 'On training nights, have warm milk or a banana 30 minutes before sleep.',
+    severity: 1,
+    reviewed_by: null,
+    source: 'week-3-deck',
+  },
+  {
+    code: 'urine_three_or_four',
+    domain: 'hydration',
+    message_en: '3–4: drink more today.',
+    severity: 1,
+    reviewed_by: null,
+    source: 'week-3-deck',
+  },
+  {
+    code: 'top_up_snack_hour_before',
+    domain: 'timing',
+    message_en:
+      'Top-up snack + 500mL fluid. Pisang (banana) or roti + selai kacang (bread + peanut butter).',
+    severity: 1,
+    reviewed_by: null,
+    source: 'week-4-slides',
+  },
 ];
 
 /**
