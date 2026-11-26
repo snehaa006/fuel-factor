@@ -18,13 +18,13 @@ import {
 } from '@/lib/recall';
 import {
   BASELINE_DAYS,
-  DAY_CHOICE_GUIDANCE,
   FOLLOW_UP_DAYS,
   ROUND_LABEL,
   positionInRound,
   type RecallRound,
 } from '@/lib/recall-window';
 import { useRecallRound, useRecallStatus, type RecallRoundController } from '@/lib/use-recall';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /** The controller once the round has loaded, which is all Round sees. */
@@ -120,6 +120,7 @@ function Round({
   onBack: () => void;
 }) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   // Lazy and mounted with every answer already in hand, so no effect copies
   // loaded data into a draft and no render shows an empty form over one.
@@ -161,18 +162,17 @@ function Round({
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
       <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-4'] }]}>
         <Pressable onPress={onBack} accessibilityRole="button" testID="all-back">
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>← BACK</Text>
+          <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.common.back}</Text>
         </Pressable>
 
         <Text
           style={[typography.label, { color: colors['ink-muted'], marginTop: spacing['space-2'] }]}
         >
-          {ROUND_LABEL[round].toUpperCase()}
+          {(t.recall.rounds[round] ?? ROUND_LABEL[round]).toUpperCase()}
         </Text>
-        <Text style={[typography['display-l'], { color: colors.ink }]}>All three days</Text>
+        <Text style={[typography['display-l'], { color: colors.ink }]}>{t.recall.allThreeDays}</Text>
         <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-          Fill them in one sitting, or leave and come back — each day is saved as you finish it.{' '}
-          {DAY_CHOICE_GUIDANCE}
+          {t.recall.oneSitting}           {t.recall.dayChoice}
         </Text>
 
         {/* Three tabs rather than three stacked forms. The instrument is five
@@ -192,7 +192,7 @@ function Round({
                 onPress={() => setActive(day)}
                 accessibilityRole="tab"
                 accessibilityState={{ selected }}
-                accessibilityLabel={`Day ${positionInRound(day)}${saved ? ', saved' : ', not saved yet'}`}
+                accessibilityLabel={t.recall.tab(positionInRound(day), saved)}
                 testID={`all-tab-${day}`}
                 style={({ pressed }) => [
                   styles.tab,
@@ -216,7 +216,7 @@ function Round({
                     { color: selected ? colors['on-bright'] : colors.ink },
                   ]}
                 >
-                  DAY {positionInRound(day)}
+                  {t.recall.dayCaps(positionInRound(day))}
                 </Text>
                 <Text
                   testID={`all-tab-${day}-state`}
@@ -225,7 +225,7 @@ function Round({
                     { color: selected ? colors['on-bright'] : colors['ink-muted'] },
                   ]}
                 >
-                  {saved ? 'Saved' : 'Not yet'}
+                  {saved ? t.recall.saved : t.recall.notYet}
                 </Text>
               </Pressable>
             );
@@ -251,7 +251,7 @@ function Round({
               { color: colors['ink-muted'], marginTop: spacing['space-6'] },
             ]}
           >
-            No meals written in yet.
+            {t.recall.noMealsShort}
           </Text>
         )}
 
@@ -271,10 +271,10 @@ function Round({
           <PushButton
             label={
               controller.savingDay === active
-                ? 'Saving…'
+                ? t.common.saving
                 : next === undefined
-                  ? `Save day ${positionInRound(active)}`
-                  : `Save and go to day ${positionInRound(next)}`
+                  ? t.recall.saveDay(positionInRound(active))
+                  : t.recall.saveAndGo(positionInRound(next))
             }
             variant="success"
             fullWidth
@@ -300,17 +300,16 @@ function Round({
               }}
             >
               <Text style={[typography['heading-m'], { color: colors['daun-deep'] }]}>
-                All three days are in.
+                {t.recall.allIn}
               </Text>
-              <PushButton label="Done" fullWidth testID="all-finish" onPress={onDone} />
+              <PushButton label={t.recall.done} fullWidth testID="all-finish" onPress={onDone} />
             </View>
           ) : (
             <Text
               testID="all-remaining"
               style={[typography['body-s'], { color: colors['ink-muted'], textAlign: 'center' }]}
             >
-              {remaining.length} of {days.length}{' '}
-              {remaining.length === 1 ? 'day still to go' : 'days still to go'}.
+              {t.recall.remaining(remaining.length, days.length)}
             </Text>
           )}
         </View>

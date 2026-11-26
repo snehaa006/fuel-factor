@@ -1,4 +1,7 @@
 import type { MascotMotion, MascotPose } from '@/components/mascot';
+import { en } from '@/i18n/en';
+import { id } from '@/i18n/id';
+import type { Strings } from '@/i18n';
 
 /**
  * What the mascot says, and which pose says it.
@@ -15,7 +18,11 @@ import type { MascotMotion, MascotPose } from '@/components/mascot';
  * carbohydrate" in a speech bubble would be unreviewed dietary advice given to
  * a 14-year-old by a mascot, which is the single worst place to put it.
  *
- * A test asserts the whole vocabulary against that rule.
+ * A test asserts the whole vocabulary against that rule, in both languages.
+ *
+ * Every cue takes the dictionary to speak from and defaults to English. The
+ * screens pass the one `useStrings()` gives them; the constants at the bottom
+ * are the English cues, kept for the tests.
  */
 
 export type MascotCue = {
@@ -32,85 +39,63 @@ export type MascotCue = {
  * of ubi jalar get the same line, because the mascot is counting the logging
  * and the app has no business grading the food.
  */
-export function dayCue(loggedSlots: number, totalSlots: number): MascotCue {
+export function dayCue(loggedSlots: number, totalSlots: number, t: Strings = en): MascotCue {
+  const m = t.mascot;
   if (loggedSlots <= 0) {
     return {
       pose: 'stand',
-      eyebrow: 'READY WHEN YOU ARE',
-      message: 'Nothing logged yet. Start with your last meal.',
+      eyebrow: m.readyWhenYouAre,
+      message: m.nothingLogged,
       // A hop every few seconds, to pull an eye back to something undone.
       motion: 'nudge',
     };
   }
 
   if (loggedSlots >= totalSlots) {
-    return {
-      pose: 'best',
-      eyebrow: 'ALL SIX',
-      message: 'Every meal logged today.',
-      motion: 'celebrate',
-    };
+    return { pose: 'best', eyebrow: m.allSix, message: m.everyMeal, motion: 'celebrate' };
   }
 
   return {
     pose: 'fuel',
-    eyebrow: 'IN PROGRESS',
-    message: `${loggedSlots} of ${totalSlots} slots logged today.`,
+    eyebrow: m.inProgress,
+    message: m.slotsLogged(loggedSlots, totalSlots),
     motion: 'idle',
   };
 }
 
 /** The Team screen, by how far along the badge ladder the athlete is. */
-export function badgeCue(earned: number, total: number): MascotCue {
+export function badgeCue(earned: number, total: number, t: Strings = en): MascotCue {
+  const m = t.mascot;
   if (earned <= 0) {
-    return {
-      pose: 'think',
-      eyebrow: 'NOTHING YET',
-      message: 'Log once to earn your first badge.',
-      motion: 'nudge',
-    };
+    return { pose: 'think', eyebrow: m.nothingYet, message: m.firstBadge, motion: 'nudge' };
   }
 
   if (earned >= total) {
-    return {
-      pose: 'best',
-      eyebrow: 'THE LOT',
-      message: 'Every badge earned.',
-      motion: 'celebrate',
-    };
+    return { pose: 'best', eyebrow: m.theLot, message: m.everyBadge, motion: 'celebrate' };
   }
 
-  return {
-    pose: 'best',
-    eyebrow: 'EARNED',
-    message: `${earned} of ${total} badges earned.`,
-    motion: 'idle',
-  };
+  return { pose: 'best', eyebrow: m.earned, message: m.badgesEarned(earned, total), motion: 'idle' };
 }
 
 /** The Learn section's cover. */
-export const LEARN_CUE: MascotCue = {
-  pose: 'learn',
-  eyebrow: 'FOUR WEEKS',
-  message: 'One theme a week, with a challenge to go with it.',
-  motion: 'enter',
-};
+export function learnCue(t: Strings = en): MascotCue {
+  return { pose: 'learn', eyebrow: t.mascot.fourWeeks, message: t.mascot.learnLine, motion: 'enter' };
+}
 
 /** The consent gate, where the app introduces itself. */
-export const WELCOME_CUE: MascotCue = {
-  pose: 'float',
-  eyebrow: 'FUEL FACTOR',
-  message: 'Log what you eat, keep your streak, and see how the squad is doing.',
-  motion: 'enter',
-};
+export function welcomeCue(t: Strings = en): MascotCue {
+  return { pose: 'float', eyebrow: t.mascot.fuelFactor, message: t.mascot.welcomeLine, motion: 'enter' };
+}
 
 /** Progress, which is mostly a screen about what has not been measured yet. */
-export const PROGRESS_CUE: MascotCue = {
-  pose: 'think',
-  eyebrow: 'BEFORE AND AFTER',
-  message: 'Your baseline against now.',
-  motion: 'enter',
-};
+export function progressCue(t: Strings = en): MascotCue {
+  return {
+    pose: 'think',
+    eyebrow: t.mascot.beforeAndAfter,
+    message: t.mascot.progressLine,
+    motion: 'enter',
+  };
+}
 
 /**
  * A write the database refused.
@@ -121,23 +106,32 @@ export const PROGRESS_CUE: MascotCue = {
  * an arbitrary server message cannot be held to the vocabulary rule below,
  * and should not pretend to be the character speaking.
  */
-export const SAVE_FAILED_CUE: MascotCue = {
-  pose: 'think',
-  eyebrow: 'DID NOT SAVE',
-  message: 'That didn’t save. Try again.',
-  motion: 'shake',
-};
+export function saveFailedCue(t: Strings = en): MascotCue {
+  return { pose: 'think', eyebrow: t.mascot.didNotSave, message: t.mascot.saveFailed, motion: 'shake' };
+}
 
-/** Every line the mascot can say, for the test that holds it to its lane. */
-export const ALL_CUES: MascotCue[] = [
-  dayCue(0, 6),
-  dayCue(3, 6),
-  dayCue(6, 6),
-  badgeCue(0, 7),
-  badgeCue(3, 7),
-  badgeCue(7, 7),
-  LEARN_CUE,
-  WELCOME_CUE,
-  PROGRESS_CUE,
-  SAVE_FAILED_CUE,
-];
+export const LEARN_CUE = learnCue();
+export const WELCOME_CUE = welcomeCue();
+export const PROGRESS_CUE = progressCue();
+export const SAVE_FAILED_CUE = saveFailedCue();
+
+function cuesIn(t: Strings): MascotCue[] {
+  return [
+    dayCue(0, 6, t),
+    dayCue(3, 6, t),
+    dayCue(6, 6, t),
+    badgeCue(0, 7, t),
+    badgeCue(3, 7, t),
+    badgeCue(7, 7, t),
+    learnCue(t),
+    welcomeCue(t),
+    progressCue(t),
+    saveFailedCue(t),
+  ];
+}
+
+/** Every line the mascot can say, in English, for the test that holds it to its lane. */
+export const ALL_CUES: MascotCue[] = cuesIn(en);
+
+/** The same lines in Bahasa Indonesia, held to the same lane. */
+export const ALL_CUES_ID: MascotCue[] = cuesIn(id);

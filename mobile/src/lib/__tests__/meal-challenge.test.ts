@@ -142,7 +142,7 @@ describe('challengeWeek, week 1', () => {
     const week = challengeWeek([], START, '2026-11-05', WEEK1);
     expect(week.phase).toBe('before');
     expect(week.days.every((d) => d.status === 'upcoming')).toBe(true);
-    expect(statusLine(week)).toBe('Starts 2026-11-09');
+    expect(statusLine(week)).toBe('Starts Mon 9 Nov');
   });
 
   it('today without all three meals is still in play, not missed', () => {

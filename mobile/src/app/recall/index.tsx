@@ -6,7 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PushButton } from '@/components/push-button';
 import {
   BASELINE_DAYS,
-  DAY_CHOICE_GUIDANCE,
   FOLLOW_UP_DAYS,
   PROGRAMME_WEEKS,
   ROUND_LABEL,
@@ -14,6 +13,7 @@ import {
   type RecallRound,
 } from '@/lib/recall-window';
 import { useRecallStatus } from '@/lib/use-recall';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -30,6 +30,7 @@ import { useTheme } from '@/theme';
 export default function RecallIndex() {
   const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const state = useRecallStatus();
 
   // Coming back from a day's form, a round has gained a day underneath this
@@ -55,7 +56,7 @@ export default function RecallIndex() {
 
   const back = (
     <Pressable onPress={() => router.back()} accessibilityRole="button" testID="recall-back">
-      <Text style={[typography.label, { color: colors['ink-muted'] }]}>← BACK</Text>
+      <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.common.back}</Text>
     </Pressable>
   );
 
@@ -111,13 +112,13 @@ export default function RecallIndex() {
       >
         <View>
           <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-            {ROUND_LABEL[name].toUpperCase()}
+            {(t.recall.rounds[name] ?? ROUND_LABEL[name]).toUpperCase()}
           </Text>
           <Text
             testID={`round-${name}-count`}
             style={[typography['heading-l'], { color: colors.ink }]}
           >
-            {done} of {days.length} days
+            {t.recall.daysOf(done, days.length)}
           </Text>
           <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>{blurb}</Text>
         </View>
@@ -125,10 +126,8 @@ export default function RecallIndex() {
         {locked ? (
           <Text testID={`round-${name}-locked`} style={[typography['body-s'], { color: colors['ink-faint'] }]}>
             {window.status === 'waiting'
-              ? `Opens on ${window.opensOn}, ${window.daysUntil} ${
-                  window.daysUntil === 1 ? 'day' : 'days'
-                } from now.`
-              : `Opens ${PROGRAMME_WEEKS} weeks after the start.`}
+              ? t.recall.opensOn(window.opensOn, window.daysUntil)
+              : t.recall.opensAfter(PROGRAMME_WEEKS)}
           </Text>
         ) : (
           <View style={{ gap: spacing['space-2'] }}>
@@ -141,8 +140,8 @@ export default function RecallIndex() {
                   accessibilityRole="button"
                   accessibilityLabel={
                     entry
-                      ? `Day ${positionInRound(day)}, answered. Open to change it.`
-                      : `Day ${positionInRound(day)}, not answered yet`
+                      ? t.recall.dayAnswered(positionInRound(day))
+                      : t.recall.dayNotAnswered(positionInRound(day))
                   }
                   testID={`recall-day-${day}`}
                   style={({ pressed }) => [
@@ -162,7 +161,7 @@ export default function RecallIndex() {
                       carries on at 4 for the follow-up, and an athlete doing
                       three days should not be shown a "Day 4 of 3". */}
                   <Text style={[typography['body-m'], { color: colors.ink }]}>
-                    Day {positionInRound(day)}
+                    {t.recall.day(positionInRound(day))}
                   </Text>
                   <Text
                     testID={`recall-day-${day}-state`}
@@ -175,10 +174,10 @@ export default function RecallIndex() {
                         baseline's nine days hold a urine reading and nothing
                         else, and only food can go through the food database. */}
                     {entry === undefined
-                      ? 'Not answered'
+                      ? t.recall.notAnswered
                       : entry.hasMeals
-                        ? (entry.recallDate ?? 'Answered')
-                        : 'No meals recorded'}
+                        ? (entry.recallDate ?? t.recall.answered)
+                        : t.recall.noMeals}
                   </Text>
                 </Pressable>
               );
@@ -194,22 +193,22 @@ export default function RecallIndex() {
       <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-4'] }]}>
         {back}
         <Text style={[typography['display-l'], { color: colors.ink, marginTop: spacing['space-2'] }]}>
-          Food recall
+          {t.recall.title}
         </Text>
         <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-          {DAY_CHOICE_GUIDANCE}
+          {t.recall.dayChoice}
         </Text>
 
         <View style={{ marginTop: spacing['space-6'], gap: spacing['space-4'] }}>
           {round(
             'baseline',
             BASELINE_DAYS,
-            'Three days before the programme starts.'
+            t.recall.baselineBlurb
           )}
           {round(
             'follow-up',
             FOLLOW_UP_DAYS,
-            `Three more days, ${PROGRAMME_WEEKS} weeks in.`
+            t.recall.followUpBlurb(PROGRAMME_WEEKS)
           )}
         </View>
 
@@ -218,7 +217,7 @@ export default function RecallIndex() {
             testID="recall-testing"
             style={[typography['body-s'], { color: colors['pisang-deep'], marginTop: spacing['space-3'] }]}
           >
-            Testing mode: the four-weeks-on recall is open now instead of after the programme.
+            {t.recall.testingMode}
           </Text>
         )}
 
@@ -230,14 +229,14 @@ export default function RecallIndex() {
               { color: colors['ink-muted'], marginTop: spacing['space-6'] },
             ]}
           >
-            Your coach hasn&apos;t set a start date yet.
+            {t.recall.noStartDate}
           </Text>
         )}
 
         {window.status === 'due' && (
           <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>
             <PushButton
-              label={`Fill in day ${window.position}`}
+              label={t.recall.fillInDay(window.position)}
               fullWidth
               testID="recall-next"
               onPress={() => router.push(`/recall/${window.dayNumber}`)}
@@ -247,7 +246,7 @@ export default function RecallIndex() {
                 above with a longer label. */}
             {window.of - window.done > 1 && (
               <PushButton
-                label="Fill all three in one go"
+                label={t.recall.fillAllThree}
                 variant="ghost"
                 fullWidth
                 testID="recall-all"

@@ -35,8 +35,10 @@ export type FlagCode = 'under_fuelling' | 'dehydrated';
 
 export type Flag = {
   code: FlagCode;
-  /** What the coach reads. States the threshold, so it is checkable. */
+  /** What the coach reads, in English. States the threshold, so it is checkable. */
   detail: string;
+  /** The reading behind a hydration flag, so the screen can say it in either language. */
+  reading?: number;
 };
 
 export type DayRollUp = {
@@ -112,6 +114,7 @@ export function flagsFor(days: DayRollUp[]): Flag[] {
   if (urine !== null && urine >= DEHYDRATED_AT) {
     flags.push({
       code: 'dehydrated',
+      reading: urine,
       detail: `Last urine reading was ${urine}. The tracker's scale calls ${DEHYDRATED_AT} or worse act now.`,
     });
   }

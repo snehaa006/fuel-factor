@@ -3,6 +3,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RATING_BANDS, URINE_SCALE } from '@/lib/check-in';
 import { useReduceMotion } from '@/lib/use-reduce-motion';
+import { useStrings, type Strings } from '@/i18n';
+import { en } from '@/i18n/en';
 import { useTheme } from '@/theme';
 
 /**
@@ -25,9 +27,14 @@ import { useTheme } from '@/theme';
 export type Scale = 'rating' | 'urine';
 
 export const SCALE_TITLE: Record<Scale, string> = {
-  rating: 'The 1–10 scale',
-  urine: 'The hydration scale',
+  rating: en.scales.ratingTitle,
+  urine: en.scales.urineTitle,
 };
+
+/** The scale's name in the athlete's language. */
+function scaleTitle(scale: Scale, t: Strings): string {
+  return scale === 'rating' ? t.scales.ratingTitle : t.scales.urineTitle;
+}
 
 /** The link itself. Looks like a link, because that is what it has to read as. */
 export function ScaleGuideLink({
@@ -40,13 +47,14 @@ export function ScaleGuideLink({
   testID?: string;
 }) {
   const { colors, spacing, typography } = useTheme();
+  const t = useStrings();
 
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityHint="Opens the scale from your workbook"
-      accessibilityLabel={`${SCALE_TITLE[scale]}, what the numbers mean`}
+      accessibilityHint={t.scales.guideHint}
+      accessibilityLabel={t.scales.guideLabel(scaleTitle(scale, t))}
       testID={testID}
       hitSlop={8}
       style={({ pressed }) => [
@@ -55,7 +63,7 @@ export function ScaleGuideLink({
       ]}
     >
       <Text style={[typography['body-s'], styles.linkText, { color: colors['air-deep'] }]}>
-        What do the numbers mean?
+        {t.scales.whatDoTheNumbersMean}
       </Text>
     </Pressable>
   );
@@ -70,6 +78,7 @@ export type ScaleGuideProps = {
 
 export function ScaleGuide({ scale, onClose, testID = 'scale-guide' }: ScaleGuideProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const reduceMotion = useReduceMotion();
 
   if (scale === null) return null;
@@ -109,7 +118,7 @@ export function ScaleGuide({ scale, onClose, testID = 'scale-guide' }: ScaleGuid
           style={[styles.scrim, { backgroundColor: colors.langit, opacity: 0.5 }]}
           onPress={onClose}
           accessibilityRole="button"
-          accessibilityLabel="Close the scale"
+          accessibilityLabel={t.scales.closeScale}
           testID={`${testID}-scrim`}
         />
 
@@ -128,19 +137,19 @@ export function ScaleGuide({ scale, onClose, testID = 'scale-guide' }: ScaleGuid
             <View style={styles.head}>
               <View style={{ flex: 1 }}>
                 <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-                  FROM YOUR WORKBOOK
+                  {t.scales.fromWorkbook}
                 </Text>
                 <Text
                   testID={`${testID}-title`}
                   style={[typography['heading-l'], { color: colors.ink }]}
                 >
-                  {SCALE_TITLE[scale]}
+                  {scaleTitle(scale, t)}
                 </Text>
               </View>
               <Pressable
                 onPress={onClose}
                 accessibilityRole="button"
-                accessibilityLabel="Close"
+                accessibilityLabel={t.common.close}
                 testID={`${testID}-close`}
                 hitSlop={8}
                 style={({ pressed }) => [
@@ -159,6 +168,19 @@ export function ScaleGuide({ scale, onClose, testID = 'scale-guide' }: ScaleGuid
               style={{ marginTop: spacing['space-3'] }}
               contentContainerStyle={{ paddingBottom: spacing['space-4'] }}
             >
+              {/* The meanings are the workbook's own sentences and are not
+                  translated by the app; in Bahasa the sheet says so first. */}
+              {t.scales.inWorkbookWords !== '' && (
+                <Text
+                  testID={`${testID}-original-words`}
+                  style={[
+                    typography['body-s'],
+                    { color: colors['ink-muted'], marginBottom: spacing['space-3'] },
+                  ]}
+                >
+                  {t.scales.inWorkbookWords}
+                </Text>
+              )}
               {scale === 'rating'
                 ? RATING_BANDS.map((band) =>
                     row(band.from === band.to ? `${band.from}` : `${band.from}–${band.to}`, band.meaning)
@@ -173,9 +195,7 @@ export function ScaleGuide({ scale, onClose, testID = 'scale-guide' }: ScaleGuid
                   { color: colors['ink-faint'], marginTop: spacing['space-4'] },
                 ]}
               >
-                {scale === 'rating'
-                  ? 'Pick the number that fits the day.'
-                  : 'Match the colour on the chart, then tap its number.'}
+                {scale === 'rating' ? t.scales.ratingFooter : t.scales.urineFooter}
               </Text>
             </ScrollView>
           </View>

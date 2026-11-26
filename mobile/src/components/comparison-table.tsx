@@ -7,6 +7,7 @@ import {
   formatValue,
   type PairValues,
 } from '@/lib/assessments';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -33,6 +34,7 @@ const CELL_W = 64;
 
 export function ComparisonTable({ columns, showNames = true, testID = 'comparison' }: ComparisonTableProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   const cell = (text: string, opts: { id?: string; strong?: boolean; tone?: 'muted' | 'delta' } = {}) => (
     <View style={[styles.cell, { width: CELL_W }]}>
@@ -62,7 +64,7 @@ export function ComparisonTable({ columns, showNames = true, testID = 'compariso
         <View style={{ width: LABEL_W, borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: colors.hairline }}>
           {showNames && <View style={{ height: 28 }} />}
           <View style={[styles.labelCell, { paddingVertical: spacing['space-2'], paddingHorizontal: spacing['space-3'] }]}>
-            <Text style={[typography.label, { color: colors['ink-muted'] }]}>MEASURE</Text>
+            <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.assess.measure}</Text>
           </View>
           {COMPARISON_ROWS.map((row) => (
             <View
@@ -78,8 +80,10 @@ export function ComparisonTable({ columns, showNames = true, testID = 'compariso
               ]}
             >
               <Text numberOfLines={3} style={[typography['body-s'], { color: colors.ink, fontSize: 13, lineHeight: 16 }]}>
-                {row.label}
-                {row.note !== undefined && <Text style={{ color: colors['ink-faint'] }}>{` · ${row.note}`}</Text>}
+                {t.assess.rows[row.key] ?? row.label}
+                {row.note !== undefined && (
+                  <Text style={{ color: colors['ink-faint'] }}>{` · ${t.assess.rowNotes[row.key] ?? row.note}`}</Text>
+                )}
               </Text>
             </View>
           ))}
@@ -101,8 +105,8 @@ export function ComparisonTable({ columns, showNames = true, testID = 'compariso
                   </View>
                 )}
                 <View style={[styles.row, styles.dataRow]}>
-                  {cell('WK 0', { strong: true, tone: 'muted' })}
-                  {cell('WK 4', { strong: true, tone: 'muted' })}
+                  {cell(t.assess.wk0, { strong: true, tone: 'muted' })}
+                  {cell(t.assess.wk4, { strong: true, tone: 'muted' })}
                   {cell('Δ', { strong: true, tone: 'muted' })}
                 </View>
                 {COMPARISON_ROWS.map((row) => {

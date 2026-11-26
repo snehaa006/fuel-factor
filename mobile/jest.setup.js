@@ -22,3 +22,10 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 // every state change that lands after a test body finishes logs a warning that
 // drowns out the ones worth reading.
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+
+// The language and theme are module state that outlives a test. Every test
+// starts in English on the System theme, whatever the machine's own locale is
+// and whatever the last test switched to.
+beforeEach(() => {
+  require('./src/lib/preferences').resetPreferencesForTests();
+});

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 import SignIn from '@/app/sign-in';
 import { signInAthlete, signUpAthlete } from '@/lib/account';
@@ -133,5 +133,66 @@ describe('the athlete’s front door', () => {
     await render(<SignIn />);
     fireEvent.press(screen.getByTestId('sign-in-as-coach'));
     expect(mockPush).toHaveBeenCalledWith('/coach/account');
+  });
+});
+
+describe('choosing the language before signing in', () => {
+  /**
+   * Theo, 25 November: "is there like a feature that makes you be able to
+   * change the language when you're logging in or signing up?" The squad is
+   * Indonesian, so it is on the first screen, before anything else is read.
+   */
+  it('offers English and Bahasa Indonesia on the first screen', async () => {
+    await render(<SignIn />);
+    expect(screen.getByTestId('sign-in-language-en')).toBeTruthy();
+    expect(screen.getByTestId('sign-in-language-id')).toBeTruthy();
+  });
+
+  it('turns the whole screen to Bahasa, including making an account', async () => {
+    await render(<SignIn />);
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('sign-in-language-id'));
+    });
+
+    expect(screen.getByText('Selamat datang kembali')).toBeTruthy();
+    expect(screen.getByText('KATA SANDI')).toBeTruthy();
+    expect(screen.getByText('Saya pelatih →')).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('sign-in-switch'));
+    });
+    expect(screen.getByText('Buat akunmu')).toBeTruthy();
+    expect(screen.getByText('Setelah ini kamu akan memasukkan kode tim.')).toBeTruthy();
+  });
+
+  it('says a refused sign-in in Bahasa too', async () => {
+    // Supabase answers in English; the common answers are translated.
+    mockSignIn.mockRejectedValue(new Error('Invalid login credentials'));
+    await render(<SignIn />);
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('sign-in-language-id'));
+    });
+    await fill('theo@example.test', 'wrong');
+    fireEvent.press(screen.getByTestId('sign-in-submit'));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('sign-in-error')).toHaveTextContent('Email atau kata sandi salah.')
+    );
+    await settled();
+  });
+
+  it('shows a message it does not know exactly as it came', async () => {
+    mockSignIn.mockRejectedValue(new Error('Database is on fire'));
+    await render(<SignIn />);
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('sign-in-language-id'));
+    });
+    await fill('theo@example.test', 'secret');
+    fireEvent.press(screen.getByTestId('sign-in-submit'));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('sign-in-error')).toHaveTextContent('Database is on fire')
+    );
+    await settled();
   });
 });

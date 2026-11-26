@@ -1,3 +1,6 @@
+import { en } from '@/i18n/en';
+import type { Strings } from '@/i18n';
+
 /**
  * The invite a coach sends their squad.
  *
@@ -67,13 +70,7 @@ export function inviteUrl(joinCode: string): string {
  * forwarded round a squad group chat is the least controllable text the app
  * produces, and it carries no claim the programme has not made.
  */
-export function inviteMessage(teamName: string, joinCode: string): string {
+export function inviteMessage(teamName: string, joinCode: string, t: Strings = en): string {
   const code = normaliseCode(joinCode);
-  return [
-    `Join ${teamName} on Fuel Factor.`,
-    '',
-    inviteUrl(code),
-    '',
-    `Already have the Fuel Factor app? Open it and enter the team code ${code}.`,
-  ].join('\n');
+  return t.teamCode.invite(teamName, inviteUrl(code), code);
 }

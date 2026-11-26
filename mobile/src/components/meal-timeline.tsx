@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 import type { SlotState } from '@/lib/today';
 
@@ -18,6 +19,7 @@ export type MealTimelineProps = {
  */
 export function MealTimeline({ slots, onPressSlot, testID }: MealTimelineProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   return (
     <View style={{ gap: spacing['space-2'] }} testID={testID}>
@@ -30,7 +32,7 @@ export function MealTimeline({ slots, onPressSlot, testID }: MealTimelineProps) 
             key={slot.slot}
             onPress={onPressSlot ? () => onPressSlot(slot) : undefined}
             accessibilityRole={onPressSlot ? 'button' : undefined}
-            accessibilityLabel={`${slot.label}, ${slot.logged ? 'logged' : 'not logged yet'}`}
+            accessibilityLabel={t.timeline.slot(t.slots[slot.slot] ?? slot.label, slot.logged)}
             testID={testID ? `${testID}-${slot.slot}` : undefined}
             style={styles.row}
           >
@@ -60,7 +62,9 @@ export function MealTimeline({ slots, onPressSlot, testID }: MealTimelineProps) 
               ]}
             >
               <View style={styles.cardHead}>
-                <Text style={[typography['heading-m'], { color: colors.ink }]}>{slot.label}</Text>
+                <Text style={[typography['heading-m'], { color: colors.ink }]}>
+                  {t.slots[slot.slot] ?? slot.label}
+                </Text>
                 {slot.carbs_g !== null && (
                   <Text style={[typography['body-s'], { color: colors['pisang-deep'] }]}>
                     {Math.round(slot.carbs_g)} g
@@ -71,7 +75,7 @@ export function MealTimeline({ slots, onPressSlot, testID }: MealTimelineProps) 
                 numberOfLines={2}
                 style={[typography['body-s'], { color: colors['ink-muted'] }]}
               >
-                {names || 'Nothing logged yet'}
+                {names || t.timeline.nothingLogged}
               </Text>
             </View>
           </Pressable>

@@ -11,6 +11,7 @@ import {
   type PhaseAccess,
   type RecallFill,
 } from '@/lib/assessments';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -52,6 +53,7 @@ export function AssessmentPanel({
   testID = 'assessments',
 }: AssessmentPanelProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const [tab, setTab] = useState<PanelTab>(initialTab);
 
   return (
@@ -60,15 +62,15 @@ export function AssessmentPanel({
         accessibilityRole="tablist"
         style={[styles.tabs, { backgroundColor: colors['surface-sunken'], borderRadius: radius['radius-pill'], padding: 4 }]}
       >
-        {TABS.map((t) => {
-          const selected = t.key === tab;
+        {TABS.map((tabDef) => {
+          const selected = tabDef.key === tab;
           return (
             <Pressable
-              key={t.key}
-              onPress={() => setTab(t.key)}
+              key={tabDef.key}
+              onPress={() => setTab(tabDef.key)}
               accessibilityRole="tab"
               accessibilityState={{ selected }}
-              testID={`${testID}-tab-${t.key}`}
+              testID={`${testID}-tab-${tabDef.key}`}
               style={[
                 styles.tab,
                 {
@@ -82,7 +84,7 @@ export function AssessmentPanel({
                 numberOfLines={1}
                 style={[typography.label, { color: selected ? colors['on-bright'] : colors['ink-muted'] }]}
               >
-                {t.label.toUpperCase()}
+                {(tabDef.key === 'compare' ? t.assess.compare : (t.assess.phases[tabDef.key] ?? tabDef.label)).toUpperCase()}
               </Text>
             </Pressable>
           );
@@ -93,7 +95,7 @@ export function AssessmentPanel({
         <View style={{ gap: spacing['space-2'] }}>
           <ComparisonTable columns={comparison} showNames={showNames} testID={`${testID}-comparison`} />
           <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
-            Δ = Week 4 minus Week 0. For sprint time, negative is faster.
+            {t.assess.deltaNote}
           </Text>
         </View>
       ) : (() => {

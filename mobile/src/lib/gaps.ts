@@ -1,3 +1,5 @@
+import { en } from '@/i18n/en';
+import type { Strings } from '@/i18n';
 import { asError } from './errors';
 import { supabase } from './supabase';
 import {
@@ -212,13 +214,11 @@ export function analyse(
  * belongs to the advice engine, where every sentence is a seeded rule with a
  * source and a review flag.
  */
-export function gapHeadline(gap: NutrientGap): string | null {
+export function gapHeadline(gap: NutrientGap, t: Strings = en): string | null {
   if (gap.judged === 0) return null;
-  const label = NUTRIENT_LABEL[gap.nutrient].toLowerCase();
-  if (gap.below === 0) {
-    return `No day fell below the programme’s ${label} band.`;
-  }
-  return `${gap.below} of ${gap.judged} recorded ${gap.judged === 1 ? 'day' : 'days'} fell below the programme’s ${label} band, by ${gap.meanShortfall} g on average.`;
+  const label = (t.gaps.nutrients[gap.nutrient] ?? NUTRIENT_LABEL[gap.nutrient]).toLowerCase();
+  if (gap.below === 0) return t.gaps.noneBelow(label);
+  return t.gaps.below_(gap.below, gap.judged, label, gap.meanShortfall);
 }
 
 type LogRow = {

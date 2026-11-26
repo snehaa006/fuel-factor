@@ -1,6 +1,7 @@
 import { MASCOT_MOTIONS, MASCOT_POSES } from '@/components/mascot';
 import {
   ALL_CUES,
+  ALL_CUES_ID,
   badgeCue,
   dayCue,
   LEARN_CUE,
@@ -86,10 +87,10 @@ describe('the mascot stays in its lane', () => {
   it('covers every cue the app can show', () => {
     // ALL_CUES is what the rule above is checked against, so a cue missing
     // from it is a line nobody is holding to anything.
-    expect(ALL_CUES).toContain(LEARN_CUE);
-    expect(ALL_CUES).toContain(WELCOME_CUE);
-    expect(ALL_CUES).toContain(PROGRESS_CUE);
-    expect(ALL_CUES).toContain(SAVE_FAILED_CUE);
+    expect(ALL_CUES).toContainEqual(LEARN_CUE);
+    expect(ALL_CUES).toContainEqual(WELCOME_CUE);
+    expect(ALL_CUES).toContainEqual(PROGRESS_CUE);
+    expect(ALL_CUES).toContainEqual(SAVE_FAILED_CUE);
     expect(ALL_CUES.length).toBeGreaterThanOrEqual(9);
   });
 
@@ -126,6 +127,42 @@ describe('the mascot stays in its lane', () => {
 
   it('keeps every line to one sentence', () => {
     for (const { message } of ALL_CUES) {
+      expect(message.split('. ').length).toBeLessThanOrEqual(2);
+      expect(message.length).toBeLessThanOrEqual(90);
+    }
+  });
+});
+
+describe('the mascot stays in its lane in Bahasa Indonesia', () => {
+  /**
+   * The same rule, in the other language the app speaks. A translation is
+   * where a line most easily drifts: "keep your streak" can come back as
+   * "eat well to keep your streak" without anybody meaning it to.
+   */
+  const FORBIDDEN_ID = [
+    'makan lebih', 'makan lebih sedikit', 'harus makan', 'sehat', 'bergizi',
+    'karbo', 'protein', 'kalori', 'vitamin', 'nutrisi', 'gizi', 'hidrasi',
+    'target', 'gram', 'baik untuk', 'buruk untuk',
+  ];
+
+  it.each(ALL_CUES_ID)('“$message” gives no dietary advice', ({ message }) => {
+    const lower = message.toLowerCase();
+    expect(FORBIDDEN_ID.filter((word) => lower.includes(word))).toEqual([]);
+  });
+
+  it('says every English cue, with the same pose and motion', () => {
+    // The two lists are built from one function, so a cue cannot exist in
+    // one language and not the other; what can drift is the line itself.
+    expect(ALL_CUES_ID).toHaveLength(ALL_CUES.length);
+    ALL_CUES_ID.forEach((cue, i) => {
+      expect(cue.pose).toBe(ALL_CUES[i].pose);
+      expect(cue.motion).toBe(ALL_CUES[i].motion);
+      expect(cue.message).not.toBe(ALL_CUES[i].message);
+    });
+  });
+
+  it('keeps every line to one sentence', () => {
+    for (const { message } of ALL_CUES_ID) {
       expect(message.split('. ').length).toBeLessThanOrEqual(2);
       expect(message.length).toBeLessThanOrEqual(90);
     }

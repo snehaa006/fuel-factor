@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 import type { RankedRow } from '@/lib/team';
 
@@ -24,8 +25,9 @@ export type LeaderboardRowProps = {
  */
 export function LeaderboardRow({ row, windowDays, testID }: LeaderboardRowProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
-  const days = `${row.daysLogged} of ${windowDays} days`;
+  const days = t.team.rowDays(row.daysLogged, windowDays);
 
   return (
     <View
@@ -33,9 +35,9 @@ export function LeaderboardRow({ row, windowDays, testID }: LeaderboardRowProps)
       accessibilityRole="text"
       accessibilityLabel={[
         `${row.position}.`,
-        row.isMe ? `${row.name}, you` : row.name,
+        row.isMe ? t.team.rowYou(row.name) : row.name,
         days,
-        row.loggedToday ? 'logged today' : 'not logged today',
+        t.team.rowLogged(row.loggedToday),
       ].join(' ')}
       style={[
         styles.row,
@@ -59,7 +61,7 @@ export function LeaderboardRow({ row, windowDays, testID }: LeaderboardRowProps)
           <Text style={[typography['heading-m'], { color: colors.ink }]}>{row.name}</Text>
           {row.isMe && (
             <Text testID={testID ? `${testID}-you` : undefined} style={[typography.label, { color: colors['pisang-deep'] }]}>
-              YOU
+              {t.team.you}
             </Text>
           )}
         </View>

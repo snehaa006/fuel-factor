@@ -1,3 +1,6 @@
+import { en } from '@/i18n/en';
+import type { Strings } from '@/i18n';
+
 import { currentEmail, myTeam, type CoachTeam } from './coach-auth';
 import { asError } from './errors';
 import { supabase } from './supabase';
@@ -124,16 +127,18 @@ export async function fetchProfile(): Promise<Profile | null> {
 
 /** The measurement rows on the athlete's profile, in the sheet's order. */
 export function measurementsOf(
-  profile: AthleteProfile
+  profile: AthleteProfile,
+  t: Strings = en
 ): { label: string; value: string }[] {
+  const m = t.measurements;
   const show = (value: number | null, unit: string) =>
-    value === null ? 'Not measured' : `${value} ${unit}`;
+    value === null ? m.notMeasured : `${value} ${unit}`;
 
   return [
-    { label: 'Height', value: show(profile.heightCm, 'cm') },
-    { label: 'Weight', value: show(profile.weightKg, 'kg') },
-    { label: 'Waist', value: show(profile.waistCm, 'cm') },
-    { label: 'Mid-upper arm', value: show(profile.muacCm, 'cm') },
-    { label: 'Calf', value: show(profile.calfCm, 'cm') },
+    { label: m.height_cm, value: show(profile.heightCm, 'cm') },
+    { label: m.weight_kg, value: show(profile.weightKg, 'kg') },
+    { label: m.waist_cm, value: show(profile.waistCm, 'cm') },
+    { label: m.muac_cm, value: show(profile.muacCm, 'cm') },
+    { label: m.calf_cm, value: show(profile.calfCm, 'cm') },
   ];
 }

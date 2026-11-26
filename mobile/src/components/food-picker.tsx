@@ -5,6 +5,7 @@ import { PushButton } from '@/components/push-button';
 import { macroLine, macrosFor, type FoodPortion, type FoodWithPortions } from '@/lib/food';
 import { defaultPortion, QUANTITIES, searchFoods } from '@/lib/logger';
 import { useFoods } from '@/lib/use-foods';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -27,6 +28,7 @@ export type FoodPickerProps = {
 
 export function FoodPicker({ onAdd, onClose, maxResults = 12, testID = 'food-picker' }: FoodPickerProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const [query, setQuery] = useState('');
   const foods = useFoods(query);
   const [chosen, setChosen] = useState<FoodWithPortions | null>(null);
@@ -70,10 +72,10 @@ export function FoodPicker({ onAdd, onClose, maxResults = 12, testID = 'food-pic
       }}
     >
       <View style={styles.rowBetween}>
-        <Text style={[typography.label, { color: colors['ink-muted'] }]}>FOOD DATABASE</Text>
+        <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.foodPicker.title}</Text>
         {onClose && (
           <Pressable onPress={onClose} accessibilityRole="button" testID={`${testID}-close`} hitSlop={10}>
-            <Text style={[typography.label, { color: colors['air-deep'] }]}>DONE</Text>
+            <Text style={[typography.label, { color: colors['air-deep'] }]}>{t.foodPicker.done}</Text>
           </Pressable>
         )}
       </View>
@@ -81,10 +83,10 @@ export function FoodPicker({ onAdd, onClose, maxResults = 12, testID = 'food-pic
       <TextInput
         value={query}
         onChangeText={setQuery}
-        placeholder="Search: nasi, telur, tempe…"
+        placeholder={t.foodPicker.searchPlaceholder}
         placeholderTextColor={colors['ink-faint']}
         autoCorrect={false}
-        accessibilityLabel="Search the food database"
+        accessibilityLabel={t.foodPicker.searchLabel}
         testID={`${testID}-search`}
         style={[
           typography['body-m'],
@@ -98,7 +100,7 @@ export function FoodPicker({ onAdd, onClose, maxResults = 12, testID = 'food-pic
       )}
       {foods.status === 'ready' && results.length === 0 && (
         <Text testID={`${testID}-empty`} style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-          Nothing matches “{query}”. Write it in the box above instead.
+          {t.foodPicker.noMatch(query)}
         </Text>
       )}
 
@@ -123,7 +125,7 @@ export function FoodPicker({ onAdd, onClose, maxResults = 12, testID = 'food-pic
               <Text style={[typography['body-m'], { color: colors.ink }]}>{food.name_id}</Text>
               {hundred !== null && (
                 <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
-                  {hundred.label}: {macroLine(macrosFor(hundred)) || 'no figures yet'}
+                  {hundred.label}: {macroLine(macrosFor(hundred), t) || t.foodPicker.noFiguresYet}
                 </Text>
               )}
             </Pressable>
@@ -153,7 +155,7 @@ export function FoodPicker({ onAdd, onClose, maxResults = 12, testID = 'food-pic
                       onPress={() => setQuantity(q)}
                       accessibilityRole="button"
                       accessibilityState={{ selected: quantity === q }}
-                      accessibilityLabel={`${q} times`}
+                      accessibilityLabel={t.foodPicker.times(q)}
                       testID={`${testID}-quantity-${q}`}
                       style={chip(quantity === q)}
                     >
@@ -165,10 +167,10 @@ export function FoodPicker({ onAdd, onClose, maxResults = 12, testID = 'food-pic
                 </View>
                 {portion !== null && (
                   <Text testID={`${testID}-macros`} style={[typography['body-m'], { color: colors['pisang-deep'] }]}>
-                    {macroLine(macrosFor(portion, quantity)) || 'No figures for this portion yet.'}
+                    {macroLine(macrosFor(portion, quantity), t) || t.foodPicker.noFiguresPortion}
                   </Text>
                 )}
-                <PushButton label="Add" disabled={portion === null} onPress={add} testID={`${testID}-add`} />
+                <PushButton label={t.foodPicker.add} disabled={portion === null} onPress={add} testID={`${testID}-add`} />
               </View>
             )}
           </View>

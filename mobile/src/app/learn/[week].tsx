@@ -11,6 +11,8 @@ import { deckWeek } from '@/lib/food';
 import { useMealChallenge } from '@/lib/use-meal-challenge';
 import { useParticipantId } from '@/lib/use-foods';
 import { useWeek } from '@/lib/use-learn';
+import { shortDate } from '@/components/calendar';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -26,6 +28,7 @@ export default function Week() {
   const weekNumber = Number(params.week);
   const participantId = useParticipantId();
   const { colors, spacing, typography } = useTheme();
+  const t = useStrings();
 
   const state = useWeek(weekNumber, participantId);
   const checked = useMealChallenge(Number.isInteger(weekNumber) ? weekNumber : undefined);
@@ -38,7 +41,7 @@ export default function Week() {
     return (
       <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
         <Text style={[typography['heading-l'], { color: colors.ink, padding: spacing['space-6'] }]}>
-          That is not a week of the programme.
+          {t.learn.notAWeek}
         </Text>
       </SafeAreaView>
     );
@@ -57,7 +60,7 @@ export default function Week() {
       <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
         <View style={{ padding: spacing['space-6'], gap: spacing['space-2'] }}>
           <Text style={[typography['heading-l'], { color: colors.ink, textAlign: 'center' }]}>
-            Could not open this week
+            {t.learn.couldNotOpen}
           </Text>
           <Text style={[typography['body-m'], { color: colors['ink-muted'], textAlign: 'center' }]}>
             {state.message}
@@ -78,20 +81,20 @@ export default function Week() {
         <Pressable
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="Back to the programme"
+          accessibilityLabel={t.learn.backToProgramme}
           testID="week-back"
         >
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>← LEARN</Text>
+          <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.learn.learnCaps}</Text>
         </Pressable>
 
         <Text
           style={[typography.label, { color: colors['ink-muted'], marginTop: spacing['space-2'] }]}
         >
-          WEEK {detail.week.weekNumber}
+          {t.learn.weekCaps(detail.week.weekNumber)}
         </Text>
         <Text style={[typography['display-l'], { color: colors.ink }]}>
           {/* No theme invented for a week the programme has not written. */}
-          {detail.week.theme ?? 'Not written yet'}
+          {detail.week.theme ?? t.learn.notWrittenYet}
         </Text>
 
         <View style={{ marginTop: spacing['space-4'], gap: spacing['space-3'] }}>
@@ -115,7 +118,7 @@ export default function Week() {
         {detail.week.challengeId !== null && (
           <View style={{ marginTop: spacing['space-6'], gap: spacing['space-2'] }}>
             <PushButton
-              label={done ? 'Done today ✓' : 'Mark the challenge done'}
+              label={done ? t.learn.doneToday : t.learn.markDone}
               variant={done ? 'success' : 'primary'}
               fullWidth
               testID="challenge-toggle"
@@ -125,7 +128,7 @@ export default function Week() {
               <Text
                 style={[typography['body-s'], { color: colors['ink-muted'], textAlign: 'center' }]}
               >
-                Last done {detail.completedOn}
+                {t.learn.lastDone(shortDate(detail.completedOn, t))}
               </Text>
             )}
 

@@ -8,6 +8,7 @@ import {
   type Minutes,
   type TrainingSession,
 } from '@/lib/session';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 export type SessionTimesProps = {
@@ -40,6 +41,7 @@ function roundToStep(minutes: Minutes): Minutes {
  */
 export function SessionTimes({ value, onChange, now, testID }: SessionTimesProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   function row(
     label: string,
@@ -60,7 +62,7 @@ export function SessionTimes({ value, onChange, now, testID }: SessionTimesProps
       <Pressable
         onPress={() => step(delta)}
         accessibilityRole="button"
-        accessibilityLabel={`${name} ${label}`}
+        accessibilityLabel={t.session.step(label, name === 'later')}
         testID={testID ? `${testID}-${key}-${name}` : undefined}
         style={[
           styles.button,
@@ -77,7 +79,7 @@ export function SessionTimes({ value, onChange, now, testID }: SessionTimesProps
         {button(-1, '−', 'earlier')}
         <Text
           testID={testID ? `${testID}-${key}` : undefined}
-          accessibilityLabel={`${label}: ${current === null ? 'not set' : displayTime(current)}`}
+          accessibilityLabel={t.session.value(label, current === null ? null : displayTime(current))}
           style={[
             typography['heading-m'],
             styles.value,
@@ -105,21 +107,21 @@ export function SessionTimes({ value, onChange, now, testID }: SessionTimesProps
       ]}
     >
       <View style={styles.header}>
-        <Text style={[typography.label, { color: colors['ink-muted'] }]}>TRAINING SESSION</Text>
+        <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.session.title}</Text>
         {hasSession(value) && (
           <Pressable
             onPress={() => onChange({ startsAt: null, endsAt: null })}
             accessibilityRole="button"
-            accessibilityLabel="Clear the training session"
+            accessibilityLabel={t.session.clearLabel}
             testID={testID ? `${testID}-clear` : undefined}
           >
-            <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>Clear</Text>
+            <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>{t.session.clear}</Text>
           </Pressable>
         )}
       </View>
 
-      {row('Starts', 'startsAt', value.startsAt, (next) => withStart(value, next))}
-      {row('Ends', 'endsAt', value.endsAt, (next) => withEnd(value, next))}
+      {row(t.session.starts, 'startsAt', value.startsAt, (next) => withStart(value, next))}
+      {row(t.session.ends, 'endsAt', value.endsAt, (next) => withEnd(value, next))}
 
     </View>
   );

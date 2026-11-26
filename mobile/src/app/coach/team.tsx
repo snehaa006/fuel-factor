@@ -20,6 +20,7 @@ import { inviteMessage, inviteUrl } from '@/lib/invite';
 import { isIsoDate, PROGRAMME_WEEKS } from '@/lib/recall-window';
 import { todayIso } from '@/lib/today';
 import { useCoachTeam } from '@/lib/use-coach-team';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -34,6 +35,7 @@ import { useTheme } from '@/theme';
 export default function CoachTeamScreen() {
   const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const state = useCoachTeam();
 
   const [name, setName] = useState('');
@@ -51,7 +53,7 @@ export default function CoachTeamScreen() {
 
   const back = (
     <Pressable onPress={() => router.back()} accessibilityRole="button" testID="team-back">
-      <Text style={[typography.label, { color: colors['ink-muted'] }]}>← BACK</Text>
+      <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.common.back}</Text>
     </Pressable>
   );
 
@@ -86,9 +88,9 @@ export default function CoachTeamScreen() {
   if (state.status === 'needs-account') {
     return frame(
       <View style={{ marginTop: spacing['space-2'], gap: spacing['space-4'] }}>
-        <Text style={[typography['display-l'], { color: colors.ink }]}>Your squad</Text>
+        <Text style={[typography['display-l'], { color: colors.ink }]}>{t.coach.yourSquad}</Text>
         <PushButton
-          label="Coach sign-in"
+          label={t.coach.coachSignIn}
           fullWidth
           testID="team-sign-in"
           onPress={() => router.push('/coach/account')}
@@ -103,19 +105,19 @@ export default function CoachTeamScreen() {
 
     return frame(
       <View style={{ marginTop: spacing['space-2'], gap: spacing['space-4'] }}>
-        <Text style={[typography['display-l'], { color: colors.ink }]}>Create a team</Text>
+        <Text style={[typography['display-l'], { color: colors.ink }]}>{t.coach.createTeam}</Text>
         <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-          Signed in as {state.email}. You get a link to send the squad as soon as the team exists.
+          {t.coach.signedInAs(state.email ?? '')}
         </Text>
 
         <View style={{ gap: spacing['space-2'] }}>
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>TEAM NAME</Text>
+          <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.coach.teamNameCaps}</Text>
           <TextInput
             value={name}
             onChangeText={setName}
-            placeholder="Your team's name"
+            placeholder={t.coach.teamNamePlaceholder}
             placeholderTextColor={colors['ink-faint']}
-            accessibilityLabel="Team name"
+            accessibilityLabel={t.coach.teamNameLabel}
             testID="team-name"
             style={[
               typography['heading-m'],
@@ -131,27 +133,25 @@ export default function CoachTeamScreen() {
 
         <View style={{ gap: spacing['space-2'] }}>
           <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-            FIRST DAY OF THE PROGRAMME
+            {t.coach.firstDayCaps}
           </Text>
           {/* A calendar, not a typed date: this is the one field the whole
               app counts from, and a typo in it moved the follow-up recall. */}
           <DateField
             value={startsOn === '' ? null : startsOn}
             onChange={(date) => setStartsOn(date ?? '')}
-            placeholder="Pick the first day"
+            placeholder={t.coach.firstDayPlaceholder}
             openAt={todayIso()}
             today={todayIso()}
-            title="FIRST DAY OF THE PROGRAMME"
-            hint="Logging, the ring and the streak open on this day."
-            accessibilityLabel="First day of the programme"
+            title={t.coach.firstDayCaps}
+            hint={t.coach.firstDayHint}
+            accessibilityLabel={t.coach.firstDayLabel}
             testID="team-start"
           />
           <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
             {/* Asked once, and not optional, because the whole app is counted
                 from it: the follow-up recall, and the day logging opens. */}
-            Until this day the squad sees their three baseline recall days and nothing else.
-            Logging, the ring and the streak open on it, and the app asks for the recall again{' '}
-            {PROGRAMME_WEEKS} weeks later. You can move it afterwards.
+            {t.coach.untilThisDay(PROGRAMME_WEEKS)}
           </Text>
         </View>
 
@@ -162,7 +162,7 @@ export default function CoachTeamScreen() {
         )}
 
         <PushButton
-          label={state.busy ? 'Creating…' : 'Create the team'}
+          label={state.busy ? t.coach.creating : t.coach.createTheTeam}
           fullWidth
           disabled={name.trim() === '' || !dateOk || state.busy}
           testID="team-create"
@@ -183,8 +183,7 @@ export default function CoachTeamScreen() {
       <View>
         <Text style={[typography['display-l'], { color: colors.ink }]}>{team.name}</Text>
         <Text testID="team-count" style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-          {team.athletes} {team.athletes === 1 ? 'athlete' : 'athletes'} · signed in as{' '}
-          {state.email}
+          {t.coach.teamCount(team.athletes, state.email)}
         </Text>
       </View>
 
@@ -199,7 +198,7 @@ export default function CoachTeamScreen() {
         }}
       >
         <Text style={[typography.label, { color: colors['pisang-deep'] }]}>
-          TEAM CODE — SHARE THIS
+          {t.coach.teamCodeShare}
         </Text>
         <Text
           selectable
@@ -218,7 +217,7 @@ export default function CoachTeamScreen() {
         <View style={{ flexDirection: 'row', gap: spacing['space-2'] }}>
           <View style={{ flex: 1 }}>
             <PushButton
-              label={copied === 'code' ? 'Copied ✓' : 'Copy the code'}
+              label={copied === 'code' ? t.coach.copied : t.coach.copyCode}
               variant={copied === 'code' ? 'success' : 'ghost'}
               fullWidth
               testID="team-copy-code"
@@ -227,31 +226,31 @@ export default function CoachTeamScreen() {
           </View>
           <View style={{ flex: 1 }}>
             <PushButton
-              label={copied === 'message' ? 'Copied ✓' : 'Copy the message'}
+              label={copied === 'message' ? t.coach.copied : t.coach.copyMessage}
               variant={copied === 'message' ? 'success' : 'ghost'}
               fullWidth
               testID="team-copy-message"
-              onPress={() => copy('message', inviteMessage(team.name, team.joinCode))}
+              onPress={() => copy('message', inviteMessage(team.name, team.joinCode, t))}
             />
           </View>
         </View>
         {copied === 'failed' && (
           <Text testID="team-copy-failed" style={[typography['body-s'], { color: colors['ink-muted'] }]}>
             {/* Said rather than faked: the code is selectable text above. */}
-            Could not reach the clipboard. Press and hold the code to copy it.
+            {t.coach.noClipboard}
           </Text>
         )}
 
         <View style={{ marginTop: spacing['space-2'] }}>
           <PushButton
-            label="Send the invite"
+            label={t.coach.sendInvite}
             fullWidth
             testID="team-share"
             onPress={() => {
               // Share rejects when the sheet is dismissed on some platforms,
               // and an async onPress that swallows its rejection is a button
               // that silently does nothing.
-              Share.share({ message: inviteMessage(team.name, team.joinCode) }).catch(
+              Share.share({ message: inviteMessage(team.name, team.joinCode, t) }).catch(
                 (e: unknown) => setShareError(messageOf(e))
               );
             }}
@@ -263,8 +262,7 @@ export default function CoachTeamScreen() {
           </Text>
         )}
         <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-          The link opens Fuel Factor in any phone&apos;s browser, with nothing to install. The
-          message carries the code too, for anyone who already has the app.
+          {t.coach.linkOpens}
         </Text>
       </View>
 
@@ -281,13 +279,13 @@ export default function CoachTeamScreen() {
         }}
       >
         <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-          COACH CODE — DO NOT SHARE
+          {t.coach.coachCodeCaps}
         </Text>
         <Text testID="team-coach-code" style={[typography['heading-l'], { color: colors.ink }]}>
           {team.coachCode}
         </Text>
         <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-          For other coaches only: it opens every athlete&apos;s logs.
+          {t.coach.coachCodeNote}
         </Text>
       </View>
 
@@ -308,7 +306,7 @@ export default function CoachTeamScreen() {
       )}
 
       <PushButton
-        label="Open the dashboard"
+        label={t.coach.openDashboard}
         variant="ghost"
         fullWidth
         testID="team-dashboard"
@@ -340,32 +338,33 @@ function ProgrammeStart({
   onSet: (date: string) => void;
 }) {
   const { colors, spacing, typography } = useTheme();
+  const t = useStrings();
   const [draft, setDraft] = useState(startsOn ?? '');
   const typed = draft.trim();
   const ok = isIsoDate(typed);
 
   return (
     <View style={{ gap: spacing['space-2'] }}>
-      <Text style={[typography['heading-l'], { color: colors.ink }]}>The four weeks</Text>
+      <Text style={[typography['heading-l'], { color: colors.ink }]}>{t.coach.fourWeeks}</Text>
       <Text testID="team-programme" style={[typography['body-m'], { color: colors['ink-muted'] }]}>
         {startsOn === null
-          ? 'Not set yet. Logging opens on this date.'
-          : `Day one: ${longDate(startsOn)}. Follow-up recall opens ${PROGRAMME_WEEKS} weeks later.`}
+          ? t.coach.notSetYet
+          : t.coach.dayOne(longDate(startsOn, t), PROGRAMME_WEEKS)}
       </Text>
       <DateField
         value={draft === '' ? null : draft}
         onChange={(date) => setDraft(date ?? '')}
-        placeholder="Pick the first day"
+        placeholder={t.coach.firstDayPlaceholder}
         openAt={startsOn ?? todayIso()}
         today={todayIso()}
-        title="FIRST DAY OF THE PROGRAMME"
-        accessibilityLabel="First day of the programme"
+        title={t.coach.firstDayCaps}
+        accessibilityLabel={t.coach.firstDayLabel}
         testID="team-programme-input"
       />
       <View style={{ flexDirection: 'row', gap: spacing['space-2'] }}>
         <View style={{ flex: 1 }}>
           <PushButton
-            label={busy ? 'Saving…' : startsOn === null ? 'Set the date' : 'Move the date'}
+            label={busy ? t.common.saving : startsOn === null ? t.coach.setDate : t.coach.moveDate}
             fullWidth
             disabled={!ok || busy || typed === (startsOn ?? '')}
             testID="team-programme-save"
@@ -374,7 +373,7 @@ function ProgrammeStart({
         </View>
         <View style={{ flex: 1 }}>
           <PushButton
-            label="Start today"
+            label={t.coach.startToday}
             variant="ghost"
             fullWidth
             disabled={busy}

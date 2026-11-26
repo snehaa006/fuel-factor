@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useStrings, type Strings } from '@/i18n';
+import { en } from '@/i18n/en';
 import { useTheme } from '@/theme';
 
 /**
@@ -24,28 +26,31 @@ import { useTheme } from '@/theme';
  * on the wrong day either side of midnight depending on the timezone.
  */
 
-const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
-
-const SHORT_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-/** "Tue 10 Nov", the way a date reads on a pill. */
-export function shortDate(iso: string): string {
+/**
+ * "Tue 10 Nov", the way a date reads on a pill; "Sel, 10 Nov" in Bahasa.
+ *
+ * Month and day names come from the dictionary rather than `Intl`, because
+ * Hermes on an older Android phone may carry no Indonesian locale data and
+ * would quietly answer in English.
+ */
+export function shortDate(iso: string, t: Strings = en): string {
   const d = new Date(`${iso}T00:00:00Z`);
-  return `${SHORT_DAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()].slice(0, 3)}`;
+  return t.dates.short(
+    t.dates.shortWeekdays[d.getUTCDay()],
+    d.getUTCDate(),
+    t.dates.shortMonths[d.getUTCMonth()]
+  );
 }
 
 /** "Tuesday 10 November 2026", for a field that has the room for it. */
-export function longDate(iso: string): string {
+export function longDate(iso: string, t: Strings = en): string {
   const d = new Date(`${iso}T00:00:00Z`);
-  const weekday = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][
-    d.getUTCDay()
-  ];
-  return `${weekday} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  return t.dates.long(
+    t.dates.weekdays[d.getUTCDay()],
+    d.getUTCDate(),
+    t.dates.months[d.getUTCMonth()],
+    d.getUTCFullYear()
+  );
 }
 
 /**
@@ -92,7 +97,7 @@ export function CalendarSheet({
   highlight = null,
   min = null,
   max = null,
-  title = 'PICK A DATE',
+  title,
   hint,
   footerLabel,
   onFooter,
@@ -101,6 +106,7 @@ export function CalendarSheet({
   testPrefix = 'calendar',
 }: CalendarSheetProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const from = value ?? openAt;
   const [cursor, setCursor] = useState(() => ({
     year: Number(from.slice(0, 4)),
@@ -117,7 +123,7 @@ export function CalendarSheet({
 
   return (
     <Modal transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.scrim} onPress={onClose} accessibilityLabel="Close the calendar">
+      <Pressable style={styles.scrim} onPress={onClose} accessibilityLabel={t.calendar.close}>
         {/* Taps inside the sheet stop here rather than closing it. */}
         <Pressable
           testID={`${testPrefix}-sheet`}
@@ -132,7 +138,7 @@ export function CalendarSheet({
             },
           ]}
         >
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>{title}</Text>
+          <Text style={[typography.label, { color: colors['ink-muted'] }]}>{title ?? t.calendar.pickADate}</Text>
           {hint !== undefined && (
             <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>{hint}</Text>
           )}
@@ -141,7 +147,7 @@ export function CalendarSheet({
             <Pressable
               onPress={() => move(-1)}
               accessibilityRole="button"
-              accessibilityLabel="Previous month"
+              accessibilityLabel={t.calendar.previousMonth}
               testID={`${testPrefix}-prev-month`}
               style={styles.step}
             >
@@ -151,12 +157,12 @@ export function CalendarSheet({
               testID={`${testPrefix}-month`}
               style={[typography['heading-m'], { color: colors.ink }]}
             >
-              {MONTHS[cursor.month]} {cursor.year}
+              {t.dates.months[cursor.month]} {cursor.year}
             </Text>
             <Pressable
               onPress={() => move(1)}
               accessibilityRole="button"
-              accessibilityLabel="Next month"
+              accessibilityLabel={t.calendar.nextMonth}
               testID={`${testPrefix}-next-month`}
               style={styles.step}
             >
@@ -165,7 +171,7 @@ export function CalendarSheet({
           </View>
 
           <View style={styles.grid}>
-            {WEEKDAYS.map((d, i) => (
+            {t.dates.initials.map((d, i) => (
               <View key={`h${i}`} style={styles.cell}>
                 <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>{d}</Text>
               </View>
@@ -183,7 +189,7 @@ export function CalendarSheet({
                   onPress={blocked ? undefined : () => onPick(date)}
                   disabled={blocked}
                   accessibilityRole="button"
-                  accessibilityLabel={`${longDate(date)}${ringed ? ', today' : ''}`}
+                  accessibilityLabel={`${longDate(date, t)}${ringed ? t.calendar.today : ''}`}
                   accessibilityState={{ selected, disabled: blocked }}
                   testID={`${testPrefix}-day-${date}`}
                   style={styles.cell}
@@ -275,7 +281,7 @@ export type DateFieldProps = {
 export function DateField({
   value,
   onChange,
-  placeholder = 'Pick a date',
+  placeholder,
   openAt,
   today = null,
   min = null,
@@ -288,6 +294,7 @@ export function DateField({
   testID = 'date-field',
 }: DateFieldProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const [open, setOpen] = useState(false);
 
   const canPickToday =
@@ -302,7 +309,7 @@ export function DateField({
         onPress={() => setOpen(true)}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
-        accessibilityValue={{ text: value === null ? 'not set' : longDate(value) }}
+        accessibilityValue={{ text: value === null ? t.calendar.notSet : longDate(value, t) }}
         testID={testID}
         style={[
           styles.field,
@@ -320,7 +327,7 @@ export function DateField({
             { color: value === null ? colors['ink-faint'] : colors.ink, flex: 1 },
           ]}
         >
-          {value === null ? placeholder : longDate(value)}
+          {value === null ? (placeholder ?? t.calendar.pickPlaceholder) : longDate(value, t)}
         </Text>
         <Text style={[typography['body-l'], { color: colors['ink-muted'] }]}>📅</Text>
       </Pressable>
@@ -329,11 +336,11 @@ export function DateField({
         <Pressable
           onPress={() => onChange(null)}
           accessibilityRole="button"
-          accessibilityLabel={`Clear ${accessibilityLabel}`}
+          accessibilityLabel={t.calendar.clear(accessibilityLabel)}
           testID={`${testID}-clear`}
           hitSlop={8}
         >
-          <Text style={[typography['body-s'], { color: colors['air-deep'] }]}>Clear the date</Text>
+          <Text style={[typography['body-s'], { color: colors['air-deep'] }]}>{t.calendar.clearTheDate}</Text>
         </Pressable>
       )}
 
@@ -346,7 +353,7 @@ export function DateField({
           max={max}
           title={title}
           hint={hint}
-          footerLabel={canPickToday && today !== null ? `Today · ${shortDate(today)}` : undefined}
+          footerLabel={canPickToday && today !== null ? t.calendar.todayShortcut(shortDate(today, t)) : undefined}
           onFooter={
             canPickToday && today !== null
               ? () => {

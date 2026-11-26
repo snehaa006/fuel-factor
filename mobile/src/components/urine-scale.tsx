@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ScaleGuideLink } from '@/components/scale-guide';
 import { URINE_LEVELS, URINE_WORDING } from '@/lib/check-in';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 export type UrineScaleProps = {
@@ -26,6 +27,7 @@ export type UrineScaleProps = {
  */
 export function UrineScale({ value, onChange, onShowGuide, testID }: UrineScaleProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const wording = value === null ? null : URINE_WORDING[value];
 
   return (
@@ -39,7 +41,7 @@ export function UrineScale({ value, onChange, onShowGuide, testID }: UrineScaleP
               onPress={() => onChange(level)}
               accessibilityRole="button"
               accessibilityState={{ selected }}
-              accessibilityLabel={`Urine colour ${level}${URINE_WORDING[level] ? `, ${URINE_WORDING[level]}` : ''}`}
+              accessibilityLabel={t.scales.urineLevel(level, URINE_WORDING[level] ?? null)}
               testID={testID ? `${testID}-${level}` : undefined}
               style={[
                 styles.cell,
@@ -67,7 +69,7 @@ export function UrineScale({ value, onChange, onShowGuide, testID }: UrineScaleP
         testID={testID ? `${testID}-wording` : undefined}
         style={[typography['body-s'], { color: wording ? colors['air-deep'] : colors['ink-muted'] }]}
       >
-        {wording ?? 'Match the chart, then tap the number.'}
+        {wording ?? t.scales.matchTheChart}
       </Text>
 
       {/* The chart itself, one tap away, the way a shop puts its size guide

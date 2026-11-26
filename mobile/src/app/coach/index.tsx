@@ -10,8 +10,9 @@ import { TeamCodeCard } from '@/components/team-code-card';
 import { normaliseCodeText } from '@/lib/invite';
 import { useAccount } from '@/lib/use-account';
 import { useCoach } from '@/lib/use-coach';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
-import type { CoachAthlete } from '@/lib/coach';
+import { DEHYDRATED_AT, UNDER_FUELLING_DAYS, type CoachAthlete } from '@/lib/coach';
 
 /**
  * The coach's home.
@@ -46,6 +47,7 @@ import type { CoachAthlete } from '@/lib/coach';
 export default function Coach() {
   const router = useRouter();
   const { colors, spacing, typography } = useTheme();
+  const t = useStrings();
   const account = useAccount();
 
   if (account.status === 'loading') {
@@ -83,16 +85,16 @@ export default function Coach() {
       <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
         <View style={{ padding: spacing['space-6'], gap: spacing['space-3'], alignItems: 'center' }}>
           <Text style={[typography['heading-l'], { color: colors.ink, textAlign: 'center' }]}>
-            This is the coach&apos;s side
+            {t.coach.coachesSide}
           </Text>
           <Text
             testID="coach-is-athlete"
             style={[typography['body-m'], { color: colors['ink-muted'], textAlign: 'center' }]}
           >
-            You’re signed in as an athlete. Use a coach account to see the dashboard.
+            {t.coach.signedInAsAthlete}
           </Text>
           <PushButton
-            label="Back to my day"
+            label={t.coach.backToMyDay}
             testID="coach-back-to-today"
             onPress={() => router.replace('/today')}
           />
@@ -111,6 +113,7 @@ export default function Coach() {
 function CoachDashboard() {
   const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const state = useCoach();
   const [code, setCode] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -128,7 +131,7 @@ function CoachDashboard() {
       <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
         <View style={{ padding: spacing['space-6'], gap: spacing['space-2'] }}>
           <Text style={[typography['heading-l'], { color: colors.ink, textAlign: 'center' }]}>
-            Could not load the squad
+            {t.coach.couldNotLoad}
           </Text>
           <Text style={[typography['body-m'], { color: colors['ink-muted'], textAlign: 'center' }]}>
             {state.message}
@@ -142,17 +145,17 @@ function CoachDashboard() {
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
         <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-4'] }]}>
-          <Text style={[typography['display-l'], { color: colors.ink }]}>Coach</Text>
+          <Text style={[typography['display-l'], { color: colors.ink }]}>{t.coach.coach}</Text>
           <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
             {/* Said plainly: the athletes' code does not open this. */}
-            Enter your coach code. It is not the same code the squad uses to join.
+            {t.coach.enterCode}
           </Text>
 
           {/* The route for a coach who owns the squad rather than joining
               somebody else's. */}
           <View style={{ marginTop: spacing['space-4'], gap: spacing['space-3'] }}>
             <PushButton
-              label="Create a team instead"
+              label={t.coach.createInstead}
               variant="ghost"
               fullWidth
               testID="coach-create-team"
@@ -170,7 +173,7 @@ function CoachDashboard() {
             autoCorrect={false}
             placeholder="COACH01"
             placeholderTextColor={colors['ink-faint']}
-            accessibilityLabel="Coach code"
+            accessibilityLabel={t.coach.coachCodeLabel}
             style={[
               typography['heading-m'],
               {
@@ -197,7 +200,7 @@ function CoachDashboard() {
 
           <View style={{ marginTop: spacing['space-6'] }}>
             <PushButton
-              label={state.joining ? 'Joining…' : 'Open the dashboard'}
+              label={state.joining ? t.coach.joining : t.coach.openDashboard}
               fullWidth
               disabled={code.trim() === '' || state.joining}
               testID="coach-join"
@@ -219,9 +222,9 @@ function CoachDashboard() {
           {/* Shrinks beside the menu button so a long team name wraps onto a
               second line instead of running off the screen. */}
           <View style={styles.titleText}>
-            <Text style={[typography.label, { color: colors['ink-muted'] }]}>COACH</Text>
+            <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.coach.coachCaps}</Text>
             <Text style={[typography['display-l'], { color: colors.ink }]}>
-              {view.teamName ?? 'Your squad'}
+              {view.teamName ?? t.coach.yourSquad}
             </Text>
           </View>
         </View>
@@ -230,13 +233,13 @@ function CoachDashboard() {
           testID="coach-today"
           style={[typography['body-m'], { color: colors['ink-muted'], marginTop: spacing['space-2'] }]}
         >
-          {view.loggedToday} of {view.athletes.length} logged today · last {view.windowDays} days
+          {t.coach.loggedToday(view.loggedToday, view.athletes.length, view.windowDays)}
         </Text>
 
         <View style={{ marginTop: spacing['space-6'], gap: spacing['space-3'] }}>
           {view.athletes.length === 0 ? (
             <Text testID="coach-empty" style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-              No athletes on this team yet.
+              {t.coach.noAthletes}
             </Text>
           ) : (
             view.athletes.map((athlete) => (
@@ -253,7 +256,7 @@ function CoachDashboard() {
             <TeamCodeCard
               code={view.joinCode}
               teamName={view.teamName}
-              hint="Athletes join with this code."
+              hint={t.coach.athletesJoin}
               testID="coach-join-code"
             />
           </View>
@@ -264,7 +267,7 @@ function CoachDashboard() {
       <CoachSidebar
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
-        title={view.teamName ?? 'Your squad'}
+        title={view.teamName ?? t.coach.yourSquad}
         current="dashboard"
       />
     </SafeAreaView>
@@ -274,6 +277,7 @@ function CoachDashboard() {
 function AthleteCard({ athlete }: { athlete: CoachAthlete }) {
   const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   return (
     <View
@@ -304,13 +308,13 @@ function AthleteCard({ athlete }: { athlete: CoachAthlete }) {
         testID={`athlete-${athlete.participantId}-counts`}
         style={[typography['body-s'], { color: colors['ink-muted'] }]}
       >
-        Logged {athlete.daysLogged} days · breakfast {athlete.breakfastDays} ·{' '}
+        {t.coach.counts(athlete.daysLogged, athlete.breakfastDays)}
         {/* Days that could be judged at all, stated, because two of the three
             athletes have an unconfirmed weight and without one there is no
             band to judge against. */}
         {athlete.daysWithBand === 0
-          ? 'no day could be measured against the band'
-          : `${athlete.insideBand} of ${athlete.daysWithBand} days inside the band`}
+          ? t.coach.noDayMeasured
+          : t.coach.insideBand(athlete.insideBand, athlete.daysWithBand)}
       </Text>
 
       {athlete.flags.map((flag) => (
@@ -325,9 +329,15 @@ function AthleteCard({ athlete }: { athlete: CoachAthlete }) {
           }}
         >
           <Text style={[typography.label, { color: colors['cabai-deep'] }]}>
-            {flag.code === 'under_fuelling' ? 'UNDER-FUELLING' : 'HYDRATION'}
+            {flag.code === 'under_fuelling' ? t.coach.flagUnder : t.coach.flagHydration}
           </Text>
-          <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>{flag.detail}</Text>
+          <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
+            {flag.code === 'under_fuelling'
+              ? t.coach.flagUnderDetail(UNDER_FUELLING_DAYS)
+              : flag.reading !== undefined
+                ? t.coach.flagDehydratedDetail(flag.reading, DEHYDRATED_AT)
+                : flag.detail}
+          </Text>
         </View>
       ))}
 
@@ -335,7 +345,7 @@ function AthleteCard({ athlete }: { athlete: CoachAthlete }) {
           as bar charts, the same ones the athlete sees. */}
       <View style={{ marginTop: spacing['space-1'] }}>
         <PushButton
-          label="See fuel gaps"
+          label={t.coach.seeGaps}
           variant="ghost"
           fullWidth
           testID={`athlete-${athlete.participantId}-gaps`}

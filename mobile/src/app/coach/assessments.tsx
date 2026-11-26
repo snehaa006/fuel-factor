@@ -7,6 +7,7 @@ import { AssessmentPanel } from '@/components/assessment-panel';
 import { OPEN_BOTH_FOR_TESTING, phaseAccess, withRecallFill } from '@/lib/assessments';
 import { useAccount } from '@/lib/use-account';
 import { useSquadAssessments } from '@/lib/use-assessments';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -38,6 +39,7 @@ export default function CoachAssessments() {
 function SquadAssessments() {
   const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const state = useSquadAssessments();
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -72,18 +74,18 @@ function SquadAssessments() {
         contentContainerStyle={[styles.content, { padding: spacing['space-4'] }]}
       >
         <Pressable onPress={() => router.back()} accessibilityRole="button" testID="coach-assessments-back">
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>← BACK</Text>
+          <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.common.back}</Text>
         </Pressable>
 
         <Text style={[typography['display-l'], { color: colors.ink, marginTop: spacing['space-2'] }]}>
-          Assessments
+          {t.assess.title}
         </Text>
         <Text style={[typography['body-m'], { color: colors['ink-muted'], marginTop: spacing['space-2'] }]}>
-          Week 0 and Week 4 measures for each athlete.
+          {t.assess.coachLead}
         </Text>
         {OPEN_BOTH_FOR_TESTING && (
           <Text style={[typography['body-s'], { color: colors['pisang-deep'], marginTop: spacing['space-2'] }]}>
-            Testing mode: Week 4 is open now instead of in the programme’s fourth week.
+            {t.assess.testingMode}
           </Text>
         )}
 
@@ -92,12 +94,12 @@ function SquadAssessments() {
             testID="coach-assessments-empty"
             style={[typography['body-m'], { color: colors['ink-muted'], marginTop: spacing['space-6'] }]}
           >
-            No athletes on this team yet.
+            {t.assess.noAthletes}
           </Text>
         ) : (
           <>
             <Text style={[typography.label, { color: colors['ink-muted'], marginTop: spacing['space-6'] }]}>
-              ATHLETE
+              {t.assess.athleteCaps}
             </Text>
             <View style={[styles.chips, { marginTop: spacing['space-2'], gap: spacing['space-2'] }]}>
               {state.athletes.map((a) => {
@@ -134,8 +136,8 @@ function SquadAssessments() {
                   )}
                   fill={state.fills[athlete.participantId]}
                   access={{
-                    pre: phaseAccess('pre', state.programme),
-                    post: phaseAccess('post', state.programme),
+                    pre: phaseAccess('pre', state.programme, undefined, t),
+                    post: phaseAccess('post', state.programme, undefined, t),
                   }}
                   onSave={(phase, values) => state.save(athlete.participantId, phase, values)}
                   comparison={state.athletes.map((a) => ({

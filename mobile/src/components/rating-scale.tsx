@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { LIMITS } from '@/lib/check-in';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 const LEVELS = Array.from(
@@ -25,6 +26,7 @@ export type RatingScaleProps = {
  */
 export function RatingScale({ label, value, onChange, testID }: RatingScaleProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   return (
     <View testID={testID} style={{ gap: spacing['space-2'] }}>
@@ -34,7 +36,7 @@ export function RatingScale({ label, value, onChange, testID }: RatingScaleProps
           testID={testID ? `${testID}-value` : undefined}
           style={[typography['body-s'], { color: value === null ? colors['ink-faint'] : colors['pisang-deep'] }]}
         >
-          {value === null ? 'not answered' : value}
+          {value === null ? t.scales.notAnswered : value}
         </Text>
       </View>
       <View style={styles.scale}>
@@ -46,7 +48,7 @@ export function RatingScale({ label, value, onChange, testID }: RatingScaleProps
               onPress={() => onChange(level)}
               accessibilityRole="button"
               accessibilityState={{ selected }}
-              accessibilityLabel={`${label} ${level} out of ${LIMITS.rating.max}`}
+              accessibilityLabel={t.scales.ratingLevel(label, level, LIMITS.rating.max)}
               testID={testID ? `${testID}-${level}` : undefined}
               style={[
                 styles.cell,

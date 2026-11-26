@@ -8,6 +8,7 @@ import {
   UNJUDGED_REASON,
   type NutrientGap,
 } from '@/lib/gaps';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -46,9 +47,10 @@ const CHART_HEIGHT = 136;
 
 export function GapBars({ gap, showSource = true, testID }: GapBarsProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
-  const label = NUTRIENT_LABEL[gap.nutrient];
-  const headline = gapHeadline(gap);
+  const label = t.gaps.nutrients[gap.nutrient] ?? NUTRIENT_LABEL[gap.nutrient];
+  const headline = gapHeadline(gap, t);
 
   // The scale has to hold the tallest bar and every band, with a little room
   // above so a day above the band is visibly above it rather than clipped.
@@ -91,7 +93,7 @@ export function GapBars({ gap, showSource = true, testID }: GapBarsProps) {
             testID={testID ? `${testID}-mean` : undefined}
             style={[typography['heading-m'], { color: colors.ink }]}
           >
-            {gap.meanEaten} g average
+            {t.gaps.average(gap.meanEaten)}
           </Text>
         )}
       </View>
@@ -101,7 +103,7 @@ export function GapBars({ gap, showSource = true, testID }: GapBarsProps) {
           testID={testID ? `${testID}-band` : undefined}
           style={[typography['body-s'], { color: colors['ink-muted'] }]}
         >
-          The programme asks for {shared.min}–{shared.max} g a day
+          {t.gaps.programmeAsks(shared.min, shared.max)}
         </Text>
       )}
 
@@ -110,7 +112,7 @@ export function GapBars({ gap, showSource = true, testID }: GapBarsProps) {
           testID={testID ? `${testID}-empty` : undefined}
           style={[typography['body-m'], { color: colors['ink-muted'] }]}
         >
-          Nothing logged in this window yet.
+          {t.gaps.nothingInWindow}
         </Text>
       ) : (
         <View
@@ -118,7 +120,7 @@ export function GapBars({ gap, showSource = true, testID }: GapBarsProps) {
           accessibilityRole="image"
           accessibilityLabel={
             headline ??
-            `${label} for ${gap.days.length} days. None of them could be measured against the programme's band.`
+            t.gaps.noneMeasurable(label, gap.days.length)
           }
         >
           {/* The band across the whole chart, where every day shares one. */}
@@ -191,10 +193,10 @@ export function GapBars({ gap, showSource = true, testID }: GapBarsProps) {
           {/* First and last only: fourteen rotated dates is unreadable at
               phone width and the chart is about the shape, not the dates. */}
           <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
-            {shortDate(gap.days[0].date)}
+            {shortDate(gap.days[0].date, t)}
           </Text>
           <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
-            {shortDate(gap.days[gap.days.length - 1].date)}
+            {shortDate(gap.days[gap.days.length - 1].date, t)}
           </Text>
         </View>
       )}
@@ -213,7 +215,7 @@ export function GapBars({ gap, showSource = true, testID }: GapBarsProps) {
           testID={testID ? `${testID}-unjudged` : undefined}
           style={[typography['body-m'], { color: colors['ink-muted'] }]}
         >
-          None of these days can be measured against the programme&apos;s band yet.
+          {t.gaps.noneYet}
         </Text>
       )}
 
@@ -224,13 +226,13 @@ export function GapBars({ gap, showSource = true, testID }: GapBarsProps) {
           testID={testID ? `${testID}-reason-${reason}` : undefined}
           style={[typography['body-s'], { color: colors['ink-faint'] }]}
         >
-          {UNJUDGED_REASON[reason]}
+          {t.gaps.reasons[reason] ?? UNJUDGED_REASON[reason]}
         </Text>
       ))}
 
       {showSource && (
         <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
-          {NUTRIENT_SOURCE[gap.nutrient]}
+          {t.gaps.sources[gap.nutrient] ?? NUTRIENT_SOURCE[gap.nutrient]}
         </Text>
       )}
     </View>

@@ -23,6 +23,20 @@ export function messageOf(thrown: unknown): string {
   return 'Something went wrong.';
 }
 
+/**
+ * A message in the athlete's language where the dictionary knows it.
+ *
+ * The server answers in English -- Supabase Auth's "Invalid login
+ * credentials", the database's own `raise exception` text -- and on the
+ * sign-in screen that is the first thing a squad member who chose Bahasa
+ * would read. Known messages are looked up by their exact text; anything the
+ * dictionary does not know is shown exactly as it came, because a guessed
+ * translation of an error is worse than the real one.
+ */
+export function localised(message: string, t: { errors: Record<string, string> }): string {
+  return t.errors[message.trim().toLowerCase()] ?? message;
+}
+
 /** The same, as a real Error, for throwing on. */
 export function asError(thrown: unknown): Error {
   return thrown instanceof Error ? thrown : new Error(messageOf(thrown));

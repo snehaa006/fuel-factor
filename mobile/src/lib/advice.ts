@@ -15,12 +15,16 @@ export type AdviceRule = Pick<
   'code' | 'domain' | 'message_en' | 'severity' | 'reviewed_by'
 > &
   /** Which week's deck the sentence is from, e.g. 'week-2-deck'. Absent on older rows. */
-  Partial<Pick<Tables<'advice_rules'>, 'source'>>;
+  Partial<Pick<Tables<'advice_rules'>, 'source'>> &
+  /** The programme's Bahasa Indonesia wording, once somebody has written it. */
+  Partial<Pick<Tables<'advice_rules'>, 'message_id'>>;
 
 export type Nudge = {
   code: string;
   domain: string;
   message: string;
+  /** The same sentence in Bahasa Indonesia, where the rule row has one. */
+  messageId?: string | null;
   severity: number;
   /** False while the rule is still a seed row the dietitian has not signed off. */
   reviewed: boolean;
@@ -195,6 +199,7 @@ export function evaluate(
       code: rule.code,
       domain: rule.domain,
       message: rule.message_en,
+      messageId: rule.message_id ?? null,
       severity: rule.severity,
       reviewed: rule.reviewed_by !== null,
       source: rule.source,

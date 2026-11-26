@@ -4,9 +4,11 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CredentialFields } from '@/components/credential-fields';
+import { LanguageSwitch } from '@/components/preference-switches';
 import { PushButton } from '@/components/push-button';
+import { useStrings } from '@/i18n';
 import { signInCoach, signUpCoach } from '@/lib/coach-auth';
-import { messageOf } from '@/lib/errors';
+import { localised, messageOf } from '@/lib/errors';
 import { useTheme } from '@/theme';
 
 type Mode = 'sign-in' | 'sign-up';
@@ -28,6 +30,7 @@ type Mode = 'sign-in' | 'sign-up';
 export default function CoachAccount() {
   const router = useRouter();
   const { colors, spacing, typography } = useTheme();
+  const t = useStrings();
 
   const [mode, setMode] = useState<Mode>('sign-in');
   const [email, setEmail] = useState('');
@@ -48,7 +51,7 @@ export default function CoachAccount() {
         if (!confirmed) {
           // A setting rather than a failure, so it is said plainly instead of
           // leaving the coach on a screen that looks broken.
-          setNotice('Check your email to confirm the account, then sign in.');
+          setNotice(t.common.confirmEmail);
           setMode('sign-in');
           return;
         }
@@ -57,7 +60,7 @@ export default function CoachAccount() {
       }
       router.replace('/coach');
     } catch (e) {
-      setError(messageOf(e));
+      setError(localised(messageOf(e), t));
     } finally {
       setBusy(false);
     }
@@ -66,12 +69,15 @@ export default function CoachAccount() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
       <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-4'] }]}>
-        <Pressable onPress={() => router.back()} accessibilityRole="button" testID="account-back">
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>← BACK</Text>
-        </Pressable>
+        <View style={styles.top}>
+          <Pressable onPress={() => router.back()} accessibilityRole="button" testID="account-back">
+            <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.common.back}</Text>
+          </Pressable>
+          <LanguageSwitch compact testID="account-language" />
+        </View>
 
         <Text style={[typography['display-l'], { color: colors.ink, marginTop: spacing['space-2'] }]}>
-          {mode === 'sign-in' ? 'Coach sign-in' : 'New coach account'}
+          {mode === 'sign-in' ? t.coachAccount.signInTitle : t.coachAccount.signUpTitle}
         </Text>
         <Text
           style={[
@@ -79,7 +85,7 @@ export default function CoachAccount() {
             { color: colors['ink-muted'], marginBottom: spacing['space-6'] },
           ]}
         >
-          Sign in to manage your team.
+          {t.coachAccount.lead}
         </Text>
 
         <CredentialFields
@@ -118,18 +124,18 @@ export default function CoachAccount() {
 
         <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>
           <PushButton
-            label={busy ? 'Working…' : mode === 'sign-in' ? 'Sign in' : 'Create the account'}
+            label={busy ? t.common.working : mode === 'sign-in' ? t.common.signIn : t.coachAccount.createAccount}
             fullWidth
             disabled={!ready}
             testID="account-submit"
             onPress={() => {
               // An async onPress swallows its own rejection: the photo picker
               // threw once and the button simply did nothing.
-              submit().catch((e: unknown) => setError(messageOf(e)));
+              submit().catch((e: unknown) => setError(localised(messageOf(e), t)));
             }}
           />
           <PushButton
-            label={mode === 'sign-in' ? 'I need an account' : 'I already have an account'}
+            label={mode === 'sign-in' ? t.common.needAccount : t.common.haveAccount}
             variant="ghost"
             fullWidth
             testID="account-switch"
@@ -148,4 +154,5 @@ export default function CoachAccount() {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { paddingBottom: 48 },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 });

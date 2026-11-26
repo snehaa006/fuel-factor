@@ -1,6 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 import type { DayType } from '@/lib/targets';
 
@@ -8,11 +9,7 @@ import type { DayType } from '@/lib/targets';
  * Training, match and rest: the tracker's Day Type column, in its order.
  * Match days take the Week 1 deck's game-day carbohydrate band.
  */
-const OPTIONS: { value: DayType; label: string }[] = [
-  { value: 'training', label: 'Training' },
-  { value: 'match', label: 'Match' },
-  { value: 'rest', label: 'Rest' },
-];
+const OPTIONS: DayType[] = ['training', 'match', 'rest'];
 
 export type DayTypeSwitchProps = {
   value: DayType | null;
@@ -22,6 +19,7 @@ export type DayTypeSwitchProps = {
 
 export function DayTypeSwitch({ value, onChange, testID }: DayTypeSwitchProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   function select(next: DayType) {
     if (next === value) return;
@@ -40,7 +38,8 @@ export function DayTypeSwitch({ value, onChange, testID }: DayTypeSwitchProps) {
         { backgroundColor: colors['surface-sunken'], borderRadius: radius['radius-pill'], padding: 4 },
       ]}
     >
-      {OPTIONS.map((option) => {
+      {OPTIONS.map((day) => {
+        const option = { value: day, label: t.dayType[day] };
         const selected = option.value === value;
         return (
           <Pressable
@@ -48,7 +47,7 @@ export function DayTypeSwitch({ value, onChange, testID }: DayTypeSwitchProps) {
             onPress={() => select(option.value)}
             accessibilityRole="radio"
             accessibilityState={{ selected }}
-            accessibilityLabel={`${option.label} day`}
+            accessibilityLabel={t.dayType.day(option.label)}
             testID={testID ? `${testID}-${option.value}` : undefined}
             style={[
               styles.option,

@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 export type StreakChipProps = {
@@ -17,6 +18,7 @@ export type StreakChipProps = {
  */
 export function StreakChip({ days, lit, testID }: StreakChipProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   return (
     <View
@@ -24,8 +26,8 @@ export function StreakChip({ days, lit, testID }: StreakChipProps) {
       accessibilityRole="text"
       accessibilityLabel={
         days === 0
-          ? 'No streak yet'
-          : `${days} day streak, ${lit ? 'logged today' : 'not logged today yet'}`
+          ? t.streak.none
+          : t.streak.label(days, lit)
       }
       style={[
         styles.chip,
@@ -41,7 +43,7 @@ export function StreakChip({ days, lit, testID }: StreakChipProps) {
       <Text style={[typography['display-m'], { color: lit ? colors['pisang-deep'] : colors['ink-faint'] }]}>
         {days}
       </Text>
-      <Text style={[typography.label, { color: colors['ink-muted'] }]}>DAY STREAK</Text>
+      <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.streak.dayStreak}</Text>
     </View>
   );
 }

@@ -1,3 +1,5 @@
+import { en } from '@/i18n/en';
+import type { Strings } from '@/i18n';
 import { asError } from './errors';
 import type { ProgrammeState } from './programme';
 import { supabase } from './supabase';
@@ -248,13 +250,14 @@ export type ParseResult = { ok: true; value: number | null } | { ok: false; erro
  * Empty is a real answer (not measured) and comes back as null. A comma is
  * taken as a decimal point, because half the squad types "12,4".
  */
-export function parseEntry(text: string, def: MeasureDef): ParseResult {
+export function parseEntry(text: string, def: MeasureDef, t: Strings = en): ParseResult {
   const trimmed = text.trim().replace(',', '.');
   if (trimmed === '') return { ok: true, value: null };
-  if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return { ok: false, error: 'Enter a number.' };
+  if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return { ok: false, error: t.assess.enterNumber };
   const value = Number(trimmed);
   if (value < def.min || value > def.max) {
-    return { ok: false, error: `Between ${def.min} and ${def.max}${def.unit ? ` ${def.unit}` : ''}.` };
+    const unit = def.unit === null ? null : (t.assess.units[def.unit] ?? def.unit);
+    return { ok: false, error: t.assess.between(def.min, def.max, unit) };
   }
   return { ok: true, value: round2(value) };
 }
@@ -280,18 +283,18 @@ export type PhaseAccess = { open: true } | { open: false; reason: string };
 export function phaseAccess(
   phase: Phase,
   programme: ProgrammeState | null,
-  testing: boolean = OPEN_BOTH_FOR_TESTING
+  testing: boolean = OPEN_BOTH_FOR_TESTING,
+  t: Strings = en
 ): PhaseAccess {
   if (phase === 'pre' || testing) return { open: true };
   if (programme === null || programme.status === 'no-date') {
-    return { open: false, reason: 'Week 4 opens in the programme’s fourth week. No start date is set yet.' };
+    return { open: false, reason: t.assess.week4NoDate };
   }
   if (programme.status === 'before') {
-    return { open: false, reason: `Week 4 opens in the programme’s fourth week. The programme starts on ${programme.startsOn}.` };
+    return { open: false, reason: t.assess.week4Before(programme.startsOn) };
   }
   if (programme.day < WEEK_4_OPENS_ON_DAY) {
-    const days = WEEK_4_OPENS_ON_DAY - programme.day;
-    return { open: false, reason: `Week 4 opens in ${days} day${days === 1 ? '' : 's'}.` };
+    return { open: false, reason: t.assess.week4In(WEEK_4_OPENS_ON_DAY - programme.day) };
   }
   return { open: true };
 }

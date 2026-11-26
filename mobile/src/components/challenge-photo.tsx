@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 
 import { messageOf } from '@/lib/errors';
 import type { PickedPhoto } from '@/lib/photos';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 export type ChallengePhotoProps = {
@@ -63,6 +64,7 @@ export function ChallengePhoto({
   testID,
 }: ChallengePhotoProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   const pick = useCallback(
     async (from: 'camera' | 'library') => {
@@ -78,8 +80,8 @@ export function ChallengePhoto({
         // dead button -- which is how this was first found on the simulator.
         onPickError?.(
           from === 'camera'
-            ? 'Fuel Factor cannot open the camera without permission.'
-            : 'Fuel Factor cannot open your photos without permission.'
+            ? t.photo.cameraDenied
+            : t.photo.libraryDenied
         );
         return;
       }
@@ -96,7 +98,7 @@ export function ChallengePhoto({
       // re-encode happens after the resize rather than before it.
       onPick(await downscale(asset.uri, asset.width, asset.height));
     },
-    [onPick, onPickError]
+    [onPick, onPickError, t]
   );
 
   /**
@@ -150,7 +152,7 @@ export function ChallengePhoto({
         },
       ]}
     >
-      <Text style={[typography.label, { color: colors['ink-muted'] }]}>PHOTO — OPTIONAL</Text>
+      <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.photo.optional}</Text>
 
       {url !== null && (
         <Image
@@ -158,14 +160,14 @@ export function ChallengePhoto({
           source={{ uri: url }}
           style={[styles.image, { borderRadius: radius['radius-md'] }]}
           contentFit="cover"
-          accessibilityLabel="Your photo for this challenge"
+          accessibilityLabel={t.photo.yours}
         />
       )}
 
       {uploading && (
         <View style={[styles.row, { gap: spacing['space-2'] }]}>
           <ActivityIndicator color={colors.pisang} />
-          <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>Uploading…</Text>
+          <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>{t.photo.uploading}</Text>
         </View>
       )}
 
@@ -179,14 +181,14 @@ export function ChallengePhoto({
       )}
 
       <View style={[styles.row, { gap: spacing['space-2'] }]}>
-        {action(url === null ? 'Take a photo' : 'Retake', 'camera', () => pickSafely('camera'))}
-        {action(url === null ? 'Choose one' : 'Replace', 'library', () => pickSafely('library'))}
-        {url !== null && action('Remove', 'remove', onClear)}
+        {action(url === null ? t.photo.take : t.photo.retake, 'camera', () => pickSafely('camera'))}
+        {action(url === null ? t.photo.choose : t.photo.replace, 'library', () => pickSafely('library'))}
+        {url !== null && action(t.photo.remove, 'remove', onClear)}
       </View>
 
       {url === null && (
         <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-          Only you can see this.
+          {t.photo.onlyYou}
         </Text>
       )}
     </View>

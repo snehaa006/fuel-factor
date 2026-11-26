@@ -9,6 +9,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { PreferenceSwitches } from '@/components/preference-switches';
+import { useStrings } from '@/i18n';
 import { useReduceMotion } from '@/lib/use-reduce-motion';
 import { useTheme } from '@/theme';
 
@@ -28,6 +30,11 @@ import { useTheme } from '@/theme';
  * It animates from the left and has a still version: the panel simply appears
  * under reduced motion, because a panel sliding across the screen is exactly
  * the kind of movement that setting exists to stop.
+ *
+ * The language and theme switches sit at its foot, under the destinations.
+ * Every athlete and every coach screen has this panel, so that is one tap
+ * from anywhere, and it is where the athlete and the coach menus already
+ * agree with each other.
  */
 
 export type SidebarItem = {
@@ -55,6 +62,7 @@ const SLIDE = { duration: 180, easing: Easing.out(Easing.cubic) };
 
 export function Sidebar({ open, onClose, title, subtitle, items, testID }: SidebarProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const reduceMotion = useReduceMotion();
 
   // 0 closed, 1 open. One value drives both the panel and the scrim, so they
@@ -86,7 +94,7 @@ export function Sidebar({ open, onClose, title, subtitle, items, testID }: Sideb
           style={StyleSheet.absoluteFill}
           onPress={onClose}
           accessibilityRole="button"
-          accessibilityLabel="Close the menu"
+          accessibilityLabel={t.menu.close}
           testID={testID ? `${testID}-scrim` : undefined}
         />
       </Animated.View>
@@ -151,6 +159,17 @@ export function Sidebar({ open, onClose, title, subtitle, items, testID }: Sideb
                 )}
               </Pressable>
             ))}
+
+            <View
+              style={{
+                marginTop: spacing['space-6'],
+                paddingTop: spacing['space-4'],
+                borderTopWidth: StyleSheet.hairlineWidth,
+                borderTopColor: colors.hairline,
+              }}
+            >
+              <PreferenceSwitches testID={testID ? `${testID}-preferences` : 'preferences'} />
+            </View>
           </ScrollView>
         </SafeAreaView>
       </Animated.View>
@@ -161,12 +180,13 @@ export function Sidebar({ open, onClose, title, subtitle, items, testID }: Sideb
 /** The button that opens the panel. Sits in a screen's header. */
 export function SidebarButton({ onPress, testID }: { onPress: () => void; testID?: string }) {
   const { colors, radius, spacing } = useTheme();
+  const t = useStrings();
 
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel="Open the menu"
+      accessibilityLabel={t.menu.open}
       testID={testID}
       hitSlop={8}
       style={({ pressed }) => [

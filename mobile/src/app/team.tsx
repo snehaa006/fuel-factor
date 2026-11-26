@@ -10,6 +10,7 @@ import { earnedCount } from '@/lib/badges';
 import { badgeCue } from '@/lib/mascot-copy';
 import { MONTH_DAYS, myRow } from '@/lib/team';
 import { useTeam } from '@/lib/use-team';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -27,6 +28,7 @@ import { useTheme } from '@/theme';
 export default function Team() {
   const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const state = useTeam();
 
   if (state.status === 'loading') {
@@ -42,7 +44,7 @@ export default function Team() {
       <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
         <View style={{ padding: spacing['space-6'], gap: spacing['space-2'] }}>
           <Text style={[typography['heading-l'], { color: colors.ink, textAlign: 'center' }]}>
-            Could not load the team
+            {t.team.couldNotLoad}
           </Text>
           <Text style={[typography['body-m'], { color: colors['ink-muted'], textAlign: 'center' }]}>
             {state.message}
@@ -62,20 +64,20 @@ export default function Team() {
         <Pressable
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="Back to today"
+          accessibilityLabel={t.learn.backToToday}
           testID="team-back"
         >
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>← TODAY</Text>
+          <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.learn.todayCaps}</Text>
         </Pressable>
 
         <Text
           style={[typography['display-l'], { color: colors.ink, marginTop: spacing['space-2'] }]}
         >
           {/* No team name invented when the row has not loaded one. */}
-          {board.teamName ?? 'Your team'}
+          {board.teamName ?? t.team.yourTeam}
         </Text>
         <Text testID="team-window" style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-          Ranked on days logged over the last {board.windowDays} days.
+          {t.team.rankedOver(board.windowDays)}
         </Text>
 
         {/* The MVP card. Absent, rather than awarded to whoever sorts first,
@@ -92,7 +94,7 @@ export default function Team() {
             }}
           >
             <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-              {board.mvp.length > 1 ? 'MVP THIS WEEK — SHARED' : 'MVP THIS WEEK'}
+              {board.mvp.length > 1 ? t.team.mvpShared : t.team.mvp}
             </Text>
             <Text testID="mvp-name" style={[typography['heading-l'], { color: colors['pisang-deep'] }]}>
               {/* A shared week is shared. Breaking the tie would need a second
@@ -118,8 +120,8 @@ export default function Team() {
           >
             <Text style={[typography.label, { color: colors['ink-muted'] }]}>
               {view.monthMvp.length > 1
-                ? `PLAYER OF THE LAST ${MONTH_DAYS} DAYS — SHARED`
-                : `PLAYER OF THE LAST ${MONTH_DAYS} DAYS`}
+                ? t.team.playerOfShared(MONTH_DAYS)
+                : t.team.playerOf(MONTH_DAYS)}
             </Text>
             <Text
               testID="month-mvp-name"
@@ -133,7 +135,7 @@ export default function Team() {
         <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>
           {board.rows.length === 0 ? (
             <Text testID="team-empty" style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-              No teammates yet.
+              {t.team.noTeammates}
             </Text>
           ) : (
             board.rows.map((row) => (
@@ -158,8 +160,8 @@ export default function Team() {
             ]}
           >
             {me.daysLogged === 0
-              ? 'Log a meal today and you are on the board.'
-              : `You are ${ordinal(me.position)} on ${me.daysLogged} of ${board.windowDays} days.`}
+              ? t.team.logToJoin
+              : t.team.youAre(t.team.ordinal(me.position), me.daysLogged, board.windowDays)}
           </Text>
         )}
 
@@ -169,7 +171,7 @@ export default function Team() {
             <TeamCodeCard
               code={board.joinCode}
               teamName={board.teamName}
-              hint="Someone missing from the board? Send them this code."
+              hint={t.team.someoneMissing}
               testID="team-join-code"
             />
           </View>
@@ -178,13 +180,13 @@ export default function Team() {
         {view.badges.length > 0 && (
           <View style={{ marginTop: spacing['space-12'], gap: spacing['space-3'] }}>
             <View style={styles.badgeHeader}>
-              <Text style={[typography['heading-l'], { color: colors.ink }]}>Badges</Text>
+              <Text style={[typography['heading-l'], { color: colors.ink }]}>{t.team.badges}</Text>
               <Text testID="badge-count" style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-                {earnedCount(view.badges)} of {view.badges.length}
+                {t.team.badgeCount(earnedCount(view.badges), view.badges.length)}
               </Text>
             </View>
             {(() => {
-              const cue = badgeCue(earnedCount(view.badges), view.badges.length);
+              const cue = badgeCue(earnedCount(view.badges), view.badges.length, t);
               return (
                 <MascotBanner
                   pose={cue.pose}
@@ -215,7 +217,7 @@ export default function Team() {
             },
           ]}
         >
-          Ranked on days logged, never on weight or size.
+          {t.team.rankedNever}
         </Text>
       </ScrollView>
     </SafeAreaView>

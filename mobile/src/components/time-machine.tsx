@@ -5,6 +5,7 @@ import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { CalendarSheet, shortDate } from '@/components/calendar';
 import { setSimulatedDate, shiftDate, useSimulatedDate } from '@/lib/clock';
 import { todayIso } from '@/lib/today';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -35,6 +36,7 @@ function TimeMachinePill() {
   // missing provider should cost a few pixels of inset, not the app.
   const bottomInset = useContext(SafeAreaInsetsContext)?.bottom ?? 0;
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const [open, setOpen] = useState(false);
 
   const real = todayIso(new Date());
@@ -66,7 +68,7 @@ function TimeMachinePill() {
           <Pressable
             onPress={() => go(shiftDate(today, -1))}
             accessibilityRole="button"
-            accessibilityLabel="Previous day"
+            accessibilityLabel={t.timeMachine.previousDay}
             testID="time-machine-back"
             style={styles.step}
           >
@@ -75,21 +77,21 @@ function TimeMachinePill() {
           <Pressable
             onPress={() => setOpen(true)}
             accessibilityRole="button"
-            accessibilityLabel={`Time machine. Today is ${shortDate(today)}. Choose a date`}
+            accessibilityLabel={t.timeMachine.label(shortDate(today, t))}
             testID="time-machine-open"
             style={styles.middle}
           >
             <Text style={[typography.label, { color: ink }]}>
-              {travelling ? 'TIME MACHINE' : 'REAL DATE'}
+              {travelling ? t.timeMachine.title : t.timeMachine.realDate}
             </Text>
             <Text testID="time-machine-date" style={[typography['body-s'], { color: ink }]}>
-              {shortDate(today)}
+              {shortDate(today, t)}
             </Text>
           </Pressable>
           <Pressable
             onPress={() => go(shiftDate(today, 1))}
             accessibilityRole="button"
-            accessibilityLabel="Next day"
+            accessibilityLabel={t.timeMachine.nextDay}
             testID="time-machine-forward"
             style={styles.step}
           >
@@ -103,9 +105,9 @@ function TimeMachinePill() {
           value={today}
           openAt={today}
           highlight={real}
-          title="TIME MACHINE"
-          hint="Pick the day the app treats as today."
-          footerLabel={`Back to the real today · ${shortDate(real)}`}
+          title={t.timeMachine.title}
+          hint={t.timeMachine.hint}
+          footerLabel={t.timeMachine.backToReal(shortDate(real, t))}
           onFooter={() => {
             go(real);
             setOpen(false);

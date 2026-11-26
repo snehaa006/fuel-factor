@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { shortDate } from '@/components/calendar';
 import { GapBars } from '@/components/gap-bars';
 import type { GapAnalysis } from '@/lib/gaps';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 export type GapReportProps = {
@@ -27,9 +28,11 @@ export type GapReportProps = {
  */
 export function GapReport({ analysis, reader, testID = 'gaps' }: GapReportProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const logged = analysis.days.length;
   // Read as dates, not as `2026-11-01`: nobody should have to parse ISO.
-  const span = `${shortDate(analysis.from)} and ${shortDate(analysis.to)}`;
+  const from = shortDate(analysis.from, t);
+  const to = shortDate(analysis.to, t);
 
   return (
     <View testID={testID}>
@@ -38,8 +41,8 @@ export function GapReport({ analysis, reader, testID = 'gaps' }: GapReportProps)
         style={[typography['body-s'], { color: colors['ink-muted'], marginTop: spacing['space-4'] }]}
       >
         {logged === 0
-          ? `No days logged between ${span}.`
-          : `${logged} ${logged === 1 ? 'day' : 'days'} logged between ${span}.`}
+          ? t.gaps.noDaysBetween(from, to)
+          : t.gaps.daysBetween(logged, from, to)}
       </Text>
 
       <View style={{ marginTop: spacing['space-4'], gap: spacing['space-3'] }}>
@@ -57,8 +60,8 @@ export function GapReport({ analysis, reader, testID = 'gaps' }: GapReportProps)
               band to compare anything against. Said once, here, rather than
               under each chart. */}
           {reader === 'athlete'
-            ? 'Both of the programme’s bands are set per kilogram of body weight, and yours is not recorded yet. Ask your coach to add it and these charts fill in.'
-            : 'Both of the programme’s bands are set per kilogram of body weight, and this athlete’s is not recorded yet. Add it to their profile and these charts fill in.'}
+            ? t.gaps.noWeightAthlete
+            : t.gaps.noWeightCoach}
         </Text>
       )}
 
@@ -73,11 +76,11 @@ export function GapReport({ analysis, reader, testID = 'gaps' }: GapReportProps)
           gap: spacing['space-2'],
         }}
       >
-        <Text style={[typography.label, { color: colors['ink-muted'] }]}>READING THE CHARTS</Text>
-        <Key colour={colors.daun} text="Inside the programme’s band" />
-        <Key colour={colors.cabai} text="Below it" />
-        <Key colour={colors.pisang} text="Above it" />
-        <Key colour={null} text="Not enough recorded to say" />
+        <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.gaps.readingTheCharts}</Text>
+        <Key colour={colors.daun} text={t.gaps.inside} />
+        <Key colour={colors.cabai} text={t.gaps.below} />
+        <Key colour={colors.pisang} text={t.gaps.above} />
+        <Key colour={null} text={t.gaps.notEnough} />
       </View>
     </View>
   );

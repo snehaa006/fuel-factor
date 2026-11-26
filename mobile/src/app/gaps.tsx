@@ -9,6 +9,7 @@ import { MascotBanner } from '@/components/mascot-banner';
 import { PushButton } from '@/components/push-button';
 import { SidebarButton } from '@/components/sidebar';
 import { GAP_WINDOW_DAYS, useGaps } from '@/lib/use-gaps';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -36,6 +37,7 @@ import { useTheme } from '@/theme';
 export default function Gaps() {
   const router = useRouter();
   const { colors, spacing, typography } = useTheme();
+  const t = useStrings();
   const state = useGaps();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -55,7 +57,7 @@ export default function Gaps() {
       <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
         <View style={{ padding: spacing['space-6'], gap: spacing['space-2'] }}>
           <Text style={[typography['heading-l'], { color: colors.ink, textAlign: 'center' }]}>
-            Could not load your fuel gaps
+            {t.gaps.couldNotLoad}
           </Text>
           <Text
             testID="gaps-error"
@@ -78,9 +80,9 @@ export default function Gaps() {
           <SidebarButton onPress={() => setMenuOpen(true)} testID="menu" />
           <View>
             <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-              LAST {GAP_WINDOW_DAYS} DAYS
+              {t.gaps.lastDays(GAP_WINDOW_DAYS)}
             </Text>
-            <Text style={[typography['display-l'], { color: colors.ink }]}>Your fuel gaps</Text>
+            <Text style={[typography['display-l'], { color: colors.ink }]}>{t.gaps.title}</Text>
           </View>
         </View>
 
@@ -90,11 +92,11 @@ export default function Gaps() {
               are plain text, in the legend and under each chart. */}
           <MascotBanner
             pose={anyJudged ? 'think' : 'float'}
-            eyebrow={anyJudged ? 'WHAT YOUR LOG SHOWS' : 'NOTHING TO SHOW YET'}
+            eyebrow={anyJudged ? t.gaps.whatYourLogShows : t.gaps.nothingToShow}
             message={
               anyJudged
-                ? 'Every bar is one day you logged.'
-                : 'Log a few days and this fills in on its own.'
+                ? t.gaps.everyBar
+                : t.gaps.logAFewDays
             }
             testID="gaps-mascot"
           />
@@ -104,14 +106,14 @@ export default function Gaps() {
 
         <View style={{ marginTop: spacing['space-6'], gap: spacing['space-3'] }}>
           <PushButton
-            label="Baseline against now"
+            label={t.gaps.baselineAgainstNow}
             variant="ghost"
             fullWidth
             testID="gaps-progress"
             onPress={() => router.push('/progress')}
           />
           <PushButton
-            label="Back to today"
+            label={t.gaps.backToToday}
             variant="ghost"
             fullWidth
             testID="gaps-today"
@@ -123,7 +125,7 @@ export default function Gaps() {
       <AppSidebar
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
-        title="Your fuel gaps"
+        title={t.gaps.title}
         current="gaps"
       />
     </SafeAreaView>
