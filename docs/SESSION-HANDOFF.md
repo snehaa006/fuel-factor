@@ -670,6 +670,75 @@ challenge's own test without importing the Supabase client.
 
 **1242 tests pass.**
 
+**Step 23** — A language switch and a theme switch (26 November). Both are
+Theo's asks from the 25 November call: "could you possibly add like a light or
+dark mode ... depending on their preferences", and "is there like a feature
+that makes you be able to change the language when you're logging in or
+signing up?" Sofia: "that would be awesome to make it customized."
+
+*Where they are.* English / Bahasa Indonesia as a two-letter pill at the top
+of the sign-in, the coach sign-in, the consent gate and the join
+questionnaire, so the language is chosen before anything is read. Both
+switches (language, and System / Light / Dark) at the foot of the menu, which
+every athlete and coach screen has, and again on Profile under *Settings*.
+
+*How.* `lib/preferences.ts` holds both, in the shape `clock.ts` already uses:
+module state, `useSyncExternalStore`, AsyncStorage behind it, read back in the
+same wait as the time machine so the app never opens in the wrong colours or
+language and flips. They are device settings, not account settings: they have
+to work on the sign-in screen, before there is an account. `useTheme()` reads
+the preference, so all 61 files that call it follow without being touched;
+the status bar follows the app's theme, and `Appearance.setColorScheme`
+passes the choice to the OS so the keyboard and system dialogs match. The
+language defaults to the phone's (Indonesian if the phone is set to `id` or
+the old Android `in`, otherwise English).
+
+The words are in `mobile/src/i18n/en.ts` (the source) and `id.ts`, which is
+typed against it: a key missing from the Indonesian fails the typecheck.
+Screens read them with `useStrings()` and hand the dictionary to any helper
+that builds text (`dayCue(…, t)`, `macroLine(m, t)`, `shortDate(iso, t)`), never
+letting a helper look the language up itself -- see *Things that will bite*.
+Dates come from the dictionary too ("Sel, 10 Nov"), not `Intl`.
+
+**No new dependency.** The brief's stack table names `expo-localization` +
+`i18next`. Neither went in: `expo-localization` is a native module, the
+phones take this app as an OTA update to an APK built without it, and with
+the runtime version tied to the SDK the update would be delivered and crash.
+`Intl` reads the phone's language in Hermes and the browser, and a typed
+object does what `i18next` would here with a compile-time check it lacks.
+
+**What is not translated, on purpose: the programme's own sentences.** The
+Learn cards, the weekly challenge titles, the advice sentences, the urine
+scale's wording and the 1–10 scale anchors are the decks' and the workbook's
+words, and they stay as written in both languages; the scale guide says so in
+Bahasa. A translation of a dietitian's sentence is a sentence she has not
+reviewed. The schema has carried `advice_rules.message_id` since step 2 for
+exactly this, and a card now shows it when the row has one -- every row is
+null today, so advice cards read in English inside Bahasa chrome. Badges are
+the app's own words, so they are translated by `code`, with the row as the
+English and the fallback.
+
+Server messages (Supabase Auth's "Invalid login credentials", the database's
+own `raise exception` text) are looked up by their exact wording in
+`id.ts → errors` and shown translated on the sign-in, join and save screens;
+one the dictionary does not know is shown as it came.
+
+Two things changed in English along the way: the challenge card's "Starts"
+line reads "Starts Mon 9 Nov" instead of `Starts 2026-11-09`, and "Last done"
+on a Learn week prints a date rather than the ISO string.
+
+Tests: the preference store (device language, persistence, bad stored values,
+the OS hand-off), the dictionaries held to each other (every key, same shape,
+no blank, no `undefined` in an interpolation, every badge and assessment code
+covered, and the exact list of keys whose Indonesian is the same word as the
+English, so a copied-not-translated line fails), the switches re-rendering a
+screen, the sign-in in Bahasa including a translated refusal, the advice card
+using `message_id` and never inventing one, and the mascot's vocabulary rule
+run again over its Indonesian lines. Checked by eye in the web build in both
+languages and both themes, at 360 px: no clipping or overflow anywhere.
+
+**1296 tests pass.**
+
 `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
 
@@ -972,6 +1041,25 @@ it, and it cannot be un-shared afterwards. Granting it later is one policy. Four
 tests assert the current state, including that the bucket is private and that no
 storage policy mentions a coach.
 
+**The Bahasa Indonesia is mine and no native speaker has read it.** Every
+line is in `mobile/src/i18n/id.ts`. Athletes are *kamu*, the coach is *Anda*;
+"streak" and "recall" stay English, as the squad's apps and Indonesian
+dietitians say them. The consent screen's three sentences are what a 14 year
+old agrees to, so they are the first thing for Theo (or anyone in Jakarta) to
+read. Ask Theo to go through the file before the bullpen.
+
+**The programme's sentences have no Bahasa yet, and that is Sofia's call.**
+The Learn cards, the four challenge titles, the advice sentences, the urine
+scale wording and the food guidance labels ("Eat daily") stay English when
+the app speaks Bahasa. Two ways forward, both rows and not code: Sofia (or
+Theo, with her review) writes the Bahasa, or I draft it into the seeds with
+the same "Awaiting dietitian review" mark the English rules carry. For advice
+the column exists (`message_id`); lessons and challenges would need one each.
+
+**The app opens in the phone's language.** An Indonesian phone opens in
+Bahasa on first launch; everything else in English. Either is one tap to
+change, on the first screen, and the choice is remembered on the phone.
+
 ## What is built but not verified end to end
 
 **The challenge photo upload.** Picker, downscale, preview, replace and remove were
@@ -1196,6 +1284,18 @@ so a seventh slot breaks the build instead of writing to nothing.
 
 **The Expo dev-menu button sits over the top-right of the screen** in the simulator
 and will eat taps meant for a Cancel control. It is not in the app.
+
+**Metro does not watch files under `CI=1`.** Started that way to keep it
+non-interactive, the dev server serves the bundle from the moment it started
+and ignores every edit after, with no warning. A screenshot of the new code
+showed the old code. Start it without `CI` (stdin from `/dev/null` is enough).
+
+**A helper that reads the language itself goes stale under the React
+Compiler.** The compiler memoises a call on its arguments, so
+`labelFor(slot)` that looked up the current language inside would keep
+returning the English it computed first, after the switch. Every helper that
+builds text takes the dictionary as an argument (`t`), which makes the
+language part of what the compiler compares. A new helper should do the same.
 
 ## What's next
 
