@@ -29,6 +29,11 @@ snack the hour before a session).
 
 The web app and the self-hosted Expo Go route follow `main` on Vercel.
 
+**Not on the phones yet: the language and theme switches** (step 23 in
+`SESSION-HANDOFF.md`). They add no native module, so the APK does not need
+rebuilding: an `eas update` to `preview` and `share` carries them, and the
+web app picks them up when they reach `main`.
+
 **Pushing to GitHub does not change the phones.** A bundle moves only when
 somebody runs `eas update` (below). The two are separate systems.
 
