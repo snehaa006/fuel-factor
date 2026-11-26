@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 import type { EarnedBadge } from '@/lib/badges';
 
@@ -22,6 +23,12 @@ export type BadgeGridProps = {
  */
 export function BadgeGrid({ badges, testID }: BadgeGridProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
+  // The badges are the app's own words, kept as rows so a new one is an
+  // INSERT. The dictionary carries their Bahasa by code; the row is the English
+  // and the fallback for a badge the dictionary does not know yet.
+  const words = (badge: { code: string; name: string; description: string }) =>
+    t.badges.names[badge.code] ?? { name: badge.name, description: badge.description };
 
   return (
     <View testID={testID} style={[styles.grid, { gap: spacing['space-3'] }]}>
@@ -32,8 +39,13 @@ export function BadgeGrid({ badges, testID }: BadgeGridProps) {
           accessibilityRole="text"
           accessibilityLabel={
             badge.earned
-              ? `${badge.name}, earned`
-              : `${badge.name}, not yet. ${badge.description} ${badge.progress} of ${badge.threshold}`
+              ? t.badges.earnedLabel(words(badge).name)
+              : t.badges.notYetLabel(
+                  words(badge).name,
+                  words(badge).description,
+                  badge.progress,
+                  badge.threshold
+                )
           }
           style={[
             styles.badge,
@@ -51,17 +63,17 @@ export function BadgeGrid({ badges, testID }: BadgeGridProps) {
               { color: badge.earned ? colors['pisang-deep'] : colors['ink-faint'] },
             ]}
           >
-            {badge.name}
+            {words(badge).name}
           </Text>
           <Text
             testID={testID ? `${testID}-${badge.code}-state` : undefined}
             style={[typography['body-s'], { color: colors['ink-muted'] }]}
           >
             {badge.earned
-              ? 'Earned'
+              ? t.badges.earned
               : /* The criterion in words, then the distance to it, so a
                    locked badge reads as something to go and do. */
-                `${badge.description} ${badge.progress} of ${badge.threshold}`}
+                t.badges.progress(words(badge).description, badge.progress, badge.threshold)}
           </Text>
         </View>
       ))}

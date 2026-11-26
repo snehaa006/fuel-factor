@@ -11,8 +11,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { LanguageSwitch } from '@/components/preference-switches';
 import { PushButton } from '@/components/push-button';
-import { messageOf } from '@/lib/errors';
+import { useStrings } from '@/i18n';
+import { localised, messageOf } from '@/lib/errors';
 import { normaliseCode } from '@/lib/invite';
 import { useAccount } from '@/lib/use-account';
 import {
@@ -20,6 +22,7 @@ import {
   EMPTY_QUESTIONNAIRE,
   joinTeam,
   MEASUREMENTS,
+  measurementCopy,
   parseMeasurement,
   problemsWith,
   teamByCode,
@@ -69,6 +72,7 @@ export default function Join() {
     consented?: string;
   }>();
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   const joinCode = normaliseCode(code ?? '');
   const consented = carried === '1';
@@ -102,12 +106,12 @@ export default function Join() {
         const team = await teamByCode(joinCode);
         if (!active) return;
         if (team === null) {
-          setError('No team with that code. Ask your coach to send the link again.');
+          setError(t.join.noTeam);
           return;
         }
         setTeamName(team.name);
       } catch (e) {
-        if (active) setError(messageOf(e));
+        if (active) setError(localised(messageOf(e), t));
       } finally {
         if (active) setLoading(false);
       }
@@ -117,7 +121,7 @@ export default function Join() {
     return () => {
       active = false;
     };
-  }, [joinCode, signedIn, consented]);
+  }, [joinCode, signedIn, consented, t]);
 
   function setMeasurement(field: MeasurementField, text: string) {
     setMeasurementText((current) => ({ ...current, [field]: text }));
@@ -128,7 +132,7 @@ export default function Join() {
   }
 
   async function submit() {
-    const problems = problemsWith(form);
+    const problems = problemsWith(form, t);
     if (problems.length > 0) {
       setError(problems.join(' '));
       return;
@@ -140,7 +144,7 @@ export default function Join() {
       await joinTeam(joinCode, form, consented);
       router.replace('/');
     } catch (e) {
-      setError(messageOf(e));
+      setError(localised(messageOf(e), t));
     } finally {
       setBusy(false);
     }
@@ -189,49 +193,50 @@ export default function Join() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
       <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-6'] }]}>
+        <LanguageSwitch compact testID="join-language" />
         <View style={{ gap: spacing['space-6'] }}>
-          {heading('About you')}
+          {heading(t.join.heading)}
           {/* Which squad they are joining, said before anything is asked. */}
           {teamName !== null && (
             <Text
               testID="join-team-name"
               style={[typography['heading-m'], { color: colors['pisang-deep'] }]}
             >
-              You have been invited to {teamName}.
+              {t.join.invitedTo(teamName)}
             </Text>
           )}
           <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-            Only your name is required. Leave anything you don&apos;t know blank.
+            {t.join.onlyName}
           </Text>
 
           <View style={{ gap: spacing['space-2'] }}>
-            {label('Name')}
+            {label(t.join.name)}
             <TextInput
               value={form.name}
               onChangeText={(name) => setForm((c) => ({ ...c, name }))}
-              placeholder="Your name"
+              placeholder={t.join.namePlaceholder}
               placeholderTextColor={colors['ink-faint']}
-              accessibilityLabel="Name"
+              accessibilityLabel={t.join.name}
               testID="join-name"
               style={inputStyle}
             />
           </View>
 
           <View style={{ gap: spacing['space-2'] }}>
-            {label('Sport')}
+            {label(t.join.sport)}
             <TextInput
               value={form.sport}
               onChangeText={(sport) => setForm((c) => ({ ...c, sport }))}
-              placeholder="Football"
+              placeholder={t.join.sportPlaceholder}
               placeholderTextColor={colors['ink-faint']}
-              accessibilityLabel="Sport"
+              accessibilityLabel={t.join.sport}
               testID="join-sport"
               style={inputStyle}
             />
           </View>
 
           <View style={{ gap: spacing['space-2'] }}>
-            {label('Age')}
+            {label(t.join.age)}
             <View style={styles.bands}>
               {AGE_BANDS.map((band) => {
                 const selected = form.ageBand === band;
@@ -241,7 +246,7 @@ export default function Join() {
                     onPress={() => setForm((c) => ({ ...c, ageBand: selected ? null : band }))}
                     accessibilityRole="button"
                     accessibilityState={{ selected }}
-                    accessibilityLabel={`Age ${band}`}
+                    accessibilityLabel={t.join.ageLabel(t.ageBands[band] ?? band)}
                     testID={`join-age-${band}`}
                     style={{
                       backgroundColor: selected ? colors.pisang : colors['surface-sunken'],
@@ -256,7 +261,7 @@ export default function Join() {
                         { color: selected ? colors['on-bright'] : colors['ink-muted'] },
                       ]}
                     >
-                      {band}
+                      {t.ageBands[band] ?? band}
                     </Text>
                   </Pressable>
                 );
@@ -265,15 +270,17 @@ export default function Join() {
           </View>
 
           <View style={{ gap: spacing['space-3'] }}>
-            {label('Measurements — all optional')}
-            {MEASUREMENTS.map((m) => (
+            {label(t.join.measurements)}
+            {MEASUREMENTS.map((m) => {
+              const text = measurementCopy(m.field, t);
+              return (
               <View key={m.field} style={{ gap: spacing['space-1'] }}>
                 <Text style={[typography['body-m'], { color: colors.ink }]}>
-                  {m.label} ({m.unit})
+                  {text.label} ({m.unit})
                 </Text>
-                {m.hint !== undefined && (
+                {text.hint !== undefined && (
                   <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-                    {m.hint}
+                    {text.hint}
                   </Text>
                 )}
                 <TextInput
@@ -282,49 +289,50 @@ export default function Join() {
                   keyboardType="decimal-pad"
                   placeholder="—"
                   placeholderTextColor={colors['ink-faint']}
-                  accessibilityLabel={`${m.label} in ${m.unit}`}
+                  accessibilityLabel={t.join.measurementLabel(text.label, m.unit)}
                   testID={`join-${m.field}`}
                   style={inputStyle}
                 />
               </View>
-            ))}
+              );
+            })}
           </View>
 
           <View style={{ gap: spacing['space-2'] }}>
-            {label('Parent or guardian contact')}
+            {label(t.join.parentContact)}
             <TextInput
               value={form.parentContact}
               onChangeText={(parentContact) => setForm((c) => ({ ...c, parentContact }))}
-              placeholder="Optional"
+              placeholder={t.common.optional}
               placeholderTextColor={colors['ink-faint']}
               autoCapitalize="none"
-              accessibilityLabel="Parent or guardian contact"
+              accessibilityLabel={t.join.parentContact}
               testID="join-parent-contact"
               style={inputStyle}
             />
           </View>
 
           <View style={{ gap: spacing['space-2'] }}>
-            {label('Anything else')}
+            {label(t.join.anythingElse)}
             <TextInput
               value={form.notes}
               onChangeText={(notes) => setForm((c) => ({ ...c, notes }))}
-              placeholder="Optional"
+              placeholder={t.common.optional}
               placeholderTextColor={colors['ink-faint']}
               multiline
-              accessibilityLabel="Anything else"
+              accessibilityLabel={t.join.anythingElse}
               testID="join-notes"
               style={[...inputStyle, styles.multiline]}
             />
           </View>
 
           <PushButton
-            label={busy ? 'Joining…' : `Join ${teamName ?? 'the team'}`}
+            label={busy ? t.join.joining : t.join.join(teamName)}
             fullWidth
             disabled={busy || form.name.trim() === ''}
             testID="join-submit"
             onPress={() => {
-              submit().catch((e: unknown) => setError(messageOf(e)));
+              submit().catch((e: unknown) => setError(localised(messageOf(e), t)));
             }}
           />
         </View>

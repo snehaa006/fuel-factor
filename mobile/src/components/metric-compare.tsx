@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 import { change, type Metric } from '@/lib/progress';
 
@@ -29,6 +30,7 @@ function reading(value: number | null, unit: string | null): string {
  */
 export function MetricCompare({ metric, testID }: MetricCompareProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   const delta = change(metric);
   const missing = metric.baseline.value === null;
@@ -44,15 +46,19 @@ export function MetricCompare({ metric, testID }: MetricCompareProps) {
       }}
     >
       <View style={styles.header}>
-        <Text style={[typography['heading-m'], { color: colors.ink }]}>{metric.label}</Text>
+        <Text style={[typography['heading-m'], { color: colors.ink }]}>
+          {t.progress.metrics[metric.key] ?? metric.label}
+        </Text>
         {metric.unit !== null && (
-          <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>{metric.unit}</Text>
+          <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
+            {t.progress.units[metric.key] ?? metric.unit}
+          </Text>
         )}
       </View>
 
       <View style={[styles.pair, { gap: spacing['space-4'] }]}>
         <View style={styles.side}>
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>BASELINE</Text>
+          <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.progress.baseline}</Text>
           <Text
             testID={testID ? `${testID}-baseline` : undefined}
             style={[typography['display-m'], { color: missing ? colors['ink-faint'] : colors.ink }]}
@@ -60,12 +66,12 @@ export function MetricCompare({ metric, testID }: MetricCompareProps) {
             {reading(metric.baseline.value, metric.unit)}
           </Text>
           <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
-            {metric.baseline.days === 0 ? 'not measured' : `${metric.baseline.days} days`}
+            {metric.baseline.days === 0 ? t.progress.notMeasuredLower : t.progress.days(metric.baseline.days)}
           </Text>
         </View>
 
         <View style={styles.side}>
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>NOW</Text>
+          <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.progress.nowCaps}</Text>
           <Text
             testID={testID ? `${testID}-current` : undefined}
             style={[
@@ -76,7 +82,7 @@ export function MetricCompare({ metric, testID }: MetricCompareProps) {
             {reading(metric.current.value, metric.unit)}
           </Text>
           <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
-            {metric.current.days === 0 ? 'not measured' : `${metric.current.days} days`}
+            {metric.current.days === 0 ? t.progress.notMeasuredLower : t.progress.days(metric.current.days)}
           </Text>
         </View>
       </View>
@@ -88,7 +94,8 @@ export function MetricCompare({ metric, testID }: MetricCompareProps) {
           testID={testID ? `${testID}-change` : undefined}
           style={[typography['body-m'], { color: colors['ink-muted'] }]}
         >
-          Change: {delta > 0 ? '+' : ''}
+          {t.progress.change}
+          {delta > 0 ? '+' : ''}
           {reading(delta, metric.unit)}
         </Text>
       )}
@@ -99,7 +106,7 @@ export function MetricCompare({ metric, testID }: MetricCompareProps) {
           style={[typography['body-s'], { color: colors['ink-muted'] }]}
         >
           {/* The tracker's own wording for this level. Theirs, not ours. */}
-          The tracker calls this: {metric.note}
+          {t.progress.trackerCalls(metric.note)}
         </Text>
       )}
 
@@ -108,7 +115,7 @@ export function MetricCompare({ metric, testID }: MetricCompareProps) {
           testID={testID ? `${testID}-missing` : undefined}
           style={[typography['body-s'], { color: colors['ink-faint'] }]}
         >
-          {metric.missingNote}
+          {t.progress.missing[metric.key] ?? metric.missingNote}
         </Text>
       )}
     </View>

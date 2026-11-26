@@ -9,9 +9,10 @@ import { MascotBanner } from '@/components/mascot-banner';
 import { PushButton } from '@/components/push-button';
 import { SidebarButton } from '@/components/sidebar';
 import { isProgrammeOpen, waitingLine } from '@/lib/programme';
-import { BASELINE_DAYS, DAY_CHOICE_GUIDANCE, positionInRound } from '@/lib/recall-window';
+import { BASELINE_DAYS, positionInRound } from '@/lib/recall-window';
 import { useProgramme } from '@/lib/use-programme';
 import { useRecallStatus } from '@/lib/use-recall';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -36,6 +37,7 @@ import { useTheme } from '@/theme';
 export default function BeforeYouStart() {
   const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const programme = useProgramme();
   const recall = useRecallStatus();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -95,7 +97,7 @@ export default function BeforeYouStart() {
           <SidebarButton onPress={() => setMenuOpen(true)} testID="menu" />
           <View>
             <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-              {(programme.teamName ?? 'YOUR SQUAD').toUpperCase()}
+              {(programme.teamName ?? t.beforeYouStart.yourSquad).toUpperCase()}
             </Text>
             <Text style={[typography['display-l'], { color: colors.ink }]}>{programme.name}</Text>
           </View>
@@ -115,20 +117,20 @@ export default function BeforeYouStart() {
             gap: spacing['space-1'],
           }}
         >
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>BEFORE YOU START</Text>
+          <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.beforeYouStart.title}</Text>
           <Text style={[typography['heading-l'], { color: colors.ink }]}>
-            {waitingLine(programme.programme)}
+            {waitingLine(programme.programme, t)}
           </Text>
         </View>
 
         <View style={{ marginTop: spacing['space-6'] }}>
           <MascotBanner
             pose={allIn ? 'best' : 'think'}
-            eyebrow={allIn ? 'ALL THREE ARE IN' : 'FIRST JOB'}
+            eyebrow={allIn ? t.beforeYouStart.allIn : t.beforeYouStart.firstJob}
             message={
               allIn
-                ? 'Baseline done. See you on day one.'
-                : 'Write down three normal days of eating.'
+                ? t.beforeYouStart.baselineDone
+                : t.beforeYouStart.writeDown
             }
             testID="before-mascot"
           />
@@ -136,13 +138,13 @@ export default function BeforeYouStart() {
 
         <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>
           <Text style={[typography['heading-l'], { color: colors.ink }]}>
-            Your three recall days
+            {t.beforeYouStart.yourThreeDays}
           </Text>
           <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-            {DAY_CHOICE_GUIDANCE}
+            {t.recall.dayChoice}
           </Text>
           <Text testID="before-count" style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-            {done} of {BASELINE_DAYS.length} days in.
+            {t.recall.daysIn(done, BASELINE_DAYS.length)}
           </Text>
 
           <View style={{ gap: spacing['space-2'] }}>
@@ -158,8 +160,8 @@ export default function BeforeYouStart() {
                   accessibilityRole="button"
                   accessibilityLabel={
                     entry
-                      ? `Day ${positionInRound(day)}, answered. Open to change it.`
-                      : `Day ${positionInRound(day)}, not answered yet`
+                      ? t.recall.dayAnswered(positionInRound(day))
+                      : t.recall.dayNotAnswered(positionInRound(day))
                   }
                   testID={`before-day-${day}`}
                   style={({ pressed }) => [
@@ -176,7 +178,7 @@ export default function BeforeYouStart() {
                   ]}
                 >
                   <Text style={[typography['body-m'], { color: colors.ink }]}>
-                    Day {positionInRound(day)}
+                    {t.recall.day(positionInRound(day))}
                   </Text>
                   <Text
                     testID={`before-day-${day}-state`}
@@ -188,10 +190,12 @@ export default function BeforeYouStart() {
                     {/* A row with no meal text is honest about it: only food
                         can go through the food database. */}
                     {entry === undefined
-                      ? 'Not answered'
+                      ? t.recall.notAnswered
                       : entry.hasMeals
-                        ? (entry.recallDate === null ? 'Answered' : shortDate(entry.recallDate))
-                        : 'No meals recorded'}
+                        ? entry.recallDate === null
+                          ? t.recall.answered
+                          : shortDate(entry.recallDate, t)
+                        : t.recall.noMeals}
                   </Text>
                 </Pressable>
               );
@@ -217,13 +221,13 @@ export default function BeforeYouStart() {
                 before the programme starts there is no reason to spread them
                 across three evenings -- they are three days already lived. */}
             <PushButton
-              label="Fill all three in one go"
+              label={t.recall.fillAllThree}
               fullWidth
               testID="before-all"
               onPress={() => router.push('/recall/all')}
             />
             <PushButton
-              label={`Just day ${positionInRound(next)} for now`}
+              label={t.beforeYouStart.justDay(positionInRound(next))}
               variant="ghost"
               fullWidth
               testID="before-next"

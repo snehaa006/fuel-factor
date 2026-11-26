@@ -18,10 +18,11 @@ import {
   saveCheckIn,
   type CheckIn,
 } from '@/lib/check-in';
-import { messageOf } from '@/lib/errors';
+import { localised, messageOf } from '@/lib/errors';
 import { ensureDailyLog } from '@/lib/logger';
 import { todayIso } from '@/lib/today';
 import { useParticipantId } from '@/lib/use-foods';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -38,6 +39,7 @@ import { useTheme } from '@/theme';
 function CheckInForm() {
   const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const participantId = useParticipantId();
 
   const [checkIn, setCheckIn] = useState<CheckIn>({});
@@ -61,7 +63,7 @@ function CheckInForm() {
       await saveCheckIn(dailyLogId, { ...checkIn, fluid_ml: parseFluid(fluidText) });
       router.back();
     } catch (e) {
-      setError(messageOf(e));
+      setError(localised(messageOf(e), t));
     } finally {
       setSaving(false);
     }
@@ -82,27 +84,27 @@ function CheckInForm() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.head}>
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>THIS EVENING</Text>
+          <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.checkIn.thisEvening}</Text>
           <Pressable
             onPress={() => router.back()}
             accessibilityRole="button"
-            accessibilityLabel="Cancel"
+            accessibilityLabel={t.logger.cancel}
             testID="cancel"
             hitSlop={12}
           >
-            <Text style={[typography.label, { color: colors['air-deep'] }]}>CANCEL</Text>
+            <Text style={[typography.label, { color: colors['air-deep'] }]}>{t.logger.cancelCaps}</Text>
           </Pressable>
         </View>
-        <Text style={[typography['display-l'], { color: colors.ink }]}>How was today?</Text>
+        <Text style={[typography['display-l'], { color: colors.ink }]}>{t.checkIn.howWasToday}</Text>
 
         {section(
-          'Servings',
-          'How many you had.',
+          t.checkIn.servings,
+          t.checkIn.servingsNote,
           <View style={{ gap: spacing['space-2'] }}>
             {COUNTERS.map(({ field, label }) => (
               <Stepper
                 key={field}
-                label={label}
+                label={t.checkIn.fields[field] ?? label}
                 value={checkIn[field] ?? null}
                 onChange={(v) => set(field, v)}
                 testID={`counter-${field}`}
@@ -112,15 +114,15 @@ function CheckInForm() {
         )}
 
         {section(
-          'Fluid',
-          'Millilitres across the whole day.',
+          t.checkIn.fluid,
+          t.checkIn.fluidNote,
           <TextInput
             value={fluidText}
             onChangeText={setFluidText}
             keyboardType="number-pad"
-            placeholder="e.g. 2000"
+            placeholder={t.checkIn.fluidPlaceholder}
             placeholderTextColor={colors['ink-faint']}
-            accessibilityLabel="Fluid in millilitres"
+            accessibilityLabel={t.checkIn.fluidLabel}
             testID="fluid"
             style={[
               typography['heading-m'],
@@ -135,7 +137,7 @@ function CheckInForm() {
         )}
 
         {section(
-          'Hydration',
+          t.checkIn.hydration,
           null,
           <UrineScale
             value={checkIn.urine_colour ?? null}
@@ -146,8 +148,8 @@ function CheckInForm() {
         )}
 
         {section(
-          'How you felt',
-          `1 to ${LIMITS.rating.max}.`,
+          t.checkIn.howYouFelt,
+          t.checkIn.ratingRange(LIMITS.rating.max),
           <View style={{ gap: spacing['space-4'] }}>
             {/* One link for all five, because the workbook states a single
                 1-10 scale and every rating here is read off it. */}
@@ -159,7 +161,7 @@ function CheckInForm() {
             {RATINGS.map(({ field, label }) => (
               <RatingScale
                 key={field}
-                label={label}
+                label={t.checkIn.fields[field] ?? label}
                 value={checkIn[field] ?? null}
                 onChange={(v) => set(field, v)}
                 testID={`rating-${field}`}
@@ -169,15 +171,15 @@ function CheckInForm() {
         )}
 
         {section(
-          'Anything else',
+          t.checkIn.anythingElse,
           null,
           <TextInput
             value={checkIn.notes ?? ''}
-            onChangeText={(t) => set('notes', t)}
+            onChangeText={(text) => set('notes', text)}
             multiline
-            placeholder="Illness, a hard session, anything worth noting."
+            placeholder={t.checkIn.notesPlaceholder}
             placeholderTextColor={colors['ink-faint']}
-            accessibilityLabel="Notes"
+            accessibilityLabel={t.checkIn.notesLabel}
             testID="notes"
             style={[
               typography['body-m'],
@@ -204,11 +206,11 @@ function CheckInForm() {
       <View style={{ padding: spacing['space-4'], gap: spacing['space-2'] }}>
         {participantId === null && (
           <Text testID="cannot-save" style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-            Sign in as an athlete to save.
+            {t.logger.signInToSave}
           </Text>
         )}
         <PushButton
-          label={saving ? 'Saving…' : 'Finish today'}
+          label={saving ? t.common.saving : t.checkIn.finish}
           fullWidth
           variant="success"
           disabled={!answered || saving || participantId === null}

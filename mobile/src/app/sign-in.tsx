@@ -5,10 +5,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CredentialFields } from '@/components/credential-fields';
 import { Mascot } from '@/components/mascot';
+import { LanguageSwitch } from '@/components/preference-switches';
 import { PushButton } from '@/components/push-button';
+import { useStrings } from '@/i18n';
 import { signInAthlete, signUpAthlete } from '@/lib/account';
-import { messageOf } from '@/lib/errors';
-import { WELCOME_CUE } from '@/lib/mascot-copy';
+import { localised, messageOf } from '@/lib/errors';
+import { welcomeCue } from '@/lib/mascot-copy';
 import { useTheme } from '@/theme';
 
 type Mode = 'sign-in' | 'sign-up';
@@ -41,6 +43,8 @@ export default function SignIn() {
   // the questionnaire is still waiting on the other side of the sign-in.
   const { joinCode } = useLocalSearchParams<{ joinCode?: string }>();
   const { colors, spacing, typography } = useTheme();
+  const t = useStrings();
+  const cue = welcomeCue(t);
 
   const [mode, setMode] = useState<Mode>('sign-in');
   const [email, setEmail] = useState('');
@@ -61,7 +65,7 @@ export default function SignIn() {
         if (!confirmed) {
           // A project setting rather than a failure, so it is said plainly
           // instead of leaving an athlete on a screen that looks broken.
-          setNotice('Check your email to confirm the account, then sign in.');
+          setNotice(t.common.confirmEmail);
           setMode('sign-in');
           return;
         }
@@ -76,7 +80,7 @@ export default function SignIn() {
         router.replace('/');
       }
     } catch (e) {
-      setError(messageOf(e));
+      setError(localised(messageOf(e), t));
     } finally {
       setBusy(false);
     }
@@ -85,17 +89,20 @@ export default function SignIn() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
       <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-6'] }]}>
+        {/* The language is chosen here, before anything else is read: Theo's
+            ask was a switch "when you're logging in or signing up". It is
+            remembered on the phone, so it holds for every screen after. */}
+        <LanguageSwitch compact testID="sign-in-language" />
+
         <View style={{ alignItems: 'center' }}>
-          <Mascot pose={WELCOME_CUE.pose} size={140} motion={WELCOME_CUE.motion} testID="sign-in-mascot" />
+          <Mascot pose={cue.pose} size={140} motion={cue.motion} testID="sign-in-mascot" />
         </View>
 
         <Text style={[typography['display-l'], { color: colors.ink }]}>
-          {mode === 'sign-in' ? 'Welcome back' : 'Make your account'}
+          {mode === 'sign-in' ? t.signIn.welcomeBack : t.signIn.makeAccount}
         </Text>
         <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-          {mode === 'sign-in'
-            ? 'Sign in to pick up where you left off.'
-            : 'You’ll enter your team code next.'}
+          {mode === 'sign-in' ? t.signIn.signInLead : t.signIn.signUpLead}
         </Text>
 
         <View style={{ marginTop: spacing['space-6'] }}>
@@ -129,18 +136,18 @@ export default function SignIn() {
 
         <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>
           <PushButton
-            label={busy ? 'Working…' : mode === 'sign-in' ? 'Sign in' : 'Create my account'}
+            label={busy ? t.common.working : mode === 'sign-in' ? t.common.signIn : t.signIn.createAccount}
             fullWidth
             disabled={!ready}
             testID="sign-in-submit"
             // An async onPress swallows its own rejection: a button that threw
             // simply did nothing, with no error and no log.
             onPress={() => {
-              submit().catch((e: unknown) => setError(messageOf(e)));
+              submit().catch((e: unknown) => setError(localised(messageOf(e), t)));
             }}
           />
           <PushButton
-            label={mode === 'sign-in' ? 'I need an account' : 'I already have an account'}
+            label={mode === 'sign-in' ? t.common.needAccount : t.common.haveAccount}
             variant="ghost"
             fullWidth
             testID="sign-in-switch"
@@ -162,7 +169,7 @@ export default function SignIn() {
           style={{ paddingVertical: spacing['space-4'] }}
         >
           <Text style={[typography['body-m'], { color: colors['air-deep'], textAlign: 'center' }]}>
-            I am a coach →
+            {t.common.iAmACoach}
           </Text>
         </Pressable>
       </ScrollView>

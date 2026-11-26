@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { clampCounter, LIMITS } from '@/lib/check-in';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 export type StepperProps = {
@@ -19,6 +20,7 @@ export type StepperProps = {
  */
 export function Stepper({ label, value, onChange, testID }: StepperProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const current = value ?? 0;
 
   const button = (delta: number, symbol: string, name: string) => {
@@ -29,7 +31,7 @@ export function Stepper({ label, value, onChange, testID }: StepperProps) {
         onPress={() => onChange(clampCounter(current + delta))}
         disabled={disabled}
         accessibilityRole="button"
-        accessibilityLabel={`${name} ${label}`}
+        accessibilityLabel={t.scales.stepper(label, name === 'plus')}
         accessibilityState={{ disabled }}
         testID={testID ? `${testID}-${name}` : undefined}
         style={[
@@ -65,7 +67,7 @@ export function Stepper({ label, value, onChange, testID }: StepperProps) {
       {button(-1, '−', 'minus')}
       <Text
         testID={testID ? `${testID}-value` : undefined}
-        accessibilityLabel={`${label}: ${value === null ? 'not answered' : value}`}
+        accessibilityLabel={t.scales.stepperValue(label, value === null ? t.scales.notAnswered : String(value))}
         style={[typography['heading-m'], styles.value, { color: value === null ? colors['ink-faint'] : colors.ink }]}
       >
         {value === null ? '–' : value}

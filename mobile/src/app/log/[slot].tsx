@@ -6,8 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProgrammeGate } from '@/components/programme-gate';
 import { PushButton } from '@/components/push-button';
 import { MascotBanner } from '@/components/mascot-banner';
-import { messageOf } from '@/lib/errors';
-import { SAVE_FAILED_CUE } from '@/lib/mascot-copy';
+import { localised, messageOf } from '@/lib/errors';
+import { saveFailedCue } from '@/lib/mascot-copy';
 import {
   GUIDANCE_LABEL,
   macroLine,
@@ -25,6 +25,7 @@ import {
 } from '@/lib/logger';
 import { MEAL_SLOTS, SLOT_LABEL, todayIso, type MealSlot } from '@/lib/today';
 import { useFoods, useParticipantId } from '@/lib/use-foods';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 function isMealSlot(value: string | undefined): value is MealSlot {
@@ -42,6 +43,7 @@ function LogMealForm() {
   const { slot: slotParam } = useLocalSearchParams<{ slot: string }>();
   const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   const [query, setQuery] = useState('');
   const foods = useFoods(query);
@@ -72,7 +74,7 @@ function LogMealForm() {
   if (!slot) {
     return (
       <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
-        <Text style={[typography['heading-l'], { color: colors.ink }]}>Unknown meal slot</Text>
+        <Text style={[typography['heading-l'], { color: colors.ink }]}>{t.logger.unknownSlot}</Text>
       </SafeAreaView>
     );
   }
@@ -86,7 +88,7 @@ function LogMealForm() {
       await addLogItem(dailyLogId, slot, portion.id, quantity);
       router.back();
     } catch (e) {
-      setError(messageOf(e));
+      setError(localised(messageOf(e), t));
     } finally {
       setSaving(false);
     }
@@ -102,27 +104,27 @@ function LogMealForm() {
       >
         <View style={styles.rowBetween}>
           <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-            {SLOT_LABEL[slot].toUpperCase()}
+            {(t.slots[slot] ?? SLOT_LABEL[slot]).toUpperCase()}
           </Text>
           <Pressable
             onPress={() => router.back()}
             accessibilityRole="button"
-            accessibilityLabel="Cancel"
+            accessibilityLabel={t.logger.cancel}
             testID="cancel"
             hitSlop={12}
           >
-            <Text style={[typography.label, { color: colors['air-deep'] }]}>CANCEL</Text>
+            <Text style={[typography.label, { color: colors['air-deep'] }]}>{t.logger.cancelCaps}</Text>
           </Pressable>
         </View>
-        <Text style={[typography['display-l'], { color: colors.ink }]}>What did you eat?</Text>
+        <Text style={[typography['display-l'], { color: colors.ink }]}>{t.logger.whatDidYouEat}</Text>
 
         <TextInput
           value={query}
           onChangeText={setQuery}
-          placeholder="Search 1,300+ foods: nasi, telur, pisang…"
+          placeholder={t.logger.searchPlaceholder}
           placeholderTextColor={colors['ink-faint']}
           autoCorrect={false}
-          accessibilityLabel="Search foods"
+          accessibilityLabel={t.logger.searchLabel}
           testID="food-search"
           style={[
             typography['body-m'],
@@ -148,7 +150,7 @@ function LogMealForm() {
 
         {foods.status === 'ready' && results.length === 0 && (
           <Text testID="no-results" style={[typography['body-m'], { color: colors['ink-muted'], marginTop: spacing['space-6'] }]}>
-            Nothing matches “{query}”. It may not be in the database yet.
+            {t.logger.noMatch(query)}
           </Text>
         )}
 
@@ -186,7 +188,11 @@ function LogMealForm() {
                 )}
                 {defaultPortion(food) !== null && food.tkpi_id !== null && (
                   <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
-                    per 100 g: {macroLine(macrosFor(food.food_portions.find((p) => p.is_default) ?? defaultPortion(food)!))}
+                    {t.logger.per100g}{' '}
+                    {macroLine(
+                      macrosFor(food.food_portions.find((p) => p.is_default) ?? defaultPortion(food)!),
+                      t
+                    )}
                   </Text>
                 )}
                 {food.guidance_note && (
@@ -195,7 +201,7 @@ function LogMealForm() {
 
                 {selected && (
                   <View style={{ gap: spacing['space-3'], marginTop: spacing['space-3'] }}>
-                    <Text style={[typography.label, { color: colors['ink-muted'] }]}>PORTION</Text>
+                    <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.logger.portion}</Text>
                     <View style={styles.chips}>
                       {food.food_portions.map((p) => (
                         <Pressable
@@ -225,7 +231,7 @@ function LogMealForm() {
                       ))}
                     </View>
 
-                    <Text style={[typography.label, { color: colors['ink-muted'] }]}>HOW MANY</Text>
+                    <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.logger.howMany}</Text>
                     <View style={styles.chips}>
                       {QUANTITIES.map((q) => (
                         <Pressable
@@ -262,8 +268,8 @@ function LogMealForm() {
                       {summary === null
                         ? ''
                         : summary.unknown
-                          ? 'No figure for this yet — it will still be logged.'
-                          : macroLine(summary)}
+                          ? t.logger.noFigure
+                          : macroLine(summary, t)}
                     </Text>
                   </View>
                 )}
@@ -275,10 +281,10 @@ function LogMealForm() {
         {error && (
           <View testID="save-error" style={{ marginTop: spacing['space-4'] }}>
             <MascotBanner
-              pose={SAVE_FAILED_CUE.pose}
-              message={SAVE_FAILED_CUE.message}
-              eyebrow={SAVE_FAILED_CUE.eyebrow}
-              motion={SAVE_FAILED_CUE.motion}
+              pose={saveFailedCue(t).pose}
+              message={saveFailedCue(t).message}
+              eyebrow={saveFailedCue(t).eyebrow}
+              motion={saveFailedCue(t).motion}
               detail={error}
               size={88}
               testID="save-error-mascot"
@@ -290,11 +296,11 @@ function LogMealForm() {
       <View style={{ padding: spacing['space-4'], gap: spacing['space-2'] }}>
         {participantId === null && foods.status === 'ready' && (
           <Text testID="cannot-save" style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-            Sign in as an athlete to save.
+            {t.logger.signInToSave}
           </Text>
         )}
         <PushButton
-          label={saving ? 'Saving…' : 'Add to this meal'}
+          label={saving ? t.common.saving : t.logger.add}
           fullWidth
           disabled={!chosen || !portion || saving || participantId === null}
           testID="save-item"

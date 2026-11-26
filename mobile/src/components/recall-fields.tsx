@@ -20,8 +20,8 @@ import {
   type RecallEntry,
   type RecallFood,
 } from '@/lib/recall';
-import { DAY_CHOICE_GUIDANCE } from '@/lib/recall-window';
 import { todayIso } from '@/lib/today';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -59,6 +59,7 @@ export function RecallFields({
   testPrefix = 'recall',
 }: RecallFieldsProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   const set = <K extends keyof RecallEntry>(key: K, value: RecallEntry[K]) =>
     onChange({ ...draft, entry: { ...draft.entry, [key]: value } });
@@ -115,24 +116,24 @@ export function RecallFields({
   return (
     <View style={{ gap: spacing['space-8'] }}>
       {section(
-        'The day',
+        t.recallFields.theDay,
         <>
           <View style={{ gap: spacing['space-2'] }}>
-            {label('Which day was it')}
+            {label(t.recallFields.whichDay)}
             {/* A calendar rather than a typed date. A recall is about a day
                 already lived, so the useful half of the calendar is the days
                 up to today and `max` says so. */}
             <DateField
               value={draft.dateText === '' ? null : draft.dateText}
               onChange={(date) => onChange({ ...draft, dateText: date ?? '' })}
-              placeholder="Pick the day"
+              placeholder={t.recallFields.pickTheDay}
               openAt={todayIso()}
               today={todayIso()}
               max={todayIso()}
-              title="WHICH DAY WAS IT"
-              hint={DAY_CHOICE_GUIDANCE}
+              title={t.recallFields.whichDayCaps}
+              hint={t.recall.dayChoice}
               clearable
-              accessibilityLabel="Which day was it"
+              accessibilityLabel={t.recallFields.whichDay}
               testID={`${testPrefix}-date`}
             />
           </View>
@@ -142,14 +143,14 @@ export function RecallFields({
             testID={`${testPrefix}-day-type`}
           />
           <View style={{ gap: spacing['space-2'] }}>
-            {label(`Sleep, in hours (0–${RECALL_LIMITS.sleep_hours.max})`)}
+            {label(t.recallFields.sleep(RECALL_LIMITS.sleep_hours.max))}
             <TextInput
               value={draft.sleepText}
               onChangeText={(text) => onChange({ ...draft, sleepText: text })}
               keyboardType="decimal-pad"
               placeholder="—"
               placeholderTextColor={colors['ink-faint']}
-              accessibilityLabel="Sleep in hours"
+              accessibilityLabel={t.recallFields.sleepLabel}
               testID={`${testPrefix}-sleep`}
               style={inputStyle}
             />
@@ -158,13 +159,13 @@ export function RecallFields({
       )}
 
       {section(
-        'What you ate',
+        t.recallFields.whatYouAte,
         <>
           {RECALL_MEALS.map((meal) => (
             <View key={meal.field} style={{ gap: spacing['space-2'] }}>
-              {label(meal.label)}
+              {label(t.recallFields.meals[meal.field]?.label ?? meal.label)}
               <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-                {meal.hint}
+                {t.recallFields.meals[meal.field]?.hint ?? meal.hint}
               </Text>
               <TextInput
                 value={draft.entry[meal.field] ?? ''}
@@ -172,7 +173,7 @@ export function RecallFields({
                 multiline
                 placeholder="—"
                 placeholderTextColor={colors['ink-faint']}
-                accessibilityLabel={meal.label}
+                accessibilityLabel={t.recallFields.meals[meal.field]?.label ?? meal.label}
                 testID={`${testPrefix}-${meal.field}`}
                 style={[...inputStyle, styles.multiline]}
               />
@@ -190,17 +191,17 @@ export function RecallFields({
                         {food.quantity === 1 ? '' : ` ×${food.quantity}`}
                       </Text>
                       <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-                        {macroLine(food.macros) || 'No figures for this food yet'}
+                        {macroLine(food.macros, t) || t.recallFields.noFiguresFood}
                       </Text>
                     </View>
                     <Pressable
                       onPress={() => removeFood(index)}
                       accessibilityRole="button"
-                      accessibilityLabel={`Remove ${food.foodName}`}
+                      accessibilityLabel={t.recallFields.remove(food.foodName)}
                       testID={`${testPrefix}-${meal.field}-food-${index}-remove`}
                       hitSlop={10}
                     >
-                      <Text style={[typography.label, { color: colors['cabai-deep'] }]}>REMOVE</Text>
+                      <Text style={[typography.label, { color: colors['cabai-deep'] }]}>{t.recallFields.removeCaps}</Text>
                     </Pressable>
                   </View>
                 )
@@ -219,7 +220,7 @@ export function RecallFields({
                   testID={`${testPrefix}-${meal.field}-add-food`}
                 >
                   <Text style={[typography.label, { color: colors['air-deep'] }]}>
-                    + ADD FROM FOOD DATABASE
+                    {t.recallFields.addFromDatabase}
                   </Text>
                 </Pressable>
               )}
@@ -231,9 +232,9 @@ export function RecallFields({
               testID={`${testPrefix}-food-totals`}
               style={{ backgroundColor: colors['surface-raised'], borderRadius: radius['radius-lg'], padding: spacing['space-3'], gap: 2 }}
             >
-              <Text style={[typography.label, { color: colors['ink-muted'] }]}>FROM THE FOODS PICKED</Text>
+              <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.recallFields.fromFoodsPicked}</Text>
               <Text style={[typography['heading-m'], { color: colors.ink }]}>
-                {macroLine(totals) || 'Not enough figures to add up'}
+                {macroLine(totals, t) || t.recallFields.notEnough}
               </Text>
             </View>
           )}
@@ -241,29 +242,29 @@ export function RecallFields({
       )}
 
       {section(
-        'The rest of the day',
+        t.recallFields.restOfDay,
         <>
           <View style={{ gap: spacing['space-2'] }}>
-            {label('Training or activity')}
+            {label(t.recallFields.training)}
             <TextInput
               value={draft.entry.activities ?? ''}
               onChangeText={(text) => set('activities', parseText(text))}
               multiline
               placeholder="—"
               placeholderTextColor={colors['ink-faint']}
-              accessibilityLabel="Training or activity"
+              accessibilityLabel={t.recallFields.training}
               testID={`${testPrefix}-activities`}
               style={[...inputStyle, styles.multiline]}
             />
           </View>
           <View style={{ gap: spacing['space-2'] }}>
-            {label('Supplements, if any')}
+            {label(t.recallFields.supplements)}
             <TextInput
               value={draft.entry.supplements ?? ''}
               onChangeText={(text) => set('supplements', parseText(text))}
               placeholder="—"
               placeholderTextColor={colors['ink-faint']}
-              accessibilityLabel="Supplements, if any"
+              accessibilityLabel={t.recallFields.supplements}
               testID={`${testPrefix}-supplements`}
               style={inputStyle}
             />
@@ -272,38 +273,38 @@ export function RecallFields({
             {/* A rough figure is what the instrument asks for: "fluids, a
                 tentative idea, say, I had my four liter of water today."
                 No daily goal sits beside it, because none has been set. */}
-            {label('Fluid, in mL')}
+            {label(t.recallFields.fluid)}
             <TextInput
               value={draft.fluidText}
               onChangeText={(text) => onChange({ ...draft, fluidText: text })}
               keyboardType="number-pad"
               placeholder="—"
               placeholderTextColor={colors['ink-faint']}
-              accessibilityLabel="Fluid in millilitres"
+              accessibilityLabel={t.checkIn.fluidLabel}
               testID={`${testPrefix}-fluid`}
               style={inputStyle}
             />
             <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-              A large bottle is about 1500 mL.
+              {t.recallFields.bottle}
             </Text>
           </View>
         </>
       )}
 
       {section(
-        'How it felt',
+        t.recallFields.howItFelt,
         <>
           {RECALL_RATINGS.map((rating) => (
             <RatingScale
               key={rating.field}
-              label={rating.label}
+              label={t.recallFields.ratings[rating.field] ?? rating.label}
               value={draft.entry[rating.field]}
               onChange={(value) => set(rating.field, value)}
               testID={`${testPrefix}-${rating.field}`}
             />
           ))}
           <View style={{ gap: spacing['space-2'] }}>
-            {label('Hydration reading')}
+            {label(t.recallFields.hydrationReading)}
             <UrineScale
               value={draft.entry.urine_colour}
               onChange={(value) => set('urine_colour', value)}
@@ -322,14 +323,14 @@ export function RecallFields({
       )}
 
       {section(
-        'Anything else',
+        t.recallFields.anythingElse,
         <TextInput
           value={draft.entry.notes ?? ''}
           onChangeText={(text) => set('notes', parseText(text))}
           multiline
           placeholder="—"
           placeholderTextColor={colors['ink-faint']}
-          accessibilityLabel="Anything else"
+          accessibilityLabel={t.recallFields.anythingElse}
           testID={`${testPrefix}-notes`}
           style={[...inputStyle, styles.multiline]}
         />

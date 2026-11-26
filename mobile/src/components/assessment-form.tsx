@@ -13,6 +13,7 @@ import {
   type RecallAverage,
 } from '@/lib/assessments';
 import { messageOf } from '@/lib/errors';
+import { useStrings, type Strings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -42,6 +43,7 @@ export function AssessmentForm({
   testID = 'assessment-form',
 }: AssessmentFormProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   const [drafts, setDrafts] = useState<Record<string, string>>(() =>
     Object.fromEntries(
@@ -58,12 +60,12 @@ export function AssessmentForm({
     const errors: Record<string, string> = {};
     for (const def of DOMAINS.flatMap((d) => d.measures)) {
       if (def.derived) continue;
-      const result = parseEntry(drafts[def.key] ?? '', def);
+      const result = parseEntry(drafts[def.key] ?? '', def, t);
       if (result.ok) values[def.key] = result.value;
       else errors[def.key] = result.error;
     }
     return { values, errors };
-  }, [drafts]);
+  }, [drafts, t]);
 
   const hasErrors = Object.keys(parsed.errors).length > 0;
 
@@ -78,7 +80,7 @@ export function AssessmentForm({
     setStatus(null);
     try {
       await onSave(parsed.values);
-      setStatus({ kind: 'saved', text: `${PHASE_LABEL[phase]} saved.` });
+      setStatus({ kind: 'saved', text: t.assess.saved(t.assess.phases[phase] ?? PHASE_LABEL[phase]) });
     } catch (error) {
       setStatus({ kind: 'error', text: messageOf(error) });
     } finally {
@@ -91,7 +93,7 @@ export function AssessmentForm({
       {DOMAINS.map((domain) => (
         <View key={domain.domain} style={{ gap: spacing['space-2'] }}>
           <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-            {domain.label.toUpperCase()}
+            {(t.assess.domains[domain.domain] ?? domain.label).toUpperCase()}
           </Text>
           <View
             style={{
@@ -114,16 +116,20 @@ export function AssessmentForm({
                 ]}
               >
                 <View style={styles.labelCol}>
-                  <Text style={[typography['body-m'], { color: colors.ink }]}>{def.label}</Text>
+                  <Text style={[typography['body-m'], { color: colors.ink }]}>
+                    {t.assess.measures[def.key] ?? def.label}
+                  </Text>
                   {def.unit !== null && (
-                    <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>{def.unit}</Text>
+                    <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
+                      {t.assess.units[def.unit] ?? def.unit}
+                    </Text>
                   )}
                   {fromRecall[def.key] !== undefined && (
                     <Text
                       testID={`${testID}-${def.key}-recall`}
                       style={[typography['body-s'], { color: colors['air-deep'] }]}
                     >
-                      {recallHint(def.key, fromRecall[def.key])}
+                      {recallHint(def.key, fromRecall[def.key], t)}
                     </Text>
                   )}
                   {parsed.errors[def.key] !== undefined && (
@@ -145,7 +151,7 @@ export function AssessmentForm({
                       {formatValue(derivedValue(def))}
                     </Text>
                     <Text style={[typography['body-s'], { color: colors['ink-faint'], textAlign: 'right' }]}>
-                      {def.derived.how === 'max' ? 'auto: best' : 'auto: average'}
+                      {def.derived.how === 'max' ? t.assess.autoBest : t.assess.autoAverage}
                     </Text>
                   </View>
                 ) : (
@@ -160,7 +166,10 @@ export function AssessmentForm({
                     inputMode="decimal"
                     placeholder="—"
                     placeholderTextColor={colors['ink-faint']}
-                    accessibilityLabel={`${def.label}, ${PHASE_LABEL[phase]}`}
+                    accessibilityLabel={t.assess.fieldLabel(
+                      t.assess.measures[def.key] ?? def.label,
+                      t.assess.phases[phase] ?? PHASE_LABEL[phase]
+                    )}
                     style={[
                       styles.input,
                       typography['heading-m'],
@@ -195,7 +204,7 @@ export function AssessmentForm({
       )}
 
       <PushButton
-        label={saving ? 'Saving…' : `Save ${PHASE_LABEL[phase]}`}
+        label={saving ? t.common.saving : t.assess.save(t.assess.phases[phase] ?? PHASE_LABEL[phase])}
         fullWidth
         disabled={hasErrors || saving}
         onPress={save}
@@ -206,9 +215,9 @@ export function AssessmentForm({
 }
 
 /** "Recall average: 1520 (3 days)", or for breakfast "From recall: 2 of 3 days". */
-function recallHint(key: string, avg: RecallAverage): string {
-  if (key === 'breakfast') return `From recall: breakfast on ${avg.value} of ${avg.days} days`;
-  return `Recall average: ${avg.value} (${avg.days} day${avg.days === 1 ? '' : 's'})`;
+function recallHint(key: string, avg: RecallAverage, t: Strings): string {
+  if (key === 'breakfast') return t.assess.fromRecallBreakfast(avg.value, avg.days);
+  return t.assess.recallAverage(avg.value, avg.days);
 }
 
 const styles = StyleSheet.create({

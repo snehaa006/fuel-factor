@@ -1,3 +1,6 @@
+import { en } from '@/i18n/en';
+import type { Strings } from '@/i18n';
+
 import { supabase } from './supabase';
 import type { Tables } from './database.types';
 
@@ -95,12 +98,12 @@ export function macrosFor(portion: FoodPortion, quantity = 1): Macros {
 }
 
 /** "180 kcal · 40 g carbs · 3 g protein · 0 g fat", leaving out what is unknown. */
-export function macroLine(m: Macros): string {
+export function macroLine(m: Macros, t: Strings = en): string {
   const parts: string[] = [];
-  if (m.kcal !== null) parts.push(`${Math.round(m.kcal)} kcal`);
-  if (m.carbs_g !== null) parts.push(`${Math.round(m.carbs_g)} g carbs`);
-  if (m.protein_g !== null) parts.push(`${Math.round(m.protein_g)} g protein`);
-  if (m.fat_g !== null) parts.push(`${Math.round(m.fat_g)} g fat`);
+  if (m.kcal !== null) parts.push(t.macros.kcal(Math.round(m.kcal)));
+  if (m.carbs_g !== null) parts.push(t.macros.carbs(Math.round(m.carbs_g)));
+  if (m.protein_g !== null) parts.push(t.macros.protein(Math.round(m.protein_g)));
+  if (m.fat_g !== null) parts.push(t.macros.fat(Math.round(m.fat_g)));
   return parts.join(' · ');
 }
 

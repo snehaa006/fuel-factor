@@ -3,8 +3,9 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MascotBanner } from '@/components/mascot-banner';
-import { LEARN_CUE } from '@/lib/mascot-copy';
+import { learnCue } from '@/lib/mascot-copy';
 import { useWeeks } from '@/lib/use-learn';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -18,6 +19,7 @@ import { useTheme } from '@/theme';
 export default function Learn() {
   const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const state = useWeeks();
 
   if (state.status === 'loading') {
@@ -33,7 +35,7 @@ export default function Learn() {
       <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
         <View style={{ padding: spacing['space-6'], gap: spacing['space-2'] }}>
           <Text style={[typography['heading-l'], { color: colors.ink, textAlign: 'center' }]}>
-            Could not load the programme
+            {t.learn.couldNotLoad}
           </Text>
           <Text style={[typography['body-m'], { color: colors['ink-muted'], textAlign: 'center' }]}>
             {state.message}
@@ -49,21 +51,21 @@ export default function Learn() {
         <Pressable
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="Back to today"
+          accessibilityLabel={t.learn.backToToday}
           testID="learn-back"
         >
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>← TODAY</Text>
+          <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.learn.todayCaps}</Text>
         </Pressable>
 
         <Text style={[typography['display-l'], { color: colors.ink, marginTop: spacing['space-2'] }]}>
-          Learn
+          {t.learn.title}
         </Text>
         <View style={{ marginTop: spacing['space-4'] }}>
           <MascotBanner
-            pose={LEARN_CUE.pose}
-            message={LEARN_CUE.message}
-            eyebrow={LEARN_CUE.eyebrow}
-            motion={LEARN_CUE.motion}
+            pose={learnCue(t).pose}
+            message={learnCue(t).message}
+            eyebrow={learnCue(t).eyebrow}
+            motion={learnCue(t).motion}
             testID="learn-mascot"
           />
         </View>
@@ -78,8 +80,8 @@ export default function Learn() {
               accessibilityState={{ disabled: !week.unlocked }}
               accessibilityLabel={
                 week.unlocked
-                  ? `Week ${week.weekNumber}: ${week.theme ?? 'open'}`
-                  : `Week ${week.weekNumber}, not written yet`
+                  ? t.learn.weekOpen(week.weekNumber, week.theme)
+                  : t.learn.weekNotWritten(week.weekNumber)
               }
               testID={`week-${week.weekNumber}`}
               style={{
@@ -90,7 +92,7 @@ export default function Learn() {
               }}
             >
               <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-                WEEK {week.weekNumber}
+                {t.learn.weekCaps(week.weekNumber)}
               </Text>
               <Text
                 style={[
@@ -99,11 +101,11 @@ export default function Learn() {
                 ]}
               >
                 {/* No theme invented for a week the programme has not written. */}
-                {week.theme ?? 'Not written yet'}
+                {week.theme ?? t.learn.notWrittenYet}
               </Text>
               {week.unlocked && week.challenge !== null && (
                 <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-                  Challenge: {week.challenge}
+                  {t.learn.challenge(week.challenge)}
                 </Text>
               )}
             </Pressable>

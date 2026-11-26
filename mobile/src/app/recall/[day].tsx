@@ -16,8 +16,9 @@ import {
   type RecallEntry,
 } from '@/lib/recall';
 import { isComputed, MACROS, macroText, type RecallNutrition } from '@/lib/recall-nutrition';
-import { DAY_CHOICE_GUIDANCE, ROUND_LABEL, positionInRound, roundOf } from '@/lib/recall-window';
+import { ROUND_LABEL, positionInRound, roundOf } from '@/lib/recall-window';
 import { useRecallForm, type RecallFormController } from '@/lib/use-recall';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /** The controller once the day has loaded, which is the only state Form sees. */
@@ -85,6 +86,7 @@ function Form({
 }) {
   const router = useRouter();
   const { colors, spacing, typography } = useTheme();
+  const t = useStrings();
 
   // Lazy, and mounted with the answer already in hand, so there is no effect
   // and no render that shows an empty form over loaded data.
@@ -113,19 +115,19 @@ function Form({
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
       <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-4'] }]}>
         <Pressable onPress={() => router.back()} accessibilityRole="button" testID="day-back">
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>← BACK</Text>
+          <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.common.back}</Text>
         </Pressable>
 
         <Text
           style={[typography.label, { color: colors['ink-muted'], marginTop: spacing['space-2'] }]}
         >
-          {ROUND_LABEL[round].toUpperCase()}
+          {(t.recall.rounds[round] ?? ROUND_LABEL[round]).toUpperCase()}
         </Text>
         <Text style={[typography['display-l'], { color: colors.ink }]}>
-          Day {positionInRound(dayNumber)}
+          {t.recall.day(positionInRound(dayNumber))}
         </Text>
         <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-          Tell us about one whole day of eating. {DAY_CHOICE_GUIDANCE}
+          {t.recall.tellUs} {t.recall.dayChoice}
         </Text>
 
         <View style={{ marginTop: spacing['space-8'] }}>
@@ -144,8 +146,7 @@ function Form({
           >
             {/* Saved anyway: the baseline's nine days hold exactly this and
                 they are real data. The athlete is told what it costs. */}
-            No meals written in yet. The day will still be saved, but it cannot go through the food
-            database without them.
+            {t.recall.noMealsWritten}
           </Text>
         )}
 
@@ -165,10 +166,10 @@ function Form({
           <PushButton
             label={
               controller.saving
-                ? 'Saving…'
+                ? t.common.saving
                 : saved
-                  ? 'Saved'
-                  : `Save day ${positionInRound(dayNumber)}`
+                  ? t.recall.saved
+                  : t.recall.saveDay(positionInRound(dayNumber))
             }
             variant="success"
             fullWidth
@@ -184,7 +185,7 @@ function Form({
           />
           {saved && (
             <PushButton
-              label="Back to the recall"
+              label={t.recall.backToRecall}
               variant="ghost"
               fullWidth
               testID="recall-done"
@@ -209,6 +210,7 @@ function Form({
  */
 function Computed({ nutrition }: { nutrition: RecallNutrition | null }) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const computed = isComputed(nutrition);
 
   return (
@@ -222,12 +224,14 @@ function Computed({ nutrition }: { nutrition: RecallNutrition | null }) {
         gap: spacing['space-2'],
       }}
     >
-      <Text style={[typography.label, { color: colors['ink-muted'] }]}>FROM THE FOOD DATABASE</Text>
+      <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.recall.fromFoodDatabase}</Text>
       {MACROS.map((macro) => {
         const value = nutrition?.[macro.field] ?? null;
         return (
           <View key={macro.field} style={styles.macro}>
-            <Text style={[typography['body-m'], { color: colors.ink }]}>{macro.label}</Text>
+            <Text style={[typography['body-m'], { color: colors.ink }]}>
+              {t.recall.macros[macro.field] ?? macro.label}
+            </Text>
             <Text
               testID={`macro-${macro.field}`}
               style={[
@@ -235,7 +239,7 @@ function Computed({ nutrition }: { nutrition: RecallNutrition | null }) {
                 { color: value === null ? colors['ink-faint'] : colors['kecap-deep'] },
               ]}
             >
-              {macroText(value, macro.unit)}
+              {value === null ? t.recall.notComputed : macroText(value, macro.unit)}
             </Text>
           </View>
         );
@@ -245,8 +249,7 @@ function Computed({ nutrition }: { nutrition: RecallNutrition | null }) {
           testID="recall-nutrition-note"
           style={[typography['body-s'], { color: colors['ink-muted'] }]}
         >
-          {nutrition?.note ??
-            'Saved.'}
+          {nutrition?.note ?? t.recall.savedDot}
         </Text>
       )}
     </View>

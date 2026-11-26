@@ -1,3 +1,5 @@
+import { en } from '@/i18n/en';
+import type { Strings } from '@/i18n';
 import { daysBetween, PROGRAMME_DAYS } from './recall-window';
 import type { IsoDate } from './streak';
 
@@ -64,15 +66,15 @@ export function isProgrammeOpen(state: ProgrammeState): boolean {
 }
 
 /** What the athlete is told while they wait. */
-export function waitingLine(state: ProgrammeState): string {
+export function waitingLine(state: ProgrammeState, t: Strings = en): string {
   switch (state.status) {
     case 'no-date':
-      return 'Your coach has not set the first day of the programme yet.';
+      return t.programme.noDate;
     case 'before':
       return state.daysUntil === 1
-        ? 'The programme starts tomorrow.'
-        : `The programme starts in ${state.daysUntil} days, on ${state.startsOn}.`;
+        ? t.programme.tomorrow
+        : t.programme.startsIn(state.daysUntil, state.startsOn);
     case 'open':
-      return `Day ${state.day} of ${state.of}.`;
+      return t.programme.dayOf(state.day, state.of);
   }
 }

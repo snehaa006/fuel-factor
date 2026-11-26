@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ROUND_LABEL, type RecallWindow } from '@/lib/recall-window';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -24,6 +25,7 @@ export type RecallPromptProps = {
 
 export function RecallPrompt({ window, onPress, testID }: RecallPromptProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   // Nothing to ask for: neither a complete set nor a missing programme date is
   // something to put a card on the screen about.
@@ -31,15 +33,13 @@ export function RecallPrompt({ window, onPress, testID }: RecallPromptProps) {
 
   const body =
     window.status === 'due'
-      ? `Day ${window.position} of ${window.of}. ${window.done} ${
-          window.done === 1 ? 'day is' : 'days are'
-        } in.`
-      : `Opens in ${window.daysUntil} ${window.daysUntil === 1 ? 'day' : 'days'}, on ${
-          window.opensOn
-        }.`;
+      ? t.recallPrompt.due(window.position, window.of, window.done)
+      : t.recallPrompt.waiting(window.daysUntil, window.opensOn);
 
   const eyebrow =
-    window.status === 'due' ? ROUND_LABEL[window.round].toUpperCase() : 'FOUR WEEKS ON';
+    window.status === 'due'
+      ? (t.recall.rounds[window.round] ?? ROUND_LABEL[window.round]).toUpperCase()
+      : t.recallPrompt.fourWeeksOn;
 
   return (
     <Pressable
@@ -48,8 +48,8 @@ export function RecallPrompt({ window, onPress, testID }: RecallPromptProps) {
       accessibilityRole={window.status === 'due' ? 'button' : 'summary'}
       accessibilityLabel={
         window.status === 'due'
-          ? `Fill in food recall day ${window.position} of ${window.of}`
-          : `The follow-up recall opens on ${window.opensOn}`
+          ? t.recallPrompt.dueLabel(window.position, window.of)
+          : t.recallPrompt.waitingLabel(window.opensOn)
       }
       testID={testID}
       style={({ pressed }) => [
@@ -65,7 +65,7 @@ export function RecallPrompt({ window, onPress, testID }: RecallPromptProps) {
     >
       <Text style={[typography.label, { color: colors['ink-muted'] }]}>{eyebrow}</Text>
       <Text style={[typography['heading-m'], { color: colors.ink }]}>
-        {window.status === 'due' ? 'Your food recall' : 'Your next food recall'}
+        {window.status === 'due' ? t.recallPrompt.yourRecall : t.recallPrompt.yourNextRecall}
       </Text>
       <Text
         testID={testID ? `${testID}-body` : undefined}
@@ -77,7 +77,7 @@ export function RecallPrompt({ window, onPress, testID }: RecallPromptProps) {
       {window.status === 'due' && (
         <View style={{ marginTop: spacing['space-2'] }}>
           <Text style={[typography.label, { color: colors['air-deep'] }]}>
-            {window.round === 'baseline' ? 'FILL THIS IN FIRST →' : 'FILL IT IN →'}
+            {window.round === 'baseline' ? t.recallPrompt.fillFirst : t.recallPrompt.fillIt}
           </Text>
         </View>
       )}

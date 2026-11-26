@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ProgrammeGate } from '@/components/programme-gate';
+import { useStrings } from '@/i18n';
 import { useAccount } from '@/lib/use-account';
 import { useTheme } from '@/theme';
 
@@ -29,6 +30,7 @@ import { useTheme } from '@/theme';
 export default function Entry() {
   const state = useAccount();
   const { colors, spacing, typography } = useTheme();
+  const t = useStrings();
 
   if (state.status === 'loading') {
     return (
@@ -43,7 +45,7 @@ export default function Entry() {
       <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
         <View style={{ padding: spacing['space-6'], gap: spacing['space-2'] }}>
           <Text style={[typography['heading-l'], { color: colors.ink, textAlign: 'center' }]}>
-            Could not sign you in
+            {t.entry.couldNotSignIn}
           </Text>
           <Text
             testID="entry-error"

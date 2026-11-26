@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 import type { StreakDay } from '@/lib/streak';
 
@@ -22,6 +23,7 @@ export type StreakStripProps = {
  */
 export function StreakStrip({ days, testID }: StreakStripProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   const logged = days.filter((d) => d.active).length;
 
@@ -29,7 +31,7 @@ export function StreakStrip({ days, testID }: StreakStripProps) {
     <View
       testID={testID}
       accessibilityRole="text"
-      accessibilityLabel={`${logged} of the last ${days.length} days logged`}
+      accessibilityLabel={t.streak.strip(logged, days.length)}
       style={[styles.strip, { gap: spacing['space-2'] }]}
     >
       {days.map((day) => (
@@ -54,7 +56,7 @@ export function StreakStrip({ days, testID }: StreakStripProps) {
               { color: day.isToday ? colors.ink : colors['ink-faint'] },
             ]}
           >
-            {day.initial}
+            {t.streak.dayInitials[new Date(`${day.date}T00:00:00Z`).getUTCDay()]}
           </Text>
         </View>
       ))}

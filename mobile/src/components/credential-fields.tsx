@@ -1,5 +1,6 @@
 import { Text, TextInput, View } from 'react-native';
 
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -35,6 +36,7 @@ export function CredentialFields({
   testIDPrefix,
 }: CredentialFieldsProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   const input = {
     backgroundColor: colors['surface-sunken'],
@@ -46,11 +48,11 @@ export function CredentialFields({
   return (
     <View style={{ gap: spacing['space-4'] }}>
       <View style={{ gap: spacing['space-2'] }}>
-        <Text style={[typography.label, { color: colors['ink-muted'] }]}>EMAIL</Text>
+        <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.credentials.email}</Text>
         <TextInput
           value={email}
           onChangeText={onChangeEmail}
-          accessibilityLabel="Email"
+          accessibilityLabel={t.credentials.emailLabel}
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="email-address"
@@ -63,15 +65,15 @@ export function CredentialFields({
       </View>
 
       <View style={{ gap: spacing['space-2'] }}>
-        <Text style={[typography.label, { color: colors['ink-muted'] }]}>PASSWORD</Text>
+        <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.credentials.password}</Text>
         <TextInput
           value={password}
           onChangeText={onChangePassword}
-          accessibilityLabel="Password"
+          accessibilityLabel={t.credentials.passwordLabel}
           autoCapitalize="none"
           autoCorrect={false}
           secureTextEntry
-          placeholder={newAccount ? 'At least 6 characters' : ''}
+          placeholder={newAccount ? t.credentials.newPasswordHint : ''}
           placeholderTextColor={colors['ink-faint']}
           textContentType={newAccount ? 'newPassword' : 'password'}
           testID={`${testIDPrefix}-password`}

@@ -1,3 +1,5 @@
+import { en } from '@/i18n/en';
+
 /**
  * The consent gate's words, in one place.
  *
@@ -12,9 +14,15 @@
  * `claim_participant` and `join_team` both take consent as an argument and
  * refuse without it, so the gate is enforced in the database either way. This
  * module is what it says, not whether it is asked.
+ *
+ * The words themselves now live in the dictionaries (`i18n/en.ts` and
+ * `i18n/id.ts`, under `consent`) so the gate speaks the language the athlete
+ * chose on the sign-in screen. These constants are the English, for the
+ * tests. The Indonesian is what a 14 year old agrees to, so it is the first
+ * thing a native speaker should read.
  */
 
-export const CONSENT_HEADING = 'Before you start';
+export const CONSENT_HEADING = en.consent.heading;
 
 /**
  * What the app is, in the athlete's words.
@@ -32,16 +40,13 @@ export const CONSENT_HEADING = 'Before you start';
  * do, and the sentence after this one still rules out the things it will never
  * do.
  */
-export const CONSENT_WHAT_IT_IS =
-  'Fuel Factor records what you eat and shows you and your coach where your fuel gaps are. It is part of a school nutrition programme.';
+export const CONSENT_WHAT_IT_IS = en.consent.whatItIs;
 
-export const CONSENT_WHAT_IT_IS_NOT =
-  'It never sets a weight goal, never tells you to eat less, and never calls a food bad. Nothing it shows you is a substitute for advice from a dietitian or a doctor.';
+export const CONSENT_WHAT_IT_IS_NOT = en.consent.whatItIsNot;
 
 /**
  * The box an athlete ticks, once, on `/welcome`. It lands in `consent_ack_at`
  * (app tier), never in `participants.consent_signed`, which means the paper
  * form and is the research team's to record.
  */
-export const CONSENT_CHECKBOX =
-  'I am under 18 and my parent or guardian has agreed to this.';
+export const CONSENT_CHECKBOX = en.consent.checkbox;

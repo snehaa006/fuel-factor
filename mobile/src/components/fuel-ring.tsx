@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, G } from 'react-native-svg';
 
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 import type { CarbBand } from '@/lib/targets';
 
@@ -62,6 +63,7 @@ export function ringGeometry(eaten: number, band: CarbBand | null): RingGeometry
  */
 export function FuelRing({ eaten, band, itemsWithoutFigures = 0, testID }: FuelRingProps) {
   const { colors, typography } = useTheme();
+  const t = useStrings();
 
   const { bandStart, eatenFraction } = ringGeometry(eaten, band);
 
@@ -127,12 +129,12 @@ export function FuelRing({ eaten, band, itemsWithoutFigures = 0, testID }: FuelR
         >
           {Math.round(eaten)}
         </Text>
-        <Text style={[typography.label, { color: colors['ink-muted'] }]}>G CARBS</Text>
+        <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.fuelRing.gCarbs}</Text>
         <Text
           testID={testID ? `${testID}-band-label` : undefined}
           style={[typography['body-s'], { color: colors['ink-muted'], marginTop: 2 }]}
         >
-          {band ? `of ${band.min}–${band.max} g` : 'no target set'}
+          {band ? t.fuelRing.ofBand(band.min, band.max) : t.fuelRing.noTarget}
         </Text>
       </View>
       </View>
@@ -142,7 +144,7 @@ export function FuelRing({ eaten, band, itemsWithoutFigures = 0, testID }: FuelR
           testID={testID ? `${testID}-unknown` : undefined}
           style={[typography['body-s'], styles.footnote, { color: colors['ink-muted'] }]}
         >
-          {`+${itemsWithoutFigures} item${itemsWithoutFigures === 1 ? '' : 's'} without a figure`}
+          {t.fuelRing.withoutFigure(itemsWithoutFigures)}
         </Text>
       )}
     </View>

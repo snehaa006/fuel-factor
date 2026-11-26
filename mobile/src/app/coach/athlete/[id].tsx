@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { GapReport } from '@/components/gap-report';
 import { useAccount } from '@/lib/use-account';
 import { GAP_WINDOW_DAYS, useGaps } from '@/lib/use-gaps';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -66,16 +67,17 @@ export default function CoachAthleteGaps() {
 function AthleteGaps({ participantId }: { participantId: string }) {
   const router = useRouter();
   const { colors, spacing, typography } = useTheme();
+  const t = useStrings();
   const state = useGaps(participantId);
 
   const back = (
     <Pressable
       onPress={() => (router.canGoBack() ? router.back() : router.replace('/coach'))}
       accessibilityRole="button"
-      accessibilityLabel="Back to the squad"
+      accessibilityLabel={t.coach.backToSquad}
       testID="coach-gaps-back"
     >
-      <Text style={[typography.label, { color: colors['ink-muted'] }]}>← SQUAD</Text>
+      <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.coach.squadCaps}</Text>
     </Pressable>
   );
 
@@ -98,7 +100,7 @@ function AthleteGaps({ participantId }: { participantId: string }) {
           >
             {state.status === 'error'
               ? state.message
-              : 'This athlete is not on your squad, or their record could not be read.'}
+              : t.coach.notOnSquad}
           </Text>
         </ScrollView>
       </SafeAreaView>
@@ -113,13 +115,13 @@ function AthleteGaps({ participantId }: { participantId: string }) {
         {back}
         <View style={{ marginTop: spacing['space-2'] }}>
           <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-            FUEL GAPS · LAST {GAP_WINDOW_DAYS} DAYS
+            {t.coach.gapsCaps(GAP_WINDOW_DAYS)}
           </Text>
           <Text testID="coach-gaps-name" style={[typography['display-l'], { color: colors.ink }]}>
-            {analysis.athleteName ?? 'Athlete'}
+            {analysis.athleteName ?? t.coach.athlete}
           </Text>
           <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-            What they logged against the programme&apos;s own targets. Every bar is one day.
+            {t.coach.whatTheyLogged}
           </Text>
         </View>
 

@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 
 import { Sidebar, type SidebarItem } from '@/components/sidebar';
+import { useStrings } from '@/i18n';
 import { signOut } from '@/lib/account';
 
 /**
@@ -49,37 +50,38 @@ export function AppSidebar({
   testID = 'sidebar',
 }: AppSidebarProps) {
   const router = useRouter();
+  const m = useStrings().menu;
 
   const items: SidebarItem[] = [
-    { key: 'profile', label: 'Profile', onPress: () => router.push('/profile') },
+    { key: 'profile', label: m.profile, onPress: () => router.push('/profile') },
     ...(beforeStart
       ? [
           {
             key: 'before',
-            label: 'Before you start',
-            detail: 'Your three baseline recall days',
+            label: m.beforeYouStart,
+            detail: m.beforeYouStartDetail,
             onPress: () => router.replace('/before-you-start'),
           },
-          { key: 'recall', label: 'Food recall', onPress: () => router.push('/recall') },
-          { key: 'assessments', label: 'Assessments', onPress: () => router.push('/assessments') },
+          { key: 'recall', label: m.recall, onPress: () => router.push('/recall') },
+          { key: 'assessments', label: m.assessments, onPress: () => router.push('/assessments') },
         ]
       : [
-          { key: 'today', label: 'Today', onPress: () => router.replace('/today') },
-          { key: 'recall', label: 'Food recall', onPress: () => router.push('/recall') },
-          { key: 'learn', label: 'Learn', onPress: () => router.push('/learn') },
+          { key: 'today', label: m.today, onPress: () => router.replace('/today') },
+          { key: 'recall', label: m.recall, onPress: () => router.push('/recall') },
+          { key: 'learn', label: m.learn, onPress: () => router.push('/learn') },
           {
             key: 'gaps',
-            label: 'Fuel gaps',
-            detail: 'Your last fortnight against the programme',
+            label: m.gaps,
+            detail: m.gapsDetail,
             onPress: () => router.push('/gaps'),
           },
-          { key: 'team', label: 'Team', onPress: () => router.push('/team') },
-          { key: 'progress', label: 'Progress', onPress: () => router.push('/progress') },
-          { key: 'assessments', label: 'Assessments', onPress: () => router.push('/assessments') },
+          { key: 'team', label: m.team, onPress: () => router.push('/team') },
+          { key: 'progress', label: m.progress, onPress: () => router.push('/progress') },
+          { key: 'assessments', label: m.assessments, onPress: () => router.push('/assessments') },
         ]),
     {
       key: 'sign-out',
-      label: 'Sign out',
+      label: m.signOut,
       onPress: () => {
         // The session is gone locally whether or not the server is reachable,
         // so the screen goes back to the door either way rather than leaving

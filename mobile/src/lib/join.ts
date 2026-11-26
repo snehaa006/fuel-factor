@@ -1,3 +1,6 @@
+import { en } from '@/i18n/en';
+import type { Strings } from '@/i18n';
+
 import { messageOf } from './errors';
 import { normaliseCode } from './invite';
 import { supabase } from './supabase';
@@ -62,6 +65,9 @@ export const EMPTY_QUESTIONNAIRE: Questionnaire = {
  * database refuses outright — the range in which a figure is a human
  * measurement at all. Nothing grades a value inside them, and no target sits
  * beside any of them, because the programme has set none.
+ *
+ * `label` and `hint` are the English; a screen shows `measurementCopy`, which
+ * speaks the athlete's language.
  */
 export const MEASUREMENTS: {
   field: MeasurementField;
@@ -94,6 +100,20 @@ export const MEASUREMENTS: {
  */
 export const AGE_BANDS = ['13 or under', '14-16', '17-18', '19 or over'] as const;
 
+/** A measurement's label and hint in the given language. */
+export function measurementCopy(
+  field: MeasurementField,
+  t: Strings = en
+): { label: string; hint?: string } {
+  const hint =
+    field === 'muac_cm'
+      ? t.measurements.muacHint
+      : field === 'calf_cm'
+        ? t.measurements.calfHint
+        : undefined;
+  return { label: t.measurements[field], hint };
+}
+
 /** A blank measurement stays null. Not answered is not the same as zero. */
 export function parseMeasurement(text: string): number | null {
   const trimmed = text.trim();
@@ -110,15 +130,15 @@ export function parseMeasurement(text: string): number | null {
  * height of 1760 is a units mistake, and quietly storing 250 would put a
  * wrong figure in a research table instead of asking.
  */
-export function problemsWith(form: Questionnaire): string[] {
+export function problemsWith(form: Questionnaire, t: Strings = en): string[] {
   const problems: string[] = [];
-  if (form.name.trim() === '') problems.push('Your name is needed.');
+  if (form.name.trim() === '') problems.push(t.join.nameNeeded);
 
   for (const m of MEASUREMENTS) {
     const value = form.measurements[m.field];
     if (value === null || value === undefined) continue;
     if (value < m.min || value > m.max) {
-      problems.push(`${m.label} should be in ${m.unit}, between ${m.min} and ${m.max}.`);
+      problems.push(t.join.outOfRange(t.measurements[m.field], m.unit, m.min, m.max));
     }
   }
   return problems;

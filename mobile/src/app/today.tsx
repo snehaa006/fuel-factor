@@ -26,6 +26,7 @@ import { hasSessionDay, PROTEIN_WEEK } from '@/lib/targets';
 import { useMealChallenge } from '@/lib/use-meal-challenge';
 import { useRecallStatus } from '@/lib/use-recall';
 import { useToday } from '@/lib/use-today';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -43,6 +44,7 @@ function TodayScreen() {
   const state = useToday();
   const recall = useRecallStatus();
   const { colors, spacing, typography } = useTheme();
+  const t = useStrings();
   const [menuOpen, setMenuOpen] = useState(false);
   const [focusCount, setFocusCount] = useState(0);
   const challenge = useMealChallenge(undefined, focusCount);
@@ -87,7 +89,7 @@ function TodayScreen() {
   }
 
   if (state.status === 'error') {
-    return message('Could not load today', state.message);
+    return message(t.today.couldNotLoad, state.message);
   }
 
   const { data, rules, date } = state;
@@ -101,7 +103,7 @@ function TodayScreen() {
   const programmeWeek = challenge.status === 'ready' ? challenge.programmeWeek : 1;
   const nudges = topNudges(summary, rules, now, undefined, programmeWeek);
   // Counts slots filled, never what filled them.
-  const cue = dayCue(summary.slots.filter((slot) => slot.logged).length, summary.slots.length);
+  const cue = dayCue(summary.slots.filter((slot) => slot.logged).length, summary.slots.length, t);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
@@ -110,7 +112,7 @@ function TodayScreen() {
           <View style={styles.title}>
             <SidebarButton onPress={() => setMenuOpen(true)} testID="menu" />
             <View>
-              <Text style={[typography.label, { color: colors['ink-muted'] }]}>TODAY</Text>
+              <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.today.today}</Text>
               <Text style={[typography['display-l'], { color: colors.ink }]}>
                 {data.participantName}
               </Text>
@@ -139,7 +141,7 @@ function TodayScreen() {
               testID="streak-best"
               style={[typography['body-s'], { color: colors['ink-muted'], textAlign: 'center' }]}
             >
-              Best so far: {best} days
+              {t.today.bestSoFar(best)}
             </Text>
           )}
         </View>
@@ -225,7 +227,7 @@ function TodayScreen() {
         )}
 
         <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>
-          <Text style={[typography['heading-l'], { color: colors.ink }]}>Meals</Text>
+          <Text style={[typography['heading-l'], { color: colors.ink }]}>{t.today.meals}</Text>
           <MealTimeline
             slots={summary.slots}
             onPressSlot={(s) => router.push(`/log/${s.slot}`)}
@@ -247,7 +249,7 @@ function TodayScreen() {
               },
             ]}
           >
-            <Text style={[typography.label, { color: colors['ink-muted'] }]}>DIET QUALITY SCORE</Text>
+            <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.today.dqScore}</Text>
             <Text testID="dq-score" style={[typography['heading-m'], { color: colors['kecap-deep'] }]}>
               {summary.dqScore} / 12
             </Text>
@@ -256,7 +258,7 @@ function TodayScreen() {
 
         <View style={{ marginTop: spacing['space-12'], gap: spacing['space-3'] }}>
           <PushButton
-            label="Log a meal"
+            label={t.today.logMeal}
             fullWidth
             testID="log-meal"
             onPress={() =>
@@ -264,7 +266,7 @@ function TodayScreen() {
             }
           />
           <PushButton
-            label="Evening check-in"
+            label={t.today.checkIn}
             variant="success"
             fullWidth
             testID="check-in"

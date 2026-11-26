@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AssessmentPanel } from '@/components/assessment-panel';
 import { OPEN_BOTH_FOR_TESTING, phaseAccess, withRecallFill } from '@/lib/assessments';
 import { useMyAssessments } from '@/lib/use-assessments';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -14,6 +15,7 @@ import { useTheme } from '@/theme';
 export default function AssessmentsScreen() {
   const router = useRouter();
   const { colors, spacing, typography } = useTheme();
+  const t = useStrings();
   const state = useMyAssessments();
 
   if (state.status === 'loading') {
@@ -49,21 +51,21 @@ export default function AssessmentsScreen() {
         contentContainerStyle={[styles.content, { padding: spacing['space-4'] }]}
       >
         <Pressable onPress={() => router.back()} accessibilityRole="button" testID="assessments-back">
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>← BACK</Text>
+          <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.common.back}</Text>
         </Pressable>
 
         <Text style={[typography['display-l'], { color: colors.ink, marginTop: spacing['space-2'] }]}>
-          Assessments
+          {t.assess.title}
         </Text>
         <Text style={[typography['body-m'], { color: colors['ink-muted'], marginTop: spacing['space-2'] }]}>
-          Week 0 and Week 4 measures. Leave anything you didn&apos;t measure empty.
+          {t.assess.athleteLead}
         </Text>
         {OPEN_BOTH_FOR_TESTING && (
           <Text
             testID="assessments-testing"
             style={[typography['body-s'], { color: colors['pisang-deep'], marginTop: spacing['space-2'] }]}
           >
-            Testing mode: Week 4 is open now instead of in the programme’s fourth week.
+            {t.assess.testingMode}
           </Text>
         )}
 
@@ -73,8 +75,8 @@ export default function AssessmentsScreen() {
             pairs={pairs}
             fill={state.fill}
             access={{
-              pre: phaseAccess('pre', state.programme),
-              post: phaseAccess('post', state.programme),
+              pre: phaseAccess('pre', state.programme, undefined, t),
+              post: phaseAccess('post', state.programme, undefined, t),
             }}
             onSave={(phase, values) => state.save(state.participantId, phase, values)}
             comparison={[{ participantId: state.participantId, name: state.name, pairs }]}

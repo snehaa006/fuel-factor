@@ -2,6 +2,8 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { GUIDANCE_LABEL, type FoodWithPortions } from '@/lib/food';
 import type { LessonCard as Card, LessonPoint } from '@/lib/learn';
+import { useStrings, type Strings } from '@/i18n';
+import { en } from '@/i18n/en';
 import { useTheme, type Theme } from '@/theme';
 
 export type LessonCardProps = {
@@ -21,6 +23,7 @@ export type LessonCardProps = {
  */
 export function LessonCard({ card, foods, testID }: LessonCardProps) {
   const theme = useTheme();
+  const t = useStrings();
   const { colors, radius, spacing, typography } = theme;
 
   return (
@@ -56,7 +59,7 @@ export function LessonCard({ card, foods, testID }: LessonCardProps) {
           testID={testID ? `${testID}-source` : undefined}
           style={[typography['body-s'], { color: colors['ink-faint'] }]}
         >
-          Source: {card.sourceNote}
+          {t.learn.source(card.sourceNote)}
         </Text>
       )}
     </View>
@@ -258,6 +261,7 @@ function Blocks({ points, theme }: { points: LessonPoint[]; theme: Theme }) {
  */
 function Foods({ foods, theme }: { foods: FoodWithPortions[]; theme: Theme }) {
   const { colors, radius, spacing, typography } = theme;
+  const t = useStrings();
   const registers = ['eat_daily', 'not_the_priority'] as const;
 
   return (
@@ -273,7 +277,7 @@ function Foods({ foods, theme }: { foods: FoodWithPortions[]; theme: Theme }) {
             </Text>
             {inRegister.map((food) => {
               const portion = food.food_portions.find((p) => p.is_default) ?? food.food_portions[0];
-              const figure = foodFigure(portion);
+              const figure = foodFigure(portion, t);
               return (
                 <View
                   key={food.id}
@@ -303,7 +307,7 @@ function Foods({ foods, theme }: { foods: FoodWithPortions[]; theme: Theme }) {
                       { color: figure === null ? colors['ink-faint'] : colors['pisang-deep'] },
                     ]}
                   >
-                    {figure ?? 'No figure yet'}
+                    {figure ?? t.learn.noFigureYet}
                   </Text>
                 </View>
               );
@@ -319,11 +323,14 @@ function Foods({ foods, theme }: { foods: FoodWithPortions[]; theme: Theme }) {
  * What the deck says a portion carries: carbohydrate (week 1's table),
  * protein (week 2's), both, or neither.
  */
-export function foodFigure(portion: FoodWithPortions['food_portions'][number] | undefined): string | null {
+export function foodFigure(
+  portion: FoodWithPortions['food_portions'][number] | undefined,
+  t: Strings = en
+): string | null {
   if (!portion) return null;
   const parts: string[] = [];
-  if (portion.carbs_g !== null) parts.push(`${portion.carbs_g}g carbs`);
-  if (portion.protein_g !== null) parts.push(`${portion.protein_g}g protein`);
+  if (portion.carbs_g !== null) parts.push(t.learn.carbs(portion.carbs_g));
+  if (portion.protein_g !== null) parts.push(t.learn.protein(portion.protein_g));
   return parts.length === 0 ? null : parts.join(' · ');
 }
 

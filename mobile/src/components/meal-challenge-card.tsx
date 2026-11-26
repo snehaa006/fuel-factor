@@ -1,12 +1,10 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import {
-  HABIT_LABEL,
-  type ChallengeDay,
-  type ChallengeSpec,
-  type ChallengeWeek,
-} from '@/lib/meal-challenge';
-import { SLOT_LABEL, type MealSlot } from '@/lib/today';
+import { shortDate } from '@/components/calendar';
+import { en } from '@/i18n/en';
+import type { Strings } from '@/i18n';
+import { type ChallengeDay, type ChallengeSpec, type ChallengeWeek } from '@/lib/meal-challenge';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 export type MealChallengeCardProps = {
@@ -16,26 +14,24 @@ export type MealChallengeCardProps = {
   testID?: string;
 };
 
-const MEAL_INITIAL: Partial<Record<MealSlot, string>> = {
-  breakfast: 'B',
-  lunch: 'L',
-  post_training: 'P',
-  dinner: 'D',
-};
+/** The letter on a pip, in the athlete's language: a slot's or a habit's. */
+function pipInitial(key: string, t: Strings): string {
+  return t.slotInitials[key] ?? t.habits[key]?.initial ?? '?';
+}
 
 /** The key under the strip: what each letter stands for. */
-function legend(spec: ChallengeSpec): string {
+function legend(spec: ChallengeSpec, t: Strings): string {
   if (spec.kind === 'meals') {
-    return spec.meals.map((m) => `${MEAL_INITIAL[m] ?? '?'} ${SLOT_LABEL[m]}`).join(' · ');
+    return spec.meals.map((m) => `${pipInitial(m, t)} ${t.slots[m] ?? m}`).join(' · ');
   }
-  return spec.habits.map((h) => `${HABIT_LABEL[h].initial} ${HABIT_LABEL[h].label}`).join(' · ');
+  return spec.habits.map((h) => `${pipInitial(h, t)} ${t.habits[h]?.label ?? h}`).join(' · ');
 }
 
 /** What a day is checked for, for a screen reader. */
-function aboutDay(spec: ChallengeSpec): string {
+function aboutDay(spec: ChallengeSpec, t: Strings): string {
   return spec.kind === 'meals'
-    ? `${spec.nutrient === 'carb' ? 'a carb' : 'protein'} at meals`
-    : spec.habits.map((h) => HABIT_LABEL[h].label.toLowerCase()).join(' and ');
+    ? t.challenge.aboutMeals(spec.nutrient === 'carb')
+    : spec.habits.map((h) => (t.habits[h]?.label ?? h).toLowerCase()).join(t.challenge.and);
 }
 
 /**
@@ -53,6 +49,7 @@ function aboutDay(spec: ChallengeSpec): string {
  */
 export function MealChallengeCard({ week, challenge, testID }: MealChallengeCardProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const { spec } = week;
 
   return (
@@ -70,7 +67,7 @@ export function MealChallengeCard({ week, challenge, testID }: MealChallengeCard
     >
       <View style={{ gap: 2 }}>
         <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-          WEEK {spec.week} CHALLENGE
+          {t.challenge.eyebrow(spec.week)}
         </Text>
         <Text style={[typography['heading-m'], { color: colors.ink }]}>
           {challenge ?? spec.title}
@@ -80,13 +77,13 @@ export function MealChallengeCard({ week, challenge, testID }: MealChallengeCard
       <View
         style={[styles.strip, { gap: spacing['space-1'] }]}
         accessibilityRole="text"
-        accessibilityLabel={`${week.doneDays} of ${week.daysNeeded} ${week.daysNeeded === 1 ? 'day' : 'days'} needed, checking ${aboutDay(spec)}`}
+        accessibilityLabel={t.challenge.strip(week.doneDays, week.daysNeeded, aboutDay(spec, t))}
       >
         {week.days.map((day) => (
           <DayColumn
             key={day.date}
             day={day}
-            about={aboutDay(spec)}
+            about={aboutDay(spec, t)}
             testID={testID ? `${testID}-${day.date}` : undefined}
           />
         ))}
@@ -96,17 +93,18 @@ export function MealChallengeCard({ week, challenge, testID }: MealChallengeCard
         testID={testID ? `${testID}-status` : undefined}
         style={[typography['body-m'], { color: colors.ink, textAlign: 'center' }]}
       >
-        {statusLine(week)}
+        {statusLine(week, t)}
       </Text>
       <Text style={[typography['body-s'], { color: colors['ink-faint'], textAlign: 'center' }]}>
-        {legend(spec)}
+        {legend(spec, t)}
       </Text>
       {spec.kind === 'habits' && spec.unrecorded !== undefined && (
         <Text
           testID={testID ? `${testID}-unrecorded` : undefined}
           style={[typography['body-s'], { color: colors['ink-muted'], textAlign: 'center' }]}
         >
-          {spec.unrecorded}
+          {/* One spec carries this line today (week 4's water on waking). */}
+          {t.challenge.unrecordedWater}
         </Text>
       )}
     </View>
@@ -115,6 +113,7 @@ export function MealChallengeCard({ week, challenge, testID }: MealChallengeCard
 
 function DayColumn({ day, about, testID }: { day: ChallengeDay; about: string; testID?: string }) {
   const { colors, radius, typography } = useTheme();
+  const t = useStrings();
   const { isToday } = day;
 
   const badge =
@@ -129,7 +128,13 @@ function DayColumn({ day, about, testID }: { day: ChallengeDay; about: string; t
   return (
     <View
       testID={testID}
-      accessibilityLabel={`${day.date}: ${about}, ${day.hits} of ${day.needed} met, ${day.status}`}
+      accessibilityLabel={t.challenge.day(
+        shortDate(day.date, t),
+        about,
+        day.hits,
+        day.needed,
+        t.challenge.statuses[day.status] ?? day.status
+      )}
       style={styles.column}
     >
       <Text
@@ -138,7 +143,7 @@ function DayColumn({ day, about, testID }: { day: ChallengeDay; about: string; t
           { color: isToday ? colors.ink : colors['ink-faint'], fontWeight: isToday ? '700' : '400' },
         ]}
       >
-        {day.initial}
+        {t.streak.dayInitials[new Date(`${day.date}T00:00:00Z`).getUTCDay()]}
       </Text>
       <View style={styles.pips}>
         {day.checks.map((check) => (
@@ -162,7 +167,7 @@ function DayColumn({ day, about, testID }: { day: ChallengeDay; about: string; t
             <Text
               style={[styles.pipText, { color: check.hit ? colors['on-bright'] : colors['ink-faint'] }]}
             >
-              {check.applies ? check.initial : '–'}
+              {check.applies ? pipInitial(check.key, t) : '–'}
             </Text>
           </View>
         ))}
@@ -173,24 +178,25 @@ function DayColumn({ day, about, testID }: { day: ChallengeDay; about: string; t
 }
 
 /** How the week stands, in one short line. */
-export function statusLine(week: ChallengeWeek): string {
-  if (week.phase === 'before') return `Starts ${week.startsOn}`;
+export function statusLine(week: ChallengeWeek, t: Strings = en): string {
+  const c = t.challenge;
+  if (week.phase === 'before') return c.starts(shortDate(week.startsOn, t));
   const oneDay = week.daysNeeded === 1;
-  if (week.complete) return oneDay ? 'Done. Challenge complete!' : '7 of 7 days. Challenge complete!';
+  if (week.complete) return oneDay ? c.doneOneDay : c.doneWeek;
 
-  const tally = oneDay ? 'Not done yet' : `${week.doneDays} of 7 days`;
-  if (week.phase === 'over') return `Week over · ${tally}`;
+  const tally = oneDay ? c.notDoneYet : c.daysOf7(week.doneDays);
+  if (week.phase === 'over') return c.weekOver(tally);
 
   const today = week.days.find((d) => d.status === 'today');
   const { spec } = week;
   const parts = [tally];
-  if (!oneDay && !week.broken && week.streak > 0) parts.push(`${week.streak}-day streak`);
+  if (!oneDay && !week.broken && week.streak > 0) parts.push(c.streak(week.streak));
   if (today) {
     const target =
       spec.kind === 'meals' && spec.mealsNeeded !== spec.meals.length
         ? `${today.needed}+`
         : `${today.needed}`;
-    parts.push(`today ${today.hits}/${target}`);
+    parts.push(c.today(today.hits, target));
   }
   return parts.join(' · ');
 }

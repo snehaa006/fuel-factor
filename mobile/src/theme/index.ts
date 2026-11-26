@@ -1,5 +1,7 @@
 import { useColorScheme } from 'react-native';
 
+import { useThemePreference, type ThemePreference } from '@/lib/preferences';
+
 import { palette, radius, spacing, typography } from './tokens';
 import type { ThemeName } from './tokens';
 
@@ -15,10 +17,23 @@ export function getTheme(name: ThemeName): Theme {
   return { name, colors: palette[name], spacing, radius, typography };
 }
 
-/** The active theme, following the device's light/dark setting. */
+/** Which palette a preference comes to, given what the phone is set to. */
+export function resolveThemeName(
+  preference: ThemePreference,
+  device: string | null | undefined
+): ThemeName {
+  if (preference !== 'system') return preference;
+  return device === 'dark' ? 'dark' : 'light';
+}
+
+/**
+ * The active theme: the person's own choice where they made one, and the
+ * device's light/dark setting where they left it on System.
+ */
 export function useTheme(): Theme {
-  const scheme = useColorScheme();
-  return getTheme(scheme === 'dark' ? 'dark' : 'light');
+  const device = useColorScheme();
+  const preference = useThemePreference();
+  return getTheme(resolveThemeName(preference, device));
 }
 
 export { palette, radius, spacing, typography };

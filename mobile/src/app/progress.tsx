@@ -5,8 +5,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MascotBanner } from '@/components/mascot-banner';
 import { MetricCompare } from '@/components/metric-compare';
 import { PushButton } from '@/components/push-button';
-import { PROGRESS_CUE } from '@/lib/mascot-copy';
+import { progressCue } from '@/lib/mascot-copy';
 import { useProgress } from '@/lib/use-progress';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
@@ -26,6 +27,7 @@ import { useTheme } from '@/theme';
 export default function ProgressScreen() {
   const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const state = useProgress();
 
   if (state.status === 'loading') {
@@ -41,7 +43,7 @@ export default function ProgressScreen() {
       <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
         <View style={{ padding: spacing['space-6'], gap: spacing['space-2'] }}>
           <Text style={[typography['heading-l'], { color: colors.ink, textAlign: 'center' }]}>
-            Could not load your progress
+            {t.progress.couldNotLoad}
           </Text>
           <Text style={[typography['body-m'], { color: colors['ink-muted'], textAlign: 'center' }]}>
             {state.message}
@@ -59,21 +61,21 @@ export default function ProgressScreen() {
         <Pressable
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="Back to today"
+          accessibilityLabel={t.learn.backToToday}
           testID="progress-back"
         >
-          <Text style={[typography.label, { color: colors['ink-muted'] }]}>← TODAY</Text>
+          <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.learn.todayCaps}</Text>
         </Pressable>
 
         <Text style={[typography['display-l'], { color: colors.ink, marginTop: spacing['space-2'] }]}>
-          Progress
+          {t.progress.title}
         </Text>
         <View testID="progress-intro" style={{ marginTop: spacing['space-4'] }}>
           <MascotBanner
-            pose={PROGRESS_CUE.pose}
-            message={PROGRESS_CUE.message}
-            eyebrow={PROGRESS_CUE.eyebrow}
-            motion={PROGRESS_CUE.motion}
+            pose={progressCue(t).pose}
+            message={progressCue(t).message}
+            eyebrow={progressCue(t).eyebrow}
+            motion={progressCue(t).motion}
             testID="progress-mascot"
           />
         </View>
@@ -87,7 +89,7 @@ export default function ProgressScreen() {
         {/* Where the Week 0 / Week 4 figures are entered and compared. */}
         <View style={{ marginTop: spacing['space-6'] }}>
           <PushButton
-            label="Assessments: Week 0 vs Week 4"
+            label={t.progress.assessmentsButton}
             variant="ghost"
             fullWidth
             testID="progress-assessments"
@@ -97,7 +99,7 @@ export default function ProgressScreen() {
 
         {progress.assessments.length > 0 && (
           <View style={{ marginTop: spacing['space-8'], gap: spacing['space-3'] }}>
-            <Text style={[typography['heading-l'], { color: colors.ink }]}>Fitness tests</Text>
+            <Text style={[typography['heading-l'], { color: colors.ink }]}>{t.progress.fitnessTests}</Text>
             {progress.assessments.map((a) => (
               <View
                 key={a.measure}
@@ -113,13 +115,15 @@ export default function ProgressScreen() {
                 <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
                   {/* A test that has not been re-run says so. The December
                       recall is what fills the second half of this line. */}
-                  {a.pre === null ? 'Not measured' : `${a.pre}${a.unit ? ` ${a.unit}` : ''} at baseline`}
+                  {a.pre === null
+                    ? t.progress.notMeasured
+                    : t.progress.atBaseline(`${a.pre}${a.unit ? ` ${a.unit}` : ''}`)}
                   {' · '}
                   {a.post !== null
-                    ? `${a.post}${a.unit ? ` ${a.unit}` : ''} now`
+                    ? t.progress.now(`${a.post}${a.unit ? ` ${a.unit}` : ''}`)
                     : progress.postOpensOn
-                      ? `re-tested in week 4, from ${progress.postOpensOn}`
-                      : 'not re-measured yet'}
+                      ? t.progress.retestedFrom(progress.postOpensOn)
+                      : t.progress.notRemeasured}
                 </Text>
               </View>
             ))}

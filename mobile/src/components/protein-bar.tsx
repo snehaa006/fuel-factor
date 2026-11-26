@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { CarbBand } from '@/lib/targets';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 export type ProteinBarProps = {
@@ -26,6 +27,7 @@ export type ProteinBarProps = {
  */
 export function ProteinBar({ eaten, band, itemsWithoutFigures, testID }: ProteinBarProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
 
   // The scale runs a little past the band's top so the band sits inside it.
   const scaleMax = band ? band.max * 1.25 : Math.max(eaten, 1);
@@ -45,7 +47,7 @@ export function ProteinBar({ eaten, band, itemsWithoutFigures, testID }: Protein
       ]}
     >
       <View style={styles.row}>
-        <Text style={[typography.label, { color: colors['ink-muted'] }]}>PROTEIN TODAY</Text>
+        <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.protein.today}</Text>
         <Text testID={testID ? `${testID}-eaten` : undefined} style={[typography['heading-m'], { color: colors.ink }]}>
           {Math.round(eaten)} g
         </Text>
@@ -56,8 +58,8 @@ export function ProteinBar({ eaten, band, itemsWithoutFigures, testID }: Protein
         accessibilityRole="progressbar"
         accessibilityLabel={
           band
-            ? `${Math.round(eaten)} grams of protein. The programme's band is ${band.min} to ${band.max} grams.`
-            : `${Math.round(eaten)} grams of protein.`
+            ? t.protein.withBand(Math.round(eaten), band.min, band.max)
+            : t.protein.grams(Math.round(eaten))
         }
       >
         {band && (
@@ -84,12 +86,12 @@ export function ProteinBar({ eaten, band, itemsWithoutFigures, testID }: Protein
 
       <Text testID={testID ? `${testID}-band-text` : undefined} style={[typography['body-s'], { color: colors['ink-muted'] }]}>
         {band
-          ? `Target ${band.min}–${band.max} g a day`
-          : 'Add your weight to see a target.'}
+          ? t.protein.target(band.min, band.max)
+          : t.protein.addWeight}
       </Text>
       {itemsWithoutFigures > 0 && (
         <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>
-          +{itemsWithoutFigures} {itemsWithoutFigures === 1 ? 'item' : 'items'} without a figure
+          {t.fuelRing.withoutFigure(itemsWithoutFigures)}
         </Text>
       )}
     </View>

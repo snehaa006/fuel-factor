@@ -5,18 +5,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CheckBox } from '@/components/check-box';
 import { Mascot } from '@/components/mascot';
+import { LanguageSwitch } from '@/components/preference-switches';
 import { PushButton } from '@/components/push-button';
-import { WELCOME_CUE } from '@/lib/mascot-copy';
+import { useStrings } from '@/i18n';
+import { welcomeCue } from '@/lib/mascot-copy';
 import { signOut } from '@/lib/account';
 import { claimParticipant, teamRoster, type RosterEntry } from '@/lib/auth';
 import { teamByCode } from '@/lib/join';
-import {
-  CONSENT_CHECKBOX,
-  CONSENT_HEADING,
-  CONSENT_WHAT_IT_IS,
-  CONSENT_WHAT_IT_IS_NOT,
-} from '@/lib/consent';
-import { messageOf } from '@/lib/errors';
+import { localised, messageOf } from '@/lib/errors';
 import { normaliseCode } from '@/lib/invite';
 import { useAccount } from '@/lib/use-account';
 import { useTheme } from '@/theme';
@@ -48,6 +44,8 @@ export default function Welcome() {
   // arrives with its code, so nobody types six characters they already have.
   const { code } = useLocalSearchParams<{ code?: string }>();
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
+  const cue = welcomeCue(t);
 
   const [step, setStep] = useState<Step>('consent');
   const [consented, setConsented] = useState(false);
@@ -67,7 +65,7 @@ export default function Welcome() {
         // whether the team exists before telling somebody their code is bad.
         const team = await teamByCode(joinCode);
         if (team === null) {
-          setError('No team with that code.');
+          setError(t.welcome.noTeam);
           return;
         }
         // Consent was taken two steps ago and travels with them, so the
@@ -81,7 +79,7 @@ export default function Welcome() {
       setRoster(entries);
       setStep('athlete');
     } catch (e) {
-      setError(messageOf(e));
+      setError(localised(messageOf(e), t));
     } finally {
       setBusy(false);
     }
@@ -94,7 +92,7 @@ export default function Welcome() {
       await claimParticipant(joinCode, entry.participant_code, consented);
       router.replace('/today');
     } catch (e) {
-      setError(messageOf(e));
+      setError(localised(messageOf(e), t));
     } finally {
       setBusy(false);
     }
@@ -119,6 +117,11 @@ export default function Welcome() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
       <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-6'] }]}>
+        {/* Carried over from the sign-in, and still here because this is the
+            screen that asks for consent: the words agreed to should be in the
+            language the athlete reads best. */}
+        <LanguageSwitch compact testID="welcome-language" />
+
         {/* Which account is about to be tied to an athlete. It is the one
             thing on this screen that is irreversible from the phone, so the
             email is shown rather than assumed, with the way out beside it. */}
@@ -134,7 +137,7 @@ export default function Welcome() {
               },
             ]}
           >
-            <Text style={[typography.label, { color: colors['ink-muted'] }]}>SIGNED IN AS</Text>
+            <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.welcome.signedInAs}</Text>
             <Text style={[typography['body-m'], { color: colors.ink, marginTop: 4 }]}>
               {signedInAs}
             </Text>
@@ -142,14 +145,14 @@ export default function Welcome() {
               onPress={() => {
                 signOut()
                   .then(() => router.replace('/sign-in'))
-                  .catch((e: unknown) => setError(messageOf(e)));
+                  .catch((e: unknown) => setError(localised(messageOf(e), t)));
               }}
               accessibilityRole="button"
               testID="welcome-sign-out"
               style={{ paddingTop: spacing['space-2'] }}
             >
               <Text style={[typography['body-s'], { color: colors['air-deep'] }]}>
-                Not you? Sign out
+                {t.welcome.notYou}
               </Text>
             </Pressable>
           </View>
@@ -161,27 +164,27 @@ export default function Welcome() {
                 this is the app introducing itself. */}
             <View style={{ alignItems: 'center' }}>
               <Mascot
-                pose={WELCOME_CUE.pose}
+                pose={cue.pose}
                 size={176}
-                motion={WELCOME_CUE.motion}
+                motion={cue.motion}
                 testID="welcome-mascot"
               />
             </View>
-            {heading(CONSENT_HEADING)}
-            <Text style={[typography['body-l'], { color: colors.ink }]}>{CONSENT_WHAT_IT_IS}</Text>
+            {heading(t.consent.heading)}
+            <Text style={[typography['body-l'], { color: colors.ink }]}>{t.consent.whatItIs}</Text>
             <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-              {CONSENT_WHAT_IT_IS_NOT}
+              {t.consent.whatItIsNot}
             </Text>
 
             <CheckBox
-              label={CONSENT_CHECKBOX}
+              label={t.consent.checkbox}
               checked={consented}
               onChange={setConsented}
               testID="consent-checkbox"
             />
 
             <PushButton
-              label="Continue"
+              label={t.common.continue}
               fullWidth
               disabled={!consented}
               testID="consent-continue"
@@ -192,7 +195,7 @@ export default function Welcome() {
                 // one more tap. On a lookup failure they are left on the
                 // team-code step, code filled in, with the reason under it.
                 if (normaliseCode(code ?? '') !== '') {
-                  findTeam().catch((e: unknown) => setError(messageOf(e)));
+                  findTeam().catch((e: unknown) => setError(localised(messageOf(e), t)));
                 }
               }}
             />
@@ -201,9 +204,9 @@ export default function Welcome() {
 
         {step === 'team' && (
           <View style={{ gap: spacing['space-4'] }}>
-            {heading('Your team code')}
+            {heading(t.welcome.teamCodeHeading)}
             <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>
-              Six letters and numbers, like K7XRMP.
+              {t.welcome.teamCodeHint}
             </Text>
             <TextInput
               value={joinCode}
@@ -214,7 +217,7 @@ export default function Welcome() {
               autoCorrect={false}
               placeholder="K7XRMP"
               placeholderTextColor={colors['ink-faint']}
-              accessibilityLabel="Team code"
+              accessibilityLabel={t.welcome.teamCodeLabel}
               testID="team-code"
               style={[
                 typography['heading-m'],
@@ -227,7 +230,7 @@ export default function Welcome() {
               ]}
             />
             <PushButton
-              label={busy ? 'Looking…' : 'Find my team'}
+              label={busy ? t.welcome.looking : t.welcome.findTeam}
               fullWidth
               disabled={busy || joinCode.trim().length === 0}
               testID="find-team"
@@ -244,7 +247,7 @@ export default function Welcome() {
               style={{ paddingVertical: spacing['space-3'] }}
             >
               <Text style={[typography['body-m'], { color: colors['air-deep'], textAlign: 'center' }]}>
-                I am a coach →
+                {t.common.iAmACoach}
               </Text>
             </Pressable>
           </View>
@@ -252,7 +255,7 @@ export default function Welcome() {
 
         {step === 'athlete' && (
           <View style={{ gap: spacing['space-4'] }}>
-            {heading('Which one are you?')}
+            {heading(t.welcome.whichOne)}
             {busy && <ActivityIndicator color={colors.pisang} />}
             {roster.map((entry) => (
               <Pressable
@@ -262,7 +265,7 @@ export default function Welcome() {
                 accessibilityRole="button"
                 accessibilityState={{ disabled: entry.claimed }}
                 accessibilityLabel={
-                  entry.claimed ? `${entry.name}, already taken` : `I am ${entry.name}`
+                  entry.claimed ? t.welcome.alreadyTaken(entry.name) : t.welcome.iAm(entry.name)
                 }
                 testID={`athlete-${entry.participant_code}`}
                 style={[
@@ -283,7 +286,7 @@ export default function Welcome() {
                   {entry.name}
                 </Text>
                 <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-                  {entry.claimed ? 'Already on another device' : entry.participant_code}
+                  {entry.claimed ? t.welcome.onAnotherDevice : entry.participant_code}
                 </Text>
               </Pressable>
             ))}
@@ -304,7 +307,7 @@ export default function Welcome() {
               style={{ paddingVertical: spacing['space-3'] }}
             >
               <Text style={[typography['body-m'], { color: colors['air-deep'], textAlign: 'center' }]}>
-                I am not on this list →
+                {t.welcome.notListed}
               </Text>
             </Pressable>
           </View>

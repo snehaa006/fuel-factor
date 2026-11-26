@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 
 import { Sidebar, type SidebarItem } from '@/components/sidebar';
+import { useStrings } from '@/i18n';
 import { signOut } from '@/lib/account';
 
 /**
@@ -31,24 +32,25 @@ export function CoachSidebar({
   testID = 'coach-sidebar',
 }: CoachSidebarProps) {
   const router = useRouter();
+  const m = useStrings().menu;
 
   const items: SidebarItem[] = [
-    { key: 'dashboard', label: 'Squad', onPress: () => router.replace('/coach') },
+    { key: 'dashboard', label: m.squad, onPress: () => router.replace('/coach') },
     {
       key: 'team',
-      label: 'Team and codes',
-      detail: 'The join code to hand out, and day one of the four weeks.',
+      label: m.teamAndCodes,
+      detail: m.teamAndCodesDetail,
       onPress: () => router.push('/coach/team'),
     },
     {
       key: 'assessments',
-      label: 'Assessments',
-      detail: 'Week 0 and Week 4 measures.',
+      label: m.assessments,
+      detail: m.coachAssessmentsDetail,
       onPress: () => router.push('/coach/assessments'),
     },
     {
       key: 'sign-out',
-      label: 'Sign out',
+      label: m.signOut,
       onPress: () => {
         // The session is gone locally whether or not the server is reachable,
         // so the screen goes back to the door either way rather than leaving

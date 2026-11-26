@@ -5,6 +5,7 @@ import { PushButton } from '@/components/push-button';
 import { copyText } from '@/lib/clipboard';
 import { messageOf } from '@/lib/errors';
 import { inviteMessage, normaliseCode } from '@/lib/invite';
+import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /** How long "Copied ✓" stays on the button before it reads "Copy code" again. */
@@ -47,6 +48,7 @@ export function TeamCodeCard({
   testID = 'team-code-card',
 }: TeamCodeCardProps) {
   const { colors, radius, spacing, typography } = useTheme();
+  const t = useStrings();
   const [copied, setCopied] = useState<'yes' | 'failed' | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
   const clean = normaliseCode(code);
@@ -70,7 +72,7 @@ export function TeamCodeCard({
     // Share rejects when the sheet is dismissed on some platforms, and an
     // async onPress that swallows its rejection is a button that silently
     // does nothing.
-    Share.share({ message: inviteMessage(teamName ?? 'my team', clean) }).catch((e: unknown) =>
+    Share.share({ message: inviteMessage(teamName ?? t.teamCode.myTeam, clean, t) }).catch((e: unknown) =>
       setShareError(messageOf(e))
     );
   }
@@ -85,11 +87,11 @@ export function TeamCodeCard({
         gap: spacing['space-2'],
       }}
     >
-      <Text style={[typography.label, { color: colors['pisang-deep'] }]}>TEAM CODE</Text>
+      <Text style={[typography.label, { color: colors['pisang-deep'] }]}>{t.teamCode.title}</Text>
       <Text
         selectable
         testID={`${testID}-code`}
-        accessibilityLabel={`Team code ${clean.split('').join(' ')}`}
+        accessibilityLabel={t.teamCode.label(clean.split('').join(' '))}
         style={[typography['stat-hero'], { color: colors.ink }]}
       >
         {clean}
@@ -101,7 +103,7 @@ export function TeamCodeCard({
       <View style={[styles.row, { gap: spacing['space-2'], marginTop: spacing['space-1'] }]}>
         <View style={styles.cell}>
           <PushButton
-            label={copied === 'yes' ? 'Copied ✓' : 'Copy code'}
+            label={copied === 'yes' ? t.teamCode.copied : t.teamCode.copy}
             variant={copied === 'yes' ? 'success' : 'primary'}
             fullWidth
             testID={`${testID}-copy`}
@@ -110,7 +112,7 @@ export function TeamCodeCard({
         </View>
         <View style={styles.cell}>
           <PushButton
-            label="Share"
+            label={t.teamCode.share}
             variant="ghost"
             fullWidth
             testID={`${testID}-share`}
@@ -121,7 +123,7 @@ export function TeamCodeCard({
 
       {copied === 'failed' && (
         <Text testID={`${testID}-copy-failed`} style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-          Could not reach the clipboard. Press and hold the code to copy it.
+          {t.teamCode.noClipboard}
         </Text>
       )}
       {shareError !== null && (

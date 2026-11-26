@@ -12,6 +12,9 @@ import { join, relative } from 'node:path';
  *
  * The seeds are scanned because most of what an athlete reads -- the Learn
  * cards, the nudges -- is rows, not code.
+ *
+ * The Indonesian dictionary is the one file left out: "program" is how
+ * Bahasa Indonesia spells it, and "programme" there would be the mistake.
  */
 
 const mobileRoot = join(__dirname, '..', '..', '..');
@@ -42,6 +45,7 @@ describe('the spelling of programme', () => {
   it('scans the app and its seeded content', () => {
     // Guards the guard: a path typo would otherwise scan nothing and pass.
     expect(files.some((f) => f.endsWith('consent.ts'))).toBe(true);
+    expect(files.some((f) => f.endsWith(join('i18n', 'en.ts')))).toBe(true);
     expect(files.some((f) => /week1_lessons\.sql$/.test(f))).toBe(true);
   });
 
@@ -51,8 +55,8 @@ describe('the spelling of programme', () => {
       readFileSync(file, 'utf8')
         .split('\n')
         .forEach((line, i) => {
-          // This file names the word it forbids.
-          if (file === __filename) return;
+          // This file names the word it forbids, and Indonesian spells it so.
+          if (file === __filename || file.endsWith(join('i18n', 'id.ts'))) return;
           if (AMERICAN.test(line)) offenders.push(`${relative(repoRoot, file)}:${i + 1}: ${line.trim()}`);
         });
     }
