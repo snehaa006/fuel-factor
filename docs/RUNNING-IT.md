@@ -32,9 +32,11 @@ Checked: all four channel/platform pairs serve these update ids.
 The web app and the self-hosted Expo Go route follow `main` on Vercel, so
 they carry the same code.
 
-**The check-in's database changes are not applied yet**, so on the phones
-the check-in stays hidden (a failed lookup offers nothing) until they are;
-it appears without another update once they are. Apply to
+**The check-in's and the reflection's database changes are not applied
+yet**, so on the phones both stay hidden (a failed lookup offers nothing)
+until they are; they appear without another update once they are. The
+coach's export works for the four original tabs now and gives the weekly
+log and reflections files once these are in. Apply to
 `nprvrlpkdrgckzceyryc`, in this order (SQL editor, or `supabase db push` for
 the two migrations):
 
@@ -43,6 +45,10 @@ the two migrations):
 3. `supabase/seed/0016_checkin_questions.sql`
 4. `supabase/seed/0017_demo_squad_weekly_logs.sql` (the demo squad's rows
    from the tracker; safe to run twice)
+5. `supabase/migrations/20261127000003_programme_reflections.sql`
+
+`0018_advice_bahasa.sql` is already on the project (loaded 27 November over
+the REST API, which can change rows but not tables).
 
 Without them the check-in screen shows the database's refusal and Today
 offers nothing; everything else works.

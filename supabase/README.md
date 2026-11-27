@@ -236,11 +236,13 @@ schema, and ran after them.
 | `0013_week3_lessons.sql` | Week 3, "Recovery: Sleep + Hydration", from the Week 3 PDF and its WhatsApp message |
 | `0014_week4_lessons.sql` | Week 4, "Integration & Game Day", from the ten Week 4 slides and its message — **not** from the week 4 PDF, which is a practitioner reference naming individual athletes |
 | `0015_week3_week4_advice.sql` | 3 advice rules, every message copied from 0013 and 0014: the week 3 pre-sleep snack and the deck's "3–4: drink more today", and the week 4 top-up snack the hour before a session. Unreviewed, like every rule |
-| `0016_checkin_questions.sql` | Each week's behaviour question for the Sunday check-in. Week 2 verbatim from the week 3 message, week 3 from its challenge slide; **weeks 1 and 4 are drafts** (`source = 'draft'`), because the folder has no wording for them. None reviewed |
+| `0016_checkin_questions.sql` | Each week's behaviour question for the Sunday check-in. Week 2 verbatim from the week 3 message, week 3 from its challenge slide; weeks 1 and 4 worded from the answers the tracker holds for them (`source = 'tracker-answers'`). None reviewed |
 | `0017_demo_squad_weekly_logs.sql` | The WEEKLY LOG tab's 12 rows for the demo squad's Jeongho, Theo and Jacob, verbatim from the tracker (26 November) |
+| `0018_advice_bahasa.sql` | Bahasa Indonesia for the 12 advice cards (`message_id`), the app's translation, unreviewed. **On the live project** (27 November) |
 
 **Every migration and every seed here is on the live project except the
-check-in's** -- `20261127000001_weekly_logs`, `20261127000002_checkin_questions`
+check-in's and the reflection's** -- `20261127000001_weekly_logs`,
+`20261127000002_checkin_questions`, `20261127000003_programme_reflections`
 and seeds `0016`, `0017`, added 27 November and to be applied by hand (see
 `docs/RUNNING-IT.md`). The rest was checked 18 November; `0015` loaded 25
 November: 18 migrations; all four weeks, the
