@@ -348,8 +348,13 @@ programme has set no other band.
 
 **A sample weekly module — `/learn/1` to `/learn/4`.** All four weeks are
 seeded (10, 12, 12 and 11 cards) and rendered from `lesson_cards` /
-`lesson_points` rows. A week unlocks when its rows exist, not by date, so any
-week can be shown on any day.
+`lesson_points` rows. **Learn follows the athlete's programme week** (since
+27 November): the current week leads, earlier weeks stay open, later weeks
+are locked until their day. For the demo squad, set the time machine to the
+week you want to show -- on 24 November, the last day, all four are open, and
+any day after the programme ends opens all four too. A coach sees every
+written week. Each lesson is shown one card at a time and ends on a short
+week check; Today carries a folded *Did you know?* fact from the week's deck.
 
 ### Showing them on the day
 
