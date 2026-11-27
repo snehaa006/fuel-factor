@@ -55,7 +55,7 @@ computes no game band. A test asserts both at once.
 
 ## How the schema is split
 
-Research tables (`participants`, `daily_logs`, `recalls`, `assessments`) mirror
+Research tables (`participants`, `daily_logs`, `recalls`, `assessments`, `weekly_logs`) mirror
 their Google tracker **column for column** and are the only thing the CSV export
 reads. Everything the app invents lives in app tables that are never exported.
 There are tests that fail if a research table gains an app column.
@@ -747,35 +747,79 @@ November call's Learn feedback, all of it the app's side:
 | "Can the learning section be in tandem with the week that the athlete is on?" | Sofia, 13:18 | Learn leads with the current programme week, marked *This week*. Earlier weeks stay open and show how their check went; later weeks are locked and say the day they open, and a direct link to one says the same instead of showing it early. No programme to follow (a coach, no first day) means every written week is open; after the programme ends, all four are. |
 | "If it's protein, it's the protein week" -- advice "in real time for that week" | Sofia, 16:00 | The advice cards put this week's material first, then severity. The week is read off each rule's own `source` (`week-2-deck`), so the app ranks no domain itself. |
 | "Is it quite long ... if you keep on scrolling?" / "not too overwhelming" | Theo, 19:53 and 20:02 | A week is one card at a time: progress bar, "3 of 10", Back and Next, ending on the week's check. *Show the whole lesson* puts the old column back. The challenge stays under the card, because ticking it is daily. |
-| A quiz "before they move on to the next week ... to ensure that they actually learn" | Theo, 20:02; Sneha, 20:43 | A **week check**, up to five questions, at the end of each lesson and offered on Today from a week's sixth day until it is done. It never blocks the next week. |
+| A quiz "before they move on to the next week ... to ensure that they actually learn" | Theo, 20:02; Sneha, 20:43 | **Replaced in step 25.** Step 24 built a quiz from the decks; Sofia had already answered Theo on the call with the WEEKLY LOG's questions, so step 25 put the Sunday check-in in its place. |
 | "A toggle ... did you know, or fact for the day" | Sofia, 20:59; Theo, 21:31 | *Did you know?* on Today, folded until tapped: one of the week's statistic cards a day, in turn, the same for the whole squad, with its week and card and a link to the lesson. After the programme, all four weeks' facts take turns. |
 
-**Nothing in the fact or the check is written by the app.** Both come from
-the week's own `stats` and `myth_fact` rows (`lib/weekly.ts`): a fact is a
-statistic's figure and caption as the deck prints them; a check asks "which
-figure goes with this caption", offering only that card's own figures (cut to
-four, rotated so the answer is not where the deck put it), and "myth or
-fact?" on a myth the deck quotes, answered with the deck's own fact. A myth the
-deck did not put in quotation marks is skipped rather than paraphrased, which
-is why weeks 3 and 4 have figure questions only. After every answer the
-deck's own figure or fact is shown, so the check teaches on the way through.
+**Nothing in the fact is written by the app.** It is one of the week's own
+`stats` rows (`lib/weekly.ts`), figure and caption as the deck prints them.
 
-Check results are kept **on the phone** (`lib/week-check.ts`), per athlete.
-They are engagement, not data: the coach does not see them and a new phone
-starts with none. See *Decisions* for why, and what Sofia asked for instead.
-
-Tests: `weekly.test.ts` (the week arithmetic, access, facts, the check built
-from the week 1 and 2 fixtures that mirror the seeds, when it is offered),
-`week-check.test.ts`, three new advice-ordering tests, and
+Tests: `weekly.test.ts` (the week arithmetic, access, facts, when the
+check-in is offered), three new advice-ordering tests, and
 `learn-weekly.test.tsx` for the list, the locked week, the one-card lesson,
-the check start to finish, the prompt and the fact card. Looked at in the web
-build in both languages: the lesson stepper, the check, the prompt and the
-fact card. Without a demo login the lesson rows were supplied to the browser
+the prompt and the fact card. Looked at in the web build in both languages:
+the lesson stepper, the prompt and the fact card. Without a demo login the lesson rows were supplied to the browser
 by intercepting the two `lesson_cards` / `weekly_challenges` requests with
 the fixture rows; the gated list (*This week*, *Opens Wed 11 Nov*) needs a
 signed-in athlete and is held by the tests instead.
 
 **1349 tests pass.**
+
+**Step 25** — The Sunday check-in, from the WEEKLY LOG (27 November). Sneha
+shared the research tracker and the programme's Drive folder. The tracker's
+WEEKLY LOG tab is the Sunday check-in Theo collected on WhatsApp -- "One row
+per athlete per week -- no daily logging required" -- and on the 25 November
+call Sofia had answered Theo's quiz idea with it: "you can use those questions
+for capturing if the athlete has really understood what has been taught."
+So step 24's deck-built quiz and its on-phone scores are gone, and the week's
+check is now this.
+
+*The questions.* Five, the tab's own columns. The four fixed ones are worded
+as Theo sent them in the week 3 message (Drive, `WEEK 3/Week 3s message`):
+average training energy (1–10), average urine colour (1–8), average water per
+day, breakfast last week (every day / most days / some days / skipped). The
+fifth is the tab's *Week Behaviour Check* and changes each week; it is a row in
+`checkin_questions` (seed `0016`). Week 2's is verbatim from the same message
+("Did you add a protein source to 3+ meals last week?", four answers); week
+3's is the sleep hours the week 3 challenge slide asks to "report Sunday".
+**Weeks 1 and 4 have no wording anywhere in the folder** -- the tab has the
+answers ("Less cramps", "Better") but not the questions -- so both are drafts
+marked `source = 'draft'`, and the screen says "Draft question — awaiting the
+dietitian's review" beside them.
+
+*Where it goes.* `weekly_logs`, a fifth research table, column for column
+with the tab (`20261127000001_weekly_logs.sql`): week, theme, athlete, the
+three averages, breakfast compliance, week behaviour check, answer, notes, one
+row per athlete per week. An athlete inserts and updates their own; a coach
+reads and writes nothing. A second visit edits the row. The question rows are
+app tier (`20261127000002_checkin_questions.sql`), readable, not writable
+from a phone. Seed `0017` loads the tab's twelve rows for the demo squad's
+three athletes, verbatim, so the pitch shows real check-ins.
+
+*The screen* (`/learn/check/[week]`, `lib/weekly-log.ts`). The averages start
+from the athlete's own daily logs for that programme week when there are any,
+and say so; breakfast is never pre-picked, but the log's count is shown
+beside it. All five are needed to send; notes are optional. Offered on Today
+from a week's sixth day until it is in (it never blocks the next week), and
+from each week on Learn once it is open, marked *Checked in ✓* when done.
+The lesson's last card now goes back to Learn.
+
+**Not on the live project yet.** This session's Supabase connection reaches
+a different project, so the two migrations and seeds `0016`/`0017` are in the
+repository and have to be applied by hand (`docs/RUNNING-IT.md`) before the
+update goes to the phones. Until then the check-in screen shows the
+database's refusal and Today offers nothing.
+
+Tests: `weekly-log.test.ts` (the logs' averages, the starting answers, what
+is required, the row in the tab's columns), `weekly-log-schema.test.ts` (the
+table's columns in the tab's order, nothing app-side in the research
+migration, the write policies, the four questions and which are drafts, the
+demo rows against the tab), and the check-in in `learn-weekly.test.tsx`
+(the five questions, the draft note, nothing sent half-answered, the saved
+row, the log prefill, a choice question, editing a week already in, a week
+not reached). Looked at in the web build in English/light and Bahasa/dark,
+with the question row supplied by intercepting its request.
+
+**1368 tests pass.**
 
 `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
@@ -1094,15 +1138,28 @@ Theo, with her review) writes the Bahasa, or I draft it into the seeds with
 the same "Awaiting dietitian review" mark the English rules carry. For advice
 the column exists (`message_id`); lessons and challenges would need one each.
 
-**The week check is built from the decks, not from the WEEKLY LOG.** Sofia, on
-the call: "There's a tab called Weekly Log, so you can use those questions
-for capturing if the athlete has really understood what has been taught."
-Those questions are in the research tracker, which is not in this repository
-or in the Drive this session could see. So the check asks what the deck
-itself states (figures, and the deck's own myths), and its results stay on
-the phone as engagement. If Sofia wants understanding *captured* -- as data,
-for the study -- that is the WEEKLY LOG's questions as a table mirroring the
-tab column for column, like the other research tables, which needs the tab.
+**The week's answer goes in *Week Behaviour Check*, and *Answer* stays empty.**
+The tab's headers suggest the question in one and the answer in the other,
+but every row the tracker holds puts the athlete's answer under *Week
+Behaviour Check* and leaves *Answer* blank. `weekly_logs` follows the rows,
+so the app's data and Theo's line up in the export. Swapping is one line in
+`toRow` if Sofia meant the headers.
+
+**Weeks 1 and 4's behaviour questions are drafts.** Week 1: "Did you notice
+any difference after adding carbs this week?" (free text). Week 4: "How did
+you feel this week compared with week 1?" (better / a bit better / the same /
+worse). Both are inferred from the answers in the tab, not from anything
+Sofia wrote. Replacing either is an UPDATE of its `checkin_questions` row.
+
+**Water is asked in mL only.** Theo's message says "(glasses or mL)"; the tab
+stores mL/day, and converting glasses needs a glass size nobody has stated.
+The screen keeps the app's existing "A large bottle is about 1500 mL" hint.
+
+**The averages start from the daily log.** Where the athlete logged the week
+day by day, energy, urine colour and water start at that week's averages and
+the screen says so. Breakfast is never pre-picked -- where "most days" ends and
+"some days" begins is the athlete's to say -- but the log's count sits beside
+it.
 
 **Earlier weeks stay readable.** Sneha on the call: "if the current week is
 week two, it should show the insights on week two only." Read as what
@@ -1424,8 +1481,8 @@ The roster seed has everything else the tracker holds.
 
 ## Still waiting on Sofia
 
-**The WEEKLY LOG tab's questions**, if the week check should capture
-understanding as study data (see *Decisions*) · Bahasa wording for the
+**Weeks 1 and 4's behaviour questions** for the Sunday check-in (drafts in
+seed `0016`), and her sign-off on all four · Bahasa wording for the
 programme's sentences, or her review of a draft · the post-programme
 reflection she raised on 25 November ("how was the program? ... what was your
 best takeaway?"), which she said can wait until the post-assessments are

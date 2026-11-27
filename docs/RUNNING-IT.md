@@ -14,7 +14,7 @@ flag, profile or script can produce a build that draws from sample data.
 | **Web app**, <https://fuel-factor-expo-go.vercel.app> | `main`, the real app, opened in any phone's or laptop's browser. **The demo build**: a release build, no dev menu, nothing to install. Deployed by Vercel on every push to `main` |
 | **Expo Go route**, same host | `main`, for Expo Go only (`exps://fuel-factor-expo-go.vercel.app`). A developer tool: shake opens Expo Go's menu |
 | **Confirmation page**, Vercel `fuel-factor` | Where the sign-up email lands. Static, one file |
-| **Supabase** `nprvrlpkdrgckzceyryc` | 18 migrations; all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
+| **Supabase** `nprvrlpkdrgckzceyryc` | 18 migrations (2 more in the repo, not yet applied: the Sunday check-in); all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
 
 Both phone channels were last published on 25 November 2026 from commit
 `83398bc`: everything in the feedback list, the coach's fuel-gap charts, the
@@ -29,10 +29,24 @@ snack the hour before a session).
 
 The web app and the self-hosted Expo Go route follow `main` on Vercel.
 
-**Not on the phones yet: the language and theme switches** (step 23 in
-`SESSION-HANDOFF.md`). They add no native module, so the APK does not need
-rebuilding: an `eas update` to `preview` and `share` carries them, and the
-web app picks them up when they reach `main`.
+**Not on the phones yet: the language and theme switches, Learn week by
+week, and the Sunday check-in** (steps 23 to 25 in `SESSION-HANDOFF.md`).
+None adds a native module, so the APK does not need rebuilding: an `eas
+update` to `preview` and `share` carries them, and the web app picks them up
+when they reach `main`.
+
+**Before that update, apply the check-in's database changes** to
+`nprvrlpkdrgckzceyryc`, in this order (SQL editor, or `supabase db push` for
+the two migrations):
+
+1. `supabase/migrations/20261127000001_weekly_logs.sql`
+2. `supabase/migrations/20261127000002_checkin_questions.sql`
+3. `supabase/seed/0016_checkin_questions.sql`
+4. `supabase/seed/0017_demo_squad_weekly_logs.sql` (the demo squad's rows
+   from the tracker; safe to run twice)
+
+Without them the check-in screen shows the database's refusal and Today
+offers nothing; everything else works.
 
 **Pushing to GitHub does not change the phones.** A bundle moves only when
 somebody runs `eas update` (below). The two are separate systems.
@@ -353,8 +367,10 @@ seeded (10, 12, 12 and 11 cards) and rendered from `lesson_cards` /
 are locked until their day. For the demo squad, set the time machine to the
 week you want to show -- on 24 November, the last day, all four are open, and
 any day after the programme ends opens all four too. A coach sees every
-written week. Each lesson is shown one card at a time and ends on a short
-week check; Today carries a folded *Did you know?* fact from the week's deck.
+written week. Each lesson is shown one card at a time; Today carries a folded
+*Did you know?* fact from the week's deck, and offers the **Sunday check-in**
+(the WEEKLY LOG's five questions) from each week's sixth day until it is in.
+Once `0017` is loaded, the demo athletes' four weeks show as checked in.
 
 ### Showing them on the day
 
