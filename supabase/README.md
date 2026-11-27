@@ -270,9 +270,15 @@ codes* screen.
 
 | Athlete | Code | From the research tracker |
 |---|---|---|
-| Theo | `TEST-DEMO-T01` | T-01: roster row, 3 baseline recall days, 4 weekly check-ins, pre assessments, Cooper pre/post |
-| Jeongho | `TEST-DEMO-J01` | J-01: roster row, 3 baseline recall days, 4 weekly check-ins, pre assessments |
-| Jacob | `TEST-DEMO-JA01` | JA-01: roster row, 3 baseline recall days, 4 weekly check-ins, pre assessments, Cooper pre/post |
+| Theo | `TEST-DEMO-T01` | T-01: roster row, 3 baseline recall days + follow-up day 4 (25 Nov), 4 weekly check-ins, pre assessments, Cooper pre/post |
+| Jeongho | `TEST-DEMO-J01` | J-01: roster row, 3 baseline recall days + follow-up day 4 (25 Nov), 4 weekly check-ins, pre assessments |
+| Jacob | `TEST-DEMO-JA01` | JA-01: roster row, 3 baseline recall days + follow-up days 4 and 5 (25 and 26 Nov), 4 weekly check-ins, pre assessments, Cooper pre/post |
+
+The follow-up recall rows were loaded 27 November from the tracker's RECALL
+tabs, where the follow-up restarts its numbering at 1 with a date; here they
+are days 4 and 5, the app's follow-up days. The tab's empty placeholder rows
+(dated, nothing else) are not loaded. Its "Match" day type, used only on an
+empty 28 November row, is not a value the schema has.
 
 **What is the tracker's, verbatim:** names, sport, measurements, consent
 (the tracker now reads "Yes" for all five athletes), the recall text, sleep,
