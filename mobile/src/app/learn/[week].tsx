@@ -16,6 +16,7 @@ import { useProgramme } from '@/lib/use-programme';
 import { canRead, weekAccess } from '@/lib/weekly';
 import { shortDate } from '@/components/calendar';
 import { useStrings } from '@/i18n';
+import { useContent } from '@/i18n/content';
 import { useTheme } from '@/theme';
 
 /**
@@ -42,6 +43,7 @@ export default function Week() {
   const participantId = useParticipantId();
   const { colors, spacing, typography } = useTheme();
   const t = useStrings();
+  const content = useContent();
 
   const state = useWeek(weekNumber, participantId);
   const checked = useMealChallenge(Number.isInteger(weekNumber) ? weekNumber : undefined);
@@ -137,7 +139,7 @@ export default function Week() {
         </Text>
         <Text style={[typography['display-l'], { color: colors.ink }]}>
           {/* No theme invented for a week the programme has not written. */}
-          {detail.week.theme ?? t.learn.notWrittenYet}
+          {content(detail.week.theme) ?? t.learn.notWrittenYet}
         </Text>
 
         {showAll ? (
@@ -230,7 +232,7 @@ export default function Week() {
           <View style={{ marginTop: spacing['space-6'] }}>
             <MealChallengeCard
               week={checked.week}
-              challenge={detail.week.challenge}
+              challenge={content(detail.week.challenge)}
               testID="meal-challenge"
             />
           </View>

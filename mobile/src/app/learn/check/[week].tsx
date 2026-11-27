@@ -17,6 +17,7 @@ import { RatingScale } from '@/components/rating-scale';
 import { ScaleGuide } from '@/components/scale-guide';
 import { UrineScale } from '@/components/urine-scale';
 import { useStrings } from '@/i18n';
+import { useContent } from '@/i18n/content';
 import { localised, messageOf } from '@/lib/errors';
 import { useParticipantId } from '@/lib/use-foods';
 import { useWeeks } from '@/lib/use-learn';
@@ -51,6 +52,7 @@ export default function WeekCheckIn() {
   const valid = Number.isInteger(week) && week >= 1 && week <= 4;
   const { colors, radius, spacing, typography } = useTheme();
   const t = useStrings();
+  const content = useContent();
   const c = t.checkin;
   const participantId = useParticipantId();
   const programme = useProgramme();
@@ -209,7 +211,7 @@ export default function WeekCheckIn() {
   return frame(
     <>
       <View style={{ gap: spacing['space-1'] }}>
-        <Text style={[typography.label, { color: colors['ink-muted'] }]}>{c.about(week, theme)}</Text>
+        <Text style={[typography.label, { color: colors['ink-muted'] }]}>{c.about(week, content(theme))}</Text>
         <Text style={[typography['body-m'], { color: colors['ink-muted'] }]}>{c.lead}</Text>
         {existing !== null && (
           <Text testID="checkin-already" style={[typography['body-s'], { color: colors['air-deep'] }]}>

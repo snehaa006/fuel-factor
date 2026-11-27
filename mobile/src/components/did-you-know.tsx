@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useStrings } from '@/i18n';
+import { useContent } from '@/i18n/content';
 import type { ProgrammeState } from '@/lib/programme';
 import { useCards } from '@/lib/use-learn';
 import { factFor, factsFrom, weekOfProgramme, type Fact } from '@/lib/weekly';
@@ -55,6 +56,7 @@ export function FactCard({
 }) {
   const { colors, radius, spacing, typography } = useTheme();
   const t = useStrings();
+  const content = useContent();
   const w = t.weekly;
   const [open, setOpen] = useState(false);
 
@@ -92,10 +94,10 @@ export function FactCard({
 
       {open && (
         <View testID={`${testID}-fact`} style={{ gap: spacing['space-1'] }}>
-          <Text style={[typography['display-m'], { color: colors.ink }]}>{fact.value}</Text>
-          <Text style={[typography['body-l'], { color: colors.ink }]}>{fact.label}</Text>
+          <Text style={[typography['display-m'], { color: colors.ink }]}>{content(fact.value)}</Text>
+          <Text style={[typography['body-l'], { color: colors.ink }]}>{content(fact.label)}</Text>
           <Text style={[typography['body-s'], { color: colors['ink-muted'], marginTop: spacing['space-1'] }]}>
-            {w.fromWeek(fact.week, fact.heading)}
+            {w.fromWeek(fact.week, content(fact.heading))}
           </Text>
           {w.deckWords !== '' && (
             <Text style={[typography['body-s'], { color: colors['ink-faint'] }]}>{w.deckWords}</Text>

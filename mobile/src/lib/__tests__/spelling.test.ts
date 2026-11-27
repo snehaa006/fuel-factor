@@ -56,7 +56,7 @@ describe('the spelling of programme', () => {
         .split('\n')
         .forEach((line, i) => {
           // This file names the word it forbids, and Indonesian spells it so.
-          if (file === __filename || file.endsWith(join('i18n', 'id.ts'))) return;
+          if (file === __filename || file.endsWith(join('i18n', 'id.ts')) || file.endsWith(join('i18n', 'content-id.ts'))) return;
           if (AMERICAN.test(line)) offenders.push(`${relative(repoRoot, file)}:${i + 1}: ${line.trim()}`);
         });
     }

@@ -12,6 +12,7 @@ import { useProgramme } from '@/lib/use-programme';
 import { useCheckedWeeks } from '@/lib/weekly-log';
 import { canRead, checkInOpen, weekAccess, type WeekAccess } from '@/lib/weekly';
 import { useStrings } from '@/i18n';
+import { useContent } from '@/i18n/content';
 import { useTheme } from '@/theme';
 
 /**
@@ -32,6 +33,7 @@ export default function Learn() {
   const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
   const t = useStrings();
+  const content = useContent();
   const state = useWeeks();
   const programme = useProgramme();
   const participantId = useParticipantId();
@@ -105,7 +107,7 @@ export default function Learn() {
                 accessibilityState={{ disabled: !open }}
                 accessibilityLabel={
                   week.unlocked
-                    ? t.learn.weekOpen(week.weekNumber, week.theme)
+                    ? t.learn.weekOpen(week.weekNumber, content(week.theme))
                     : t.learn.weekNotWritten(week.weekNumber)
                 }
                 testID={`week-${week.weekNumber}`}
@@ -141,11 +143,11 @@ export default function Learn() {
                   style={[typography['heading-l'], { color: open ? colors.ink : colors['ink-faint'] }]}
                 >
                   {/* No theme invented for a week the programme has not written. */}
-                  {week.theme ?? t.learn.notWrittenYet}
+                  {content(week.theme) ?? t.learn.notWrittenYet}
                 </Text>
                 {open && week.challenge !== null && (
                   <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-                    {t.learn.challenge(week.challenge)}
+                    {t.learn.challenge(content(week.challenge) ?? week.challenge)}
                   </Text>
                 )}
                 {access.state === 'future' && week.unlocked && (

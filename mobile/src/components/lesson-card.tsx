@@ -3,6 +3,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { GUIDANCE_LABEL, type FoodWithPortions } from '@/lib/food';
 import type { LessonCard as Card, LessonPoint } from '@/lib/learn';
 import { useStrings, type Strings } from '@/i18n';
+import { cardIn } from '@/i18n/content';
+import { useLanguage } from '@/lib/preferences';
 import { en } from '@/i18n/en';
 import { useTheme, type Theme } from '@/theme';
 
@@ -21,7 +23,9 @@ export type LessonCardProps = {
  * no figure and adds no interpretation. Where the deck prints a citation, the
  * citation is drawn with it.
  */
-export function LessonCard({ card, foods, testID }: LessonCardProps) {
+export function LessonCard({ card: asWritten, foods, testID }: LessonCardProps) {
+  // In Bahasa when the athlete picked it: see `i18n/content-id.ts`.
+  const card = cardIn(asWritten, useLanguage());
   const theme = useTheme();
   const t = useStrings();
   const { colors, radius, spacing, typography } = theme;
