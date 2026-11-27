@@ -155,6 +155,8 @@ export const en = {
     teamAndCodes: 'Team and codes',
     teamAndCodesDetail: 'The join code to hand out, and day one of the four weeks.',
     coachAssessmentsDetail: 'Week 0 and Week 4 measures.',
+    export: 'Export data',
+    exportDetail: 'The squad’s rows as CSV, one file per tracker tab.',
   },
 
   mascot: {
@@ -920,6 +922,58 @@ export const en = {
     promptCta: 'Check in →',
     statusDone: 'Checked in',
     statusNotDone: 'Not checked in yet',
+  },
+
+  /** The end-of-programme reflection: Sofia's three questions and Theo's feedback. */
+  reflection: {
+    title: 'Looking back',
+    lead: 'Four weeks done. Tell the programme how it went.',
+    rating: 'How was the programme? (1–10)',
+    liked: 'Did you like it?',
+    likedOptions: { Yes: 'Yes', Somewhat: 'Somewhat', No: 'No' } as Record<string, string>,
+    takeaway: 'What was your best takeaway?',
+    takeawayPlaceholder: 'The one thing you’ll keep doing',
+    feedback: 'Anything else? Feedback on the programme or the app (optional)',
+    send: 'Send my reflection',
+    sending: 'Sending…',
+    update: 'Update my reflection',
+    alreadyIn: 'You sent this already. You can still change it.',
+    needed: 'Answer the first three to send it.',
+    thanks: 'Thanks for looking back.',
+    thanksBody: 'Your coach and the programme can read it now.',
+    done: 'Done',
+    notYet: 'This opens in the last days of week 4.',
+    signIn: 'Sign in as an athlete to send it.',
+    promptTitle: 'FOUR WEEKS DONE',
+    promptBody: 'How was it? Three quick questions.',
+    promptCta: 'Look back →',
+  },
+
+  /** The coach's research export. */
+  export: {
+    title: 'Export data',
+    lead: 'Your squad’s rows as CSV, one file per tab of the research tracker. Opens in Google Sheets or Excel.',
+    sheets: {
+      participants: 'Participants',
+      daily_logs: 'Daily log',
+      weekly_logs: 'Weekly log',
+      recalls: 'Recalls',
+      assessments: 'Assessments',
+      programme_reflections: 'Reflections',
+    } as Record<string, string>,
+    details: {
+      participants: 'PARTICIPANTS tab',
+      daily_logs: 'DAILY LOG tab: one row per athlete per day',
+      weekly_logs: 'WEEKLY LOG tab: the Sunday check-ins',
+      recalls: 'RECALL tabs, one row per athlete per recall day',
+      assessments: 'ASSESSMENTS tab: Week 0 and Week 4, pre and post',
+      programme_reflections: 'End-of-programme reflections (not a tracker tab yet)',
+    } as Record<string, string>,
+    download: 'Download',
+    working: 'Preparing…',
+    done: (rows: number) => (rows === 1 ? 'Downloaded: 1 row.' : `Downloaded: ${rows} rows.`),
+    shared: (rows: number) => (rows === 1 ? 'Shared: 1 row.' : `Shared: ${rows} rows.`),
+    signIn: 'Sign in as a coach to export your squad’s data.',
   },
 };
 

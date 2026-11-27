@@ -87,9 +87,9 @@ describe('the week’s question', () => {
     expect(rows[2]).toMatchObject({ kind: 'number', source: 'week-3-slides' });
   });
 
-  it('marks weeks 1 and 4 as drafts, because the folder has no wording for them', () => {
-    expect(rows[0].source).toBe('draft');
-    expect(rows[3].source).toBe('draft');
+  it('words weeks 1 and 4 from the answers the tracker holds for them', () => {
+    expect(rows[0].source).toBe('tracker-answers');
+    expect(rows[3].source).toBe('tracker-answers');
   });
 
   it('leaves every question awaiting the dietitian’s sign-off', () => {

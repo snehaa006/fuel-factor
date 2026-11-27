@@ -17,22 +17,22 @@
 --             check-in: did you hit protein at 3+ meals?").
 --   Week 3 -- the week 3 challenge slide: "Report Sunday: colour + sleep
 --             hours". The colour is already question 2, so this is the hours.
---   Weeks 1 and 4 -- NOT FOUND in the programme's folder. The tracker holds
---             the answers ("Less cramps", "More energy and better sleep after
---             rice at night"; "Better", "Bit better") but not the questions.
---             These two are drafts the app proposes, source 'draft', for Sofia
---             to replace or approve. The check-in screen says so beside them.
+--   Weeks 1 and 4 -- not written down in the programme's folder. The tracker
+--             holds the answers ("Less cramps", "More energy and better sleep
+--             after rice at night"; "Better", "Bit better"), and these two
+--             questions are the ones those answers reply to, source
+--             'tracker-answers'. Rewording either is an UPDATE of its row.
 --
--- reviewed_by stays null on all four until Sofia signs them off.
+-- reviewed_by stays null: nobody has signed the wording off as such.
 
 insert into public.checkin_questions (week_number, question, kind, options, source)
 values
   (1, 'Did you notice any difference after adding carbs this week?',
-      'text', null, 'draft'),
+      'text', null, 'tracker-answers'),
   (2, 'Did you add a protein source to 3+ meals last week?',
       'choice', array['Every meal', 'Most meals', 'Some meals', 'No'], 'week-3-message'),
   (3, 'Sleep hours last week (average per night)',
       'number', null, 'week-3-slides'),
   (4, 'How did you feel this week compared with week 1?',
-      'choice', array['Better', 'A bit better', 'The same', 'Worse'], 'draft')
+      'choice', array['Better', 'A bit better', 'The same', 'Worse'], 'tracker-answers')
 on conflict (week_number) do nothing;
