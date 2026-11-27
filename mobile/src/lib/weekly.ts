@@ -117,133 +117,30 @@ export function factFor(facts: Fact[], programmeDay: number): Fact | null {
 }
 
 // ---------------------------------------------------------------------------
-// The week check
-
-export type Question =
-  | {
-      kind: 'figure';
-      id: string;
-      /** The deck's caption. The athlete picks the figure that goes with it. */
-      prompt: string;
-      choices: string[];
-      answer: string;
-      /** The card's heading, shown with the answer. */
-      heading: string | null;
-    }
-  | {
-      kind: 'myth';
-      id: string;
-      /** The deck's own quotation of the myth. */
-      prompt: string;
-      answer: 'myth';
-      /** The deck's own fact, shown once answered. */
-      explanation: string;
-      heading: string | null;
-    };
-
-/** The most questions a check asks. Short enough to finish standing up. */
-export const MAX_QUESTIONS = 5;
-/** The most figures offered as choices. A card with eight is cut to four. */
-const MAX_CHOICES = 4;
-
-/** The quoted claim a myth starts with, or null when the deck did not quote one. */
-export function quotedMyth(detail: string | null): string | null {
-  const match = /^\s*["“]([^"”]{8,})["”]/.exec(detail ?? '');
-  return match ? match[1].trim() : null;
-}
-
-/**
- * Rotate the choices so the right one is not always where the deck put it.
- * Deterministic, so the same week's check is the same check twice.
- */
-function rotate<T>(items: T[], by: number): T[] {
-  if (items.length === 0) return items;
-  const k = ((by % items.length) + items.length) % items.length;
-  return [...items.slice(k), ...items.slice(0, k)];
-}
-
-/** Up to {@link MAX_CHOICES} of a card's figures, always including the answer. */
-function choicesFor(values: string[], answerIndex: number): string[] {
-  if (values.length <= MAX_CHOICES) return values;
-  const others = values.filter((_, i) => i !== answerIndex);
-  const picked = rotate(others, answerIndex).slice(0, MAX_CHOICES - 1);
-  return [values[answerIndex], ...picked];
-}
-
-/**
- * A week's check, from its own cards.
- *
- * One myth-or-fact where the deck sets a myth against a fact in so many
- * words (weeks 1 and 2 do), then "which figure" questions taken a card at a
- * time so they spread across the lesson instead of all coming from its first
- * card. A card needs at least two distinct figures to ask from, or the
- * question answers itself.
- */
-export function quizFor(cards: LessonCard[], week: number): Question[] {
-  const questions: Question[] = [];
-
-  for (const card of cards) {
-    if (card.kind !== 'myth_fact') continue;
-    const myth = card.points.find((p) => (p.label ?? '').toUpperCase().includes('MYTH'));
-    const fact = card.points.find((p) => (p.label ?? '').toUpperCase().includes('FACT'));
-    const prompt = quotedMyth(myth?.detail ?? null);
-    if (prompt === null || !fact?.detail) continue;
-    questions.push({
-      kind: 'myth',
-      id: `w${week}-myth-${card.id}`,
-      prompt,
-      answer: 'myth',
-      explanation: fact.detail,
-      heading: card.heading,
-    });
-  }
-
-  const perCard = cards
-    .filter((card) => card.kind === 'stats')
-    .map((card) => {
-      const points = card.points.filter(
-        (p) => (p.value ?? '').trim() !== '' && (p.label ?? '').trim() !== ''
-      );
-      const values = points.map((p) => p.value as string);
-      if (new Set(values).size < 2) return [];
-      return points.map<Question>((p, i) => ({
-        kind: 'figure',
-        id: `w${week}-figure-${card.id}-${i}`,
-        prompt: p.label as string,
-        choices: rotate(choicesFor(values, i), i * 2 + 1),
-        answer: p.value as string,
-        heading: card.heading,
-      }));
-    })
-    .filter((list) => list.length > 0);
-
-  // Round-robin across the cards: the first figure of each, then the second.
-  for (let round = 0; questions.length < MAX_QUESTIONS; round += 1) {
-    let added = false;
-    for (const list of perCard) {
-      if (round < list.length && questions.length < MAX_QUESTIONS) {
-        questions.push(list[round]);
-        added = true;
-      }
-    }
-    if (!added) break;
-  }
-
-  return questions.slice(0, MAX_QUESTIONS);
-}
-
-/** Whether an answer is the deck's. */
-export function isRight(question: Question, answer: string): boolean {
-  return answer === question.answer;
-}
-
-// ---------------------------------------------------------------------------
 // When to ask
 
+/** The first and last day of a programme week. */
+export function weekDates(startsOn: IsoDate, week: number): { from: IsoDate; to: IsoDate } {
+  const from = addDays(startsOn, (week - 1) * DAYS_PER_WEEK);
+  return { from, to: addDays(from, DAYS_PER_WEEK - 1) };
+}
+
 /**
- * The week whose check Today should offer, or null.
+ * Whether a week's check-in can be answered yet: from the week's sixth day,
+ * for any week already over, and for every week once the programme is.
+ */
+export function checkInOpen(week: number, programme: ProgrammeState | null): boolean {
+  const current = weekOfProgramme(programme);
+  const day = dayOfWeek(programme);
+  if (current === null || current < 1) return false;
+  if (current > WEEK_COUNT || week < current) return true;
+  return week === current && day !== null && day >= 6;
+}
+
+/**
+ * The week whose check-in Today should offer, or null.
  *
- * Theo's "before they move on to the next week": a week's check is offered
+ * Theo's "before they move on to the next week": a week's check-in is offered
  * from its sixth day, and stays on offer through the following week until it
  * is done. Once the programme is over, week 4's waits the same way.
  */

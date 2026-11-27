@@ -1,15 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
-import WeekCheck from '@/app/learn/check/[week]';
+import WeekCheckIn from '@/app/learn/check/[week]';
 import Learn from '@/app/learn/index';
 import Week from '@/app/learn/[week]';
 import { FactCard } from '@/components/did-you-know';
 import { WeekCheckPrompt } from '@/components/week-check-prompt';
 import { DEMO_LESSON_CARDS, DEMO_LESSON_CARDS_WEEK2 } from '@/lib/__fixtures__/today';
 import { programmeState, type ProgrammeState } from '@/lib/programme';
-import { checksFor, resetChecksForTests, saveCheck } from '@/lib/week-check';
-import { quizFor } from '@/lib/weekly';
+import type { CheckinQuestion, FromLogs, WeeklyLog } from '@/lib/weekly-log';
 
 // A mock factory can only reach variables named mock*, so these are.
 const mockPush = jest.fn();
@@ -69,6 +68,24 @@ jest.mock('@/lib/use-learn', () => ({
   }),
 }));
 
+// The check-in's data hooks; the pure helpers stay real.
+let mockChecked: number[] = [];
+let mockQuestion: CheckinQuestion | null = null;
+let mockExisting: WeeklyLog | null = null;
+let mockLogs: FromLogs | null = null;
+const mockSave = jest.fn((_row: unknown) => Promise.resolve());
+jest.mock('@/lib/weekly-log', () => ({
+  ...jest.requireActual('@/lib/weekly-log'),
+  useCheckedWeeks: () => ({ status: 'ready', weeks: mockChecked }),
+  useWeeklyCheckin: () => ({
+    status: 'ready',
+    question: mockQuestion,
+    existing: mockExisting,
+    logs: mockLogs,
+    save: mockSave,
+  }),
+}));
+
 const START = '2026-10-28';
 const WEEK_2_DAY_3 = programmeState(START, '2026-11-06');
 
@@ -76,7 +93,16 @@ beforeEach(async () => {
   jest.clearAllMocks();
   mockParams = {};
   mockProgramme = WEEK_2_DAY_3;
-  resetChecksForTests();
+  mockChecked = [];
+  mockQuestion = {
+    week: 1,
+    question: 'Did you notice any difference after adding carbs this week?',
+    kind: 'text',
+    options: null,
+    draft: true,
+  };
+  mockExisting = null;
+  mockLogs = null;
   await AsyncStorage.clear();
 });
 
@@ -97,11 +123,17 @@ describe('Learn, week by week', () => {
     expect(screen.getByTestId('week-4-opens')).toHaveTextContent('Opens Wed 18 Nov');
   });
 
-  it('shows how each open week’s check went', async () => {
-    saveCheck('p-theo', 1, { right: 3, total: 5, on: '2026-11-04' });
+  it('says whether each finished week’s check-in is in', async () => {
     await render(<Learn />);
-    expect(screen.getByTestId('week-1-check')).toHaveTextContent('Check: 3/5');
-    expect(screen.getByTestId('week-2-check')).toHaveTextContent('Check not done yet');
+    expect(screen.getByTestId('week-1-check')).toHaveTextContent('Not checked in yet', { exact: false });
+    // Week 2 is on its third day: its check-in is not open yet.
+    expect(screen.queryByTestId('week-2-check')).toBeNull();
+  });
+
+  it('marks a week checked in once its row is in', async () => {
+    mockChecked = [1];
+    await render(<Learn />);
+    expect(screen.getByTestId('week-1-check')).toHaveTextContent('Checked in ✓');
   });
 
   it('opens every week once the programme is over', async () => {
@@ -145,14 +177,14 @@ describe('the lesson, one card at a time', () => {
     expect(screen.getByTestId('card-intro')).toBeTruthy();
   });
 
-  it('ends on the week’s check', async () => {
+  it('ends back at Learn', async () => {
     await render(<Week />);
     for (let i = 1; i < DEMO_LESSON_CARDS.length; i += 1) {
       await act(async () => fireEvent.press(screen.getByTestId('lesson-next')));
     }
     expect(screen.queryByTestId('lesson-next')).toBeNull();
-    await act(async () => fireEvent.press(screen.getByTestId('lesson-check')));
-    expect(mockPush).toHaveBeenCalledWith('/learn/check/1');
+    await act(async () => fireEvent.press(screen.getByTestId('lesson-finish')));
+    expect(mockBack).toHaveBeenCalled();
   });
 
   it('can still show the whole lesson at once', async () => {
@@ -164,76 +196,112 @@ describe('the lesson, one card at a time', () => {
   });
 });
 
-describe('the week check', () => {
-  const questions = quizFor(DEMO_LESSON_CARDS, 1);
-
+describe('the Sunday check-in', () => {
   beforeEach(() => {
     mockParams = { week: '1' };
   });
 
-  async function answerAll(pickRight: boolean) {
-    await act(async () => fireEvent.press(screen.getByTestId('check-start')));
-    for (const q of questions) {
-      const choices =
-        q.kind === 'myth' ? ['myth', 'fact'] : q.choices;
-      const index = choices.findIndex((c) => (c === q.answer) === pickRight);
-      await act(async () => fireEvent.press(screen.getByTestId(`check-choice-${index}`)));
-      expect(screen.getByTestId('check-feedback')).toHaveTextContent(pickRight ? 'Right.' : 'Not quite.', { exact: false });
-      await act(async () => fireEvent.press(screen.getByTestId('check-next')));
-    }
+  async function fillAll() {
+    await act(async () => fireEvent.press(screen.getByTestId('checkin-energy-8')));
+    await act(async () => fireEvent.press(screen.getByTestId('checkin-urine-4')));
+    await act(async () => fireEvent.changeText(screen.getByTestId('checkin-water'), '2000'));
+    await act(async () => fireEvent.press(screen.getByTestId('checkin-breakfast-0')));
+    await act(async () => fireEvent.changeText(screen.getByTestId('checkin-behaviour'), 'Less cramps'));
   }
 
-  it('says how many questions, all from the lesson', async () => {
-    await render(<WeekCheck />);
-    expect(screen.getByText(`${questions.length} quick questions, all from this week’s lesson.`)).toBeTruthy();
+  it('asks the WEEKLY LOG’s five questions, worded as Theo sent them', async () => {
+    await render(<WeekCheckIn />);
+    expect(screen.getByText('Average training energy last week (1–10)')).toBeTruthy();
+    expect(screen.getByText('Average urine colour — 1 = pale/clear, 8 = dark brown')).toBeTruthy();
+    expect(screen.getByText('Average water per day (mL)')).toBeTruthy();
+    expect(screen.getByText('Breakfast last week')).toBeTruthy();
+    expect(screen.getByText('Did you notice any difference after adding carbs this week?')).toBeTruthy();
   });
 
-  it('shows the deck’s answer after each question, and the score at the end', async () => {
-    await render(<WeekCheck />);
-    await answerAll(true);
-    expect(screen.getByTestId('check-score')).toHaveTextContent(
-      `${questions.length} of ${questions.length} right`
-    );
-    expect(checksFor('p-theo')[1]).toMatchObject({ right: questions.length, total: questions.length });
+  it('says when the week’s question is a draft nobody has approved', async () => {
+    await render(<WeekCheckIn />);
+    expect(screen.getByTestId('checkin-draft')).toHaveTextContent(/awaiting the dietitian’s review/);
   });
 
-  it('records a score that is not perfect, too', async () => {
-    await render(<WeekCheck />);
-    await answerAll(false);
-    expect(screen.getByTestId('check-score')).toHaveTextContent(`0 of ${questions.length} right`);
-    expect(checksFor('p-theo')[1]).toMatchObject({ right: 0 });
+  it('will not send until all five are answered', async () => {
+    await render(<WeekCheckIn />);
+    expect(screen.getByTestId('checkin-send').props.accessibilityState.disabled).toBe(true);
+    await fillAll();
+    expect(screen.getByTestId('checkin-send').props.accessibilityState.disabled).toBe(false);
   });
 
-  it('answers a myth with the deck’s own fact', async () => {
-    await render(<WeekCheck />);
-    await act(async () => fireEvent.press(screen.getByTestId('check-start')));
-    expect(screen.getByTestId('check-prompt')).toHaveTextContent(
-      'Carbs make you fat. Athletes should eat mostly protein.',
-      { exact: false }
-    );
-    await act(async () => fireEvent.press(screen.getByTestId('check-choice-1'))); // "Fact"
-    expect(screen.getByTestId('check-feedback')).toHaveTextContent(/Carbohydrates are stored as glycogen/);
+  it('saves one row in the tab’s columns, then says the week is in', async () => {
+    await render(<WeekCheckIn />);
+    await fillAll();
+    await act(async () => fireEvent.press(screen.getByTestId('checkin-send')));
+    expect(mockSave).toHaveBeenCalledWith({
+      week: 1,
+      theme: 'Carbohydrates',
+      participant_id: 'p-theo',
+      avg_training_energy: 8,
+      avg_urine_colour: 4,
+      avg_fluid_ml: 2000,
+      breakfast_compliance: 'Every day',
+      week_behaviour_check: 'Less cramps',
+      notes: null,
+    });
+    expect(screen.getByTestId('checkin-thanks')).toHaveTextContent('Week 1 is in.');
   });
 
-  it('will not check a week that has not opened', async () => {
-    mockParams = { week: '4' };
-    await render(<WeekCheck />);
-    expect(screen.getByTestId('check-locked')).toBeTruthy();
+  it('starts from the week’s daily logs and says so', async () => {
+    mockLogs = { energy: 7, urine: 5, fluidMl: 1800, breakfastDays: 6, daysLogged: 7 };
+    await render(<WeekCheckIn />);
+    expect(screen.getByTestId('checkin-prefilled')).toHaveTextContent(/daily logs \(7 days\)/);
+    expect(screen.getByTestId('checkin-water').props.value).toBe('1800');
+    expect(screen.getByText('Your log has breakfast on 6 of 7 days.')).toBeTruthy();
+  });
+
+  it('offers a choice question’s own answers', async () => {
+    mockParams = { week: '2' };
+    mockProgramme = programmeState(START, '2026-11-12'); // week 3, so week 2 is open
+    mockQuestion = {
+      week: 2,
+      question: 'Did you add a protein source to 3+ meals last week?',
+      kind: 'choice',
+      options: ['Every meal', 'Most meals', 'Some meals', 'No'],
+      draft: false,
+    };
+    await render(<WeekCheckIn />);
+    expect(screen.getByTestId('checkin-behaviour-1')).toHaveTextContent('Most meals');
+    expect(screen.queryByTestId('checkin-draft')).toBeNull();
+  });
+
+  it('edits a week already in rather than adding a second', async () => {
+    mockExisting = {
+      id: 'w1', week: 1, theme: 'Carbohydrates', participant_id: 'p-theo',
+      avg_training_energy: 7, avg_urine_colour: 5, avg_fluid_ml: 1500,
+      breakfast_compliance: 'Most days', week_behaviour_check: 'Less cramps', answer: null, notes: null,
+      created_at: '2026-11-02T10:00:00Z', updated_at: '2026-11-02T10:00:00Z',
+    };
+    await render(<WeekCheckIn />);
+    expect(screen.getByTestId('checkin-already')).toHaveTextContent(/Mon(day)? 2 Nov/);
+    expect(screen.getByTestId('checkin-send')).toHaveTextContent('Update my check-in');
+  });
+
+  it('will not take a week that has not happened yet', async () => {
+    mockParams = { week: '3' };
+    await render(<WeekCheckIn />);
+    expect(screen.getByTestId('checkin-not-yet')).toBeTruthy();
   });
 });
 
 describe('on Today', () => {
-  it('offers last week’s check until it is done', async () => {
+  it('offers last week’s check-in until it is in', async () => {
     const onOpen = jest.fn();
     await render(<WeekCheckPrompt programme={WEEK_2_DAY_3} participantId="p-theo" onOpen={onOpen} />);
-    expect(screen.getByTestId('week-check-prompt')).toHaveTextContent('WEEK 1 CHECK', { exact: false });
+    expect(screen.getByTestId('week-check-prompt')).toHaveTextContent('WEEK 1 CHECK-IN', { exact: false });
     await act(async () => fireEvent.press(screen.getByTestId('week-check-prompt')));
     expect(onOpen).toHaveBeenCalledWith(1);
   });
 
-  it('goes away once that check is done', async () => {
+  it('goes away once that week is in', async () => {
+    mockChecked = [1];
     await render(<WeekCheckPrompt programme={WEEK_2_DAY_3} participantId="p-theo" onOpen={() => {}} />);
-    await act(async () => saveCheck('p-theo', 1, { right: 4, total: 5, on: '2026-11-06' }));
     expect(screen.queryByTestId('week-check-prompt')).toBeNull();
   });
 
