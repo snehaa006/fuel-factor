@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppSidebar } from '@/components/app-sidebar';
 import { MealChallengeCard } from '@/components/meal-challenge-card';
 import { DayTypeSwitch } from '@/components/day-type-switch';
+import { DidYouKnow } from '@/components/did-you-know';
 import { FuelRing } from '@/components/fuel-ring';
 import { MascotBanner } from '@/components/mascot-banner';
 import { MealTimeline } from '@/components/meal-timeline';
@@ -18,12 +19,14 @@ import { SessionTimes } from '@/components/session-times';
 import { SidebarButton } from '@/components/sidebar';
 import { StreakChip } from '@/components/streak-chip';
 import { StreakStrip } from '@/components/streak-strip';
+import { WeekCheckPrompt } from '@/components/week-check-prompt';
 import { topNudges } from '@/lib/advice';
 import { dayCue } from '@/lib/mascot-copy';
 import { hasSession, nowMinutes } from '@/lib/session';
 import { bestStreak, loggedToday, recentDays, streakLength } from '@/lib/streak';
 import { hasSessionDay, PROTEIN_WEEK } from '@/lib/targets';
 import { useMealChallenge } from '@/lib/use-meal-challenge';
+import { useProgramme } from '@/lib/use-programme';
 import { useRecallStatus } from '@/lib/use-recall';
 import { useToday } from '@/lib/use-today';
 import { useStrings } from '@/i18n';
@@ -48,6 +51,8 @@ function TodayScreen() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [focusCount, setFocusCount] = useState(0);
   const challenge = useMealChallenge(undefined, focusCount);
+  const programmeStatus = useProgramme();
+  const programme = programmeStatus.status === 'ready' ? programmeStatus.programme : null;
 
   // Coming back from the logger, the day has changed underneath this screen.
   // The first focus is the mount, which has just loaded, so it is skipped.
@@ -156,6 +161,16 @@ function TodayScreen() {
             </View>
           )}
 
+        {/* Last week's check, until it is done: Theo's "before they move on
+            to the next week". It never blocks the new week. */}
+        <View style={{ marginTop: spacing['space-4'] }}>
+          <WeekCheckPrompt
+            programme={programme}
+            participantId={data.participantId}
+            onOpen={(week) => router.push(`/learn/check/${week}`)}
+          />
+        </View>
+
         {recall.status === 'ready' && recall.window.status === 'due' && (
           <View style={{ marginTop: spacing['space-6'] }}>
             <RecallPrompt
@@ -178,6 +193,12 @@ function TodayScreen() {
             motion={cue.motion}
             testID="day-mascot"
           />
+        </View>
+
+        {/* Folded until tapped: Sofia's "toggle ... did you know, or fact for
+            the day". One of this week's own statistic cards. */}
+        <View style={{ marginTop: spacing['space-4'] }}>
+          <DidYouKnow programme={programme} onOpenLesson={(week) => router.push(`/learn/${week}`)} />
         </View>
 
         <View style={{ marginTop: spacing['space-6'] }}>

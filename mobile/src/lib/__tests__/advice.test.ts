@@ -1,4 +1,4 @@
-import { evaluate, MAX_NUDGES, topNudges, type AdviceRule } from '@/lib/advice';
+import { evaluate, MAX_NUDGES, sourceWeek, topNudges, type AdviceRule } from '@/lib/advice';
 import { summariseDay, type LoggedItem } from '@/lib/today';
 import type { TrainingSession } from '@/lib/session';
 import { DEMO_RULES } from '@/lib/__fixtures__/today';
@@ -448,5 +448,48 @@ describe('the week 4 top-up snack', () => {
       'Top-up snack + 500mL fluid. Pisang (banana) or roti + selai kacang (bread + peanut butter).'
     );
     expect(nudge.source).toBe('week-4-slides');
+  });
+});
+
+describe('this week’s material leads', () => {
+  /**
+   * Sofia, 25 November: "if that message can be, you know, in real time for
+   * that week. If it's protein, it's the protein week." Two rules that fire
+   * together: the one from the week the programme is in comes first, even
+   * against a higher severity from another week.
+   */
+  const rule = (code: string, source: string, severity: number): AdviceRule => ({
+    code,
+    domain: 'carbohydrate',
+    message_en: code,
+    severity,
+    reviewed_by: null,
+    source,
+  });
+  const rules = [
+    rule('no_breakfast_training_day', 'week-1-deck', 3),
+    rule('urine_five_or_worse', 'week-3-deck', 1),
+  ];
+  const day = summariseDay({ ...log, urine_colour: 6 }, [], 68);
+
+  it('puts the current week’s sentence first', () => {
+    expect(evaluate(day, rules, NOON, 3).map((n) => n.code)).toEqual([
+      'urine_five_or_worse',
+      'no_breakfast_training_day',
+    ]);
+  });
+
+  it('falls back to severity when neither is this week’s', () => {
+    expect(evaluate(day, rules, NOON, 2).map((n) => n.code)).toEqual([
+      'no_breakfast_training_day',
+      'urine_five_or_worse',
+    ]);
+  });
+
+  it('reads the week off the rule’s own source', () => {
+    expect(sourceWeek('week-2-deck')).toBe(2);
+    expect(sourceWeek('week-4-slides')).toBe(4);
+    expect(sourceWeek('tkpi')).toBeNull();
+    expect(sourceWeek(undefined)).toBeNull();
   });
 });

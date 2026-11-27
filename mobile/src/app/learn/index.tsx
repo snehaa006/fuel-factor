@@ -2,27 +2,42 @@ import { useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { shortDate } from '@/components/calendar';
 import { MascotBanner } from '@/components/mascot-banner';
+import type { Week } from '@/lib/learn';
 import { learnCue } from '@/lib/mascot-copy';
+import { useParticipantId } from '@/lib/use-foods';
 import { useWeeks } from '@/lib/use-learn';
+import { useProgramme } from '@/lib/use-programme';
+import { useWeekChecks } from '@/lib/week-check';
+import { canRead, weekAccess, type WeekAccess } from '@/lib/weekly';
 import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
 /**
- * The four weeks of the programme.
+ * The four weeks of the programme, run week by week.
  *
- * Week 1 is written and the rest are not. A locked week shows its number and
- * nothing else -- no theme, no teaser, no "coming soon: protein" -- because
- * the programme has not said what weeks 2 to 4 are about and the app will not
- * guess on its behalf.
+ * Sofia, 25 November: "can the learning section be in tandem with the week
+ * that the athlete is on?" So the week the programme is in leads, marked
+ * *This week*; the weeks before it stay open to re-read, each with how its
+ * check went; the weeks after it are locked and say the day they open. With
+ * no programme to follow (a coach, or no first day set) every written week
+ * is simply open.
+ *
+ * A week the programme has not written is locked whatever the date, and
+ * shows its number and nothing else -- no theme, no teaser -- because the app
+ * will not guess what a week is about on the programme's behalf.
  */
 export default function Learn() {
   const router = useRouter();
   const { colors, radius, spacing, typography } = useTheme();
   const t = useStrings();
   const state = useWeeks();
+  const programme = useProgramme();
+  const participantId = useParticipantId();
+  const checks = useWeekChecks(participantId);
 
-  if (state.status === 'loading') {
+  if (state.status === 'loading' || programme.status === 'loading') {
     return (
       <SafeAreaView style={[styles.safe, styles.centre, { backgroundColor: colors.surface }]}>
         <ActivityIndicator color={colors.pisang} />
@@ -44,6 +59,9 @@ export default function Learn() {
       </SafeAreaView>
     );
   }
+
+  // A coach, or an account with no athlete behind it, has no programme week.
+  const programmeState = programme.status === 'ready' ? programme.programme : null;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
@@ -71,53 +89,101 @@ export default function Learn() {
         </View>
 
         <View style={{ marginTop: spacing['space-6'], gap: spacing['space-3'] }}>
-          {state.weeks.map((week) => (
-            <Pressable
-              key={week.weekNumber}
-              disabled={!week.unlocked}
-              onPress={() => router.push(`/learn/${week.weekNumber}`)}
-              accessibilityRole="button"
-              accessibilityState={{ disabled: !week.unlocked }}
-              accessibilityLabel={
-                week.unlocked
-                  ? t.learn.weekOpen(week.weekNumber, week.theme)
-                  : t.learn.weekNotWritten(week.weekNumber)
-              }
-              testID={`week-${week.weekNumber}`}
-              style={{
-                backgroundColor: week.unlocked ? colors['surface-raised'] : colors.locked,
-                borderRadius: radius['radius-lg'],
-                padding: spacing['space-4'],
-                gap: spacing['space-1'],
-              }}
-            >
-              <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-                {t.learn.weekCaps(week.weekNumber)}
-              </Text>
-              <Text
-                style={[
-                  typography['heading-l'],
-                  { color: week.unlocked ? colors.ink : colors['ink-faint'] },
-                ]}
+          {ordered(state.weeks, programmeState).map(({ week, access }) => {
+            const open = week.unlocked && canRead(access);
+            const current = access.state === 'current';
+            const check = checks[week.weekNumber];
+            return (
+              <Pressable
+                key={week.weekNumber}
+                disabled={!open}
+                onPress={() => router.push(`/learn/${week.weekNumber}`)}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: !open }}
+                accessibilityLabel={
+                  week.unlocked
+                    ? t.learn.weekOpen(week.weekNumber, week.theme)
+                    : t.learn.weekNotWritten(week.weekNumber)
+                }
+                testID={`week-${week.weekNumber}`}
+                style={{
+                  backgroundColor: open
+                    ? current
+                      ? colors['pisang-tint']
+                      : colors['surface-raised']
+                    : colors.locked,
+                  borderColor: colors.pisang,
+                  borderWidth: current ? 2 : 0,
+                  borderRadius: radius['radius-lg'],
+                  padding: spacing['space-4'],
+                  gap: spacing['space-1'],
+                }}
               >
-                {/* No theme invented for a week the programme has not written. */}
-                {week.theme ?? t.learn.notWrittenYet}
-              </Text>
-              {week.unlocked && week.challenge !== null && (
-                <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-                  {t.learn.challenge(week.challenge)}
+                <View style={styles.eyebrow}>
+                  <Text style={[typography.label, { color: colors['ink-muted'] }]}>
+                    {t.learn.weekCaps(week.weekNumber)}
+                  </Text>
+                  {current && (
+                    <Text testID={`week-${week.weekNumber}-current`} style={[typography.label, { color: colors['pisang-deep'] }]}>
+                      {t.weekly.thisWeek}
+                    </Text>
+                  )}
+                  {access.state === 'past' && week.unlocked && (
+                    <Text style={[typography.label, { color: colors['daun-deep'] }]}>
+                      {t.weekly.doneCaps}
+                    </Text>
+                  )}
+                </View>
+                <Text
+                  style={[typography['heading-l'], { color: open ? colors.ink : colors['ink-faint'] }]}
+                >
+                  {/* No theme invented for a week the programme has not written. */}
+                  {week.theme ?? t.learn.notWrittenYet}
                 </Text>
-              )}
-            </Pressable>
-          ))}
+                {open && week.challenge !== null && (
+                  <Text style={[typography['body-s'], { color: colors['ink-muted'] }]}>
+                    {t.learn.challenge(week.challenge)}
+                  </Text>
+                )}
+                {access.state === 'future' && week.unlocked && (
+                  <Text
+                    testID={`week-${week.weekNumber}-opens`}
+                    style={[typography['body-s'], { color: colors['ink-muted'] }]}
+                  >
+                    {t.weekly.opensOn(shortDate(access.opensOn, t))}
+                  </Text>
+                )}
+                {open && access.state !== 'open' && (
+                  <Text
+                    testID={`week-${week.weekNumber}-check`}
+                    style={[
+                      typography['body-s'],
+                      { color: check ? colors['daun-deep'] : colors['ink-faint'] },
+                    ]}
+                  >
+                    {check ? t.weekly.result(check.right, check.total) : t.weekly.notChecked}
+                  </Text>
+                )}
+              </Pressable>
+            );
+          })}
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
+/** The current week first, then the rest in order. */
+function ordered(weeks: Week[], programme: Parameters<typeof weekAccess>[1]) {
+  const withAccess = weeks.map((week) => ({ week, access: weekAccess(week.weekNumber, programme) }));
+  const current = withAccess.filter((w) => w.access.state === 'current');
+  const rest = withAccess.filter((w) => w.access.state !== 'current');
+  return [...current, ...rest] as { week: Week; access: WeekAccess }[];
+}
+
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   centre: { alignItems: 'center', justifyContent: 'center' },
   content: { paddingBottom: 48 },
+  eyebrow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
 });

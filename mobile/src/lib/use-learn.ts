@@ -4,10 +4,12 @@ import { messageOf } from './errors';
 import { listFoods, type FoodWithPortions } from './food';
 import {
   completeChallenge,
+  fetchCards,
   fetchWeek,
   fetchWeeks,
   setChallengePhoto,
   undoChallenge,
+  type LessonCard,
   type Week,
   type WeekDetail,
 } from './learn';
@@ -41,6 +43,33 @@ export function useWeeks(): WeeksState {
       active = false;
     };
   }, []);
+
+  return state;
+}
+
+export type CardsState =
+  | { status: 'loading' }
+  | { status: 'ready'; cards: Record<number, LessonCard[]> }
+  | { status: 'error'; message: string };
+
+/**
+ * The lesson cards of some weeks, for the fact of the day and the week check.
+ * Pass the weeks as a stable key (`'2'`, `'1,2,3,4'`); an empty key loads
+ * nothing and reads as ready with no cards.
+ */
+export function useCards(weeksKey: string): CardsState {
+  const [state, setState] = useState<CardsState>({ status: 'loading' });
+
+  useEffect(() => {
+    let active = true;
+    const weeks = weeksKey === '' ? [] : weeksKey.split(',').map(Number);
+    fetchCards(weeks)
+      .then((cards) => active && setState({ status: 'ready', cards }))
+      .catch((error) => active && setState({ status: 'error', message: messageOf(error) }));
+    return () => {
+      active = false;
+    };
+  }, [weeksKey]);
 
   return state;
 }

@@ -204,10 +204,23 @@ export function evaluate(
       reviewed: rule.reviewed_by !== null,
       source: rule.source,
     }))
-    // Severity is the rule row's own. Ties keep evaluation order rather than
-    // being broken here, because ranking one domain above another -- hydration
-    // over carbohydrate -- would be a judgement the programme has not made.
-    .sort((a, b) => b.severity - a.severity);
+    // This week's material first, then severity, which is the rule row's own.
+    // Sofia, 25 November: "since this is like per week messaging, if that
+    // message can be, you know, in real time for that week. If it's protein,
+    // it's the protein week." The week is read off the rule's own `source`,
+    // so no domain is ranked above another by the app: the programme's
+    // calendar does the ranking. Remaining ties keep evaluation order.
+    .sort(
+      (a, b) =>
+        Number(sourceWeek(b.source) === programmeWeek) -
+          Number(sourceWeek(a.source) === programmeWeek) || b.severity - a.severity
+    );
+}
+
+/** The programme week a rule's sentence is from: 'week-2-deck' is 2, 'week-4-slides' 4. */
+export function sourceWeek(source: string | undefined): number | null {
+  const match = /^week-(\d)-/.exec(source ?? '');
+  return match ? Number(match[1]) : null;
 }
 
 /** The cards the screen shows, most severe first, capped at {@link MAX_NUDGES}. */

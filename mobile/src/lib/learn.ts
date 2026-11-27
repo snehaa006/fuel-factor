@@ -125,6 +125,28 @@ export async function fetchWeeks(): Promise<Week[]> {
   return toWeeks(challenges.data ?? [], (cards.data ?? []).map((c) => c.week_number));
 }
 
+/**
+ * The cards of the given weeks, grouped by week, in the deck's order.
+ *
+ * For the fact of the day and the week check, which read the cards and
+ * nothing else: no challenge completion, no week list.
+ */
+export async function fetchCards(weeks: number[]): Promise<Record<number, LessonCard[]>> {
+  if (weeks.length === 0) return {};
+  const { data, error } = await supabase
+    .from('lesson_cards')
+    .select('*, lesson_points(*)')
+    .in('week_number', weeks)
+    .returns<CardRow[]>();
+  if (error) throw asError(error);
+
+  const byWeek: Record<number, LessonCard[]> = {};
+  for (const week of weeks) {
+    byWeek[week] = toCards((data ?? []).filter((row) => row.week_number === week));
+  }
+  return byWeek;
+}
+
 export type WeekDetail = {
   week: Week;
   cards: LessonCard[];
