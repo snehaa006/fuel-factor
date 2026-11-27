@@ -28,8 +28,7 @@ import { useTheme } from '@/theme';
  * **One card at a time.** Theo, 25 November, scrolling a week: "is it quite
  * long, do you think?" Ten to twelve cards in one column is a lot for a
  * 15 year old on a phone, so the lesson is a run of cards with a progress
- * bar, Back and Next, and the week's check at the end -- the way the apps the
- * squad already uses teach. "Show the whole lesson" puts the column back for
+ * bar, Back and Next -- the way the apps the squad already uses teach. "Show the whole lesson" puts the column back for
  * anyone looking something up. The challenge stays under the card, because
  * ticking it is a daily thing and should not mean paging through the lesson.
  *
@@ -146,12 +145,6 @@ export default function Week() {
             {detail.cards.map((card) => (
               <LessonCard key={card.id} card={card} foods={foods} testID={`card-${card.kind}`} />
             ))}
-            <PushButton
-              label={t.weekly.checkCta}
-              fullWidth
-              testID="lesson-check"
-              onPress={() => router.push(`/learn/check/${weekNumber}`)}
-            />
           </View>
         ) : (
           total > 0 && (
@@ -201,10 +194,10 @@ export default function Week() {
                 <View style={{ flex: 1 }}>
                   {last ? (
                     <PushButton
-                      label={t.weekly.checkCta}
+                      label={t.weekly.backToLearn}
                       fullWidth
-                      testID="lesson-check"
-                      onPress={() => router.push(`/learn/check/${weekNumber}`)}
+                      testID="lesson-finish"
+                      onPress={() => router.back()}
                     />
                   ) : (
                     <PushButton

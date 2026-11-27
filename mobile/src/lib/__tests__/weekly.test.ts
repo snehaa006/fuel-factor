@@ -1,15 +1,13 @@
-import { DEMO_LESSON_CARDS, DEMO_LESSON_CARDS_WEEK2 } from '@/lib/__fixtures__/today';
+import { DEMO_LESSON_CARDS } from '@/lib/__fixtures__/today';
 import { programmeState } from '@/lib/programme';
 import {
   canRead,
+  checkInOpen,
   dayOfWeek,
   factFor,
   factsFrom,
-  isRight,
-  MAX_QUESTIONS,
-  quizFor,
-  quotedMyth,
   weekAccess,
+  weekDates,
   weekOfProgramme,
   weekToCheck,
 } from '@/lib/weekly';
@@ -109,73 +107,26 @@ describe('did you know', () => {
   });
 });
 
-describe('the week check', () => {
-  const week1 = quizFor(DEMO_LESSON_CARDS, 1);
-  const week2 = quizFor(DEMO_LESSON_CARDS_WEEK2, 2);
-
-  it('asks a handful, not the whole lesson', () => {
-    expect(week1.length).toBeGreaterThanOrEqual(3);
-    expect(week1.length).toBeLessThanOrEqual(MAX_QUESTIONS);
-    expect(week2.length).toBeLessThanOrEqual(MAX_QUESTIONS);
+describe('the check-in window', () => {
+  it('knows the dates of a programme week', () => {
+    expect(weekDates(START, 1)).toEqual({ from: '2026-10-28', to: '2026-11-03' });
+    expect(weekDates(START, 4)).toEqual({ from: '2026-11-18', to: '2026-11-24' });
   });
 
-  it('asks the deck’s own myth, and answers with the deck’s own fact', () => {
-    const myth = week1.find((q) => q.kind === 'myth');
-    expect(myth).toMatchObject({
-      prompt: 'Carbs make you fat. Athletes should eat mostly protein.',
-      answer: 'myth',
-    });
-    expect(myth?.kind === 'myth' && myth.explanation).toMatch(/^Carbohydrates are stored as glycogen/);
+  it('opens a week’s check-in from its sixth day', () => {
+    expect(checkInOpen(1, on('2026-11-01'))).toBe(false); // week 1, day 5
+    expect(checkInOpen(1, on('2026-11-02'))).toBe(true); // week 1, day 6
   });
 
-  it('asks which figure goes with a caption, offering only that card’s figures', () => {
-    const card = DEMO_LESSON_CARDS.find((c) => c.kind === 'stats')!;
-    const values = card.points.map((p) => p.value);
-    const figures = week1.filter((q) => q.kind === 'figure');
-    expect(figures.length).toBeGreaterThan(0);
-    for (const q of figures) {
-      if (q.kind !== 'figure') continue;
-      expect(q.choices).toContain(q.answer);
-      expect(new Set(q.choices).size).toBe(q.choices.length);
-      expect(q.choices.length).toBeLessThanOrEqual(4);
-      // Nothing offered that the deck did not print.
-      for (const choice of q.choices) expect(values).toContain(choice);
-      // The caption is the deck's, and its own figure is the answer.
-      expect(card.points.find((p) => p.label === q.prompt)?.value).toBe(q.answer);
-    }
+  it('keeps an earlier week’s open, and every week’s once the programme is over', () => {
+    expect(checkInOpen(1, on('2026-11-06'))).toBe(true);
+    expect(checkInOpen(3, on('2026-11-06'))).toBe(false);
+    for (const week of [1, 2, 3, 4]) expect(checkInOpen(week, on('2026-12-01'))).toBe(true);
   });
 
-  it('does not always put the right figure where the deck put it', () => {
-    const figures = week1.filter((q) => q.kind === 'figure');
-    const positions = figures.map((q) => (q.kind === 'figure' ? q.choices.indexOf(q.answer) : -1));
-    expect(new Set(positions).size).toBeGreaterThan(1);
-  });
-
-  it('spreads across a week’s statistic cards', () => {
-    // Week 2 has two: "Why it matters" and "The Calorie Gap".
-    const headings = new Set(week2.filter((q) => q.kind === 'figure').map((q) => q.heading));
-    expect(headings.size).toBe(2);
-  });
-
-  it('is the same check twice', () => {
-    expect(quizFor(DEMO_LESSON_CARDS, 1)).toEqual(week1);
-  });
-
-  it('marks only the deck’s answer right', () => {
-    const q = week1.find((x) => x.kind === 'figure')!;
-    expect(isRight(q, q.answer)).toBe(true);
-    const wrong = q.kind === 'figure' ? q.choices.find((c) => c !== q.answer)! : 'fact';
-    expect(isRight(q, wrong)).toBe(false);
-  });
-
-  it('skips a myth the deck did not quote, rather than paraphrasing it', () => {
-    expect(quotedMyth('"Carbs make you fat." More words.')).toBe('Carbs make you fat.');
-    expect(quotedMyth('No quotation here.')).toBeNull();
-    expect(quotedMyth(null)).toBeNull();
-  });
-
-  it('asks nothing of a week without statistics or a myth', () => {
-    expect(quizFor(DEMO_LESSON_CARDS.filter((c) => c.kind === 'intro'), 1)).toEqual([]);
+  it('is shut before day one and without a programme', () => {
+    expect(checkInOpen(1, on('2026-10-20'))).toBe(false);
+    expect(checkInOpen(1, null)).toBe(false);
   });
 });
 

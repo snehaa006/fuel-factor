@@ -156,6 +156,86 @@ export type Database = {
         Update: { challenge?: string; created_at?: string; id?: string; starts_on?: string | null; theme?: string; week_number?: number };
         Relationships: [];
       };
+      // 20261127000001_weekly_logs.sql: the WEEKLY LOG tab, column for column.
+      weekly_logs: {
+        Row: {
+          id: string;
+          week: number;
+          theme: string | null;
+          participant_id: string;
+          avg_training_energy: number | null;
+          avg_urine_colour: number | null;
+          avg_fluid_ml: number | null;
+          breakfast_compliance: string | null;
+          week_behaviour_check: string | null;
+          answer: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          week: number;
+          theme?: string | null;
+          participant_id: string;
+          avg_training_energy?: number | null;
+          avg_urine_colour?: number | null;
+          avg_fluid_ml?: number | null;
+          breakfast_compliance?: string | null;
+          week_behaviour_check?: string | null;
+          answer?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          week?: number;
+          theme?: string | null;
+          participant_id?: string;
+          avg_training_energy?: number | null;
+          avg_urine_colour?: number | null;
+          avg_fluid_ml?: number | null;
+          breakfast_compliance?: string | null;
+          week_behaviour_check?: string | null;
+          answer?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      // 20261127000002_checkin_questions.sql: each week's behaviour question.
+      checkin_questions: {
+        Row: {
+          week_number: number;
+          question: string;
+          kind: string;
+          options: string[] | null;
+          source: string;
+          reviewed_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          week_number: number;
+          question: string;
+          kind: string;
+          options?: string[] | null;
+          source: string;
+          reviewed_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          week_number?: number;
+          question?: string;
+          kind?: string;
+          options?: string[] | null;
+          source?: string;
+          reviewed_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: {

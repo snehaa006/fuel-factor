@@ -9,8 +9,8 @@ import { learnCue } from '@/lib/mascot-copy';
 import { useParticipantId } from '@/lib/use-foods';
 import { useWeeks } from '@/lib/use-learn';
 import { useProgramme } from '@/lib/use-programme';
-import { useWeekChecks } from '@/lib/week-check';
-import { canRead, weekAccess, type WeekAccess } from '@/lib/weekly';
+import { useCheckedWeeks } from '@/lib/weekly-log';
+import { canRead, checkInOpen, weekAccess, type WeekAccess } from '@/lib/weekly';
 import { useStrings } from '@/i18n';
 import { useTheme } from '@/theme';
 
@@ -19,8 +19,8 @@ import { useTheme } from '@/theme';
  *
  * Sofia, 25 November: "can the learning section be in tandem with the week
  * that the athlete is on?" So the week the programme is in leads, marked
- * *This week*; the weeks before it stay open to re-read, each with how its
- * check went; the weeks after it are locked and say the day they open. With
+ * *This week*; the weeks before it stay open to re-read, each saying whether
+ * its Sunday check-in is in; the weeks after it are locked and say the day they open. With
  * no programme to follow (a coach, or no first day set) every written week
  * is simply open.
  *
@@ -35,7 +35,8 @@ export default function Learn() {
   const state = useWeeks();
   const programme = useProgramme();
   const participantId = useParticipantId();
-  const checks = useWeekChecks(participantId);
+  const checked = useCheckedWeeks(participantId);
+  const checkedWeeks = checked.status === 'ready' ? checked.weeks : [];
 
   if (state.status === 'loading' || programme.status === 'loading') {
     return (
@@ -92,7 +93,8 @@ export default function Learn() {
           {ordered(state.weeks, programmeState).map(({ week, access }) => {
             const open = week.unlocked && canRead(access);
             const current = access.state === 'current';
-            const check = checks[week.weekNumber];
+            const done = checkedWeeks.includes(week.weekNumber);
+            const due = checkInOpen(week.weekNumber, programmeState);
             return (
               <Pressable
                 key={week.weekNumber}
@@ -153,16 +155,22 @@ export default function Learn() {
                     {t.weekly.opensOn(shortDate(access.opensOn, t))}
                   </Text>
                 )}
-                {open && access.state !== 'open' && (
-                  <Text
+                {due && (
+                  <Pressable
+                    onPress={() => router.push(`/learn/check/${week.weekNumber}`)}
+                    accessibilityRole="button"
                     testID={`week-${week.weekNumber}-check`}
-                    style={[
-                      typography['body-s'],
-                      { color: check ? colors['daun-deep'] : colors['ink-faint'] },
-                    ]}
+                    hitSlop={6}
                   >
-                    {check ? t.weekly.result(check.right, check.total) : t.weekly.notChecked}
-                  </Text>
+                    <Text
+                      style={[
+                        typography['body-s'],
+                        { color: done ? colors['daun-deep'] : colors['air-deep'] },
+                      ]}
+                    >
+                      {done ? `${t.checkin.statusDone} ✓` : `${t.checkin.statusNotDone} · ${t.checkin.promptCta}`}
+                    </Text>
+                  </Pressable>
                 )}
               </Pressable>
             );
