@@ -16,8 +16,9 @@ flag, profile or script can produce a build that draws from sample data.
 | **Confirmation page**, Vercel `fuel-factor` | Where the sign-up email lands. Static, one file |
 | **Supabase** `nprvrlpkdrgckzceyryc` | 18 migrations (2 more in the repo, not yet applied: the Sunday check-in); all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
 
-Both phone channels were last published on **27 November 2026 from commit
-`6a74667` on the branch `claude/practical-darwin-x65d0i`**, not from `main`:
+Both phone channels were last published on **27 November 2026 from the code
+now at `07ce8fd` on `main`** (EAS records it as `6a74667`, the same files
+before the commits were re-authored):
 everything up to 25 November plus **the language and theme switches, Learn
 week by week (one-card lessons, the fact of the day, this week's advice
 first) and the Sunday check-in** (steps 23 to 25 in `SESSION-HANDOFF.md`).
@@ -28,10 +29,8 @@ Checked: all four channel/platform pairs serve these update ids.
 | `preview` | `2867c8a5-2cbc-47c0-91e8-af83865a6d5d` | `82159e9f-e899-4bd3-85c5-45e4495a3baa` |
 | `share` | `ae2a0e26-03e1-4312-86ae-b167ea5e428d` | `8b8129a6-d1d1-4ec8-ba46-8efa7cea40ca` |
 
-**Merge that branch before the next publish.** The phones are ahead of
-`main`: an `eas update` run from `main` as it stands would take all of the
-above off them again. The web app and the self-hosted Expo Go route follow
-`main` on Vercel, so they do not have it yet either.
+The web app and the self-hosted Expo Go route follow `main` on Vercel, so
+they carry the same code.
 
 **The check-in's database changes are not applied yet**, so on the phones
 the check-in stays hidden (a failed lookup offers nothing) until they are;
