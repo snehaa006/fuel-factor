@@ -14,20 +14,21 @@ flag, profile or script can produce a build that draws from sample data.
 | **Web app**, <https://fuel-factor-expo-go.vercel.app> | `main`, the real app, opened in any phone's or laptop's browser. **The demo build**: a release build, no dev menu, nothing to install. Deployed by Vercel on every push to `main` |
 | **Expo Go route**, same host | `main`, for Expo Go only (`exps://fuel-factor-expo-go.vercel.app`). A developer tool: shake opens Expo Go's menu |
 | **Confirmation page**, Vercel `fuel-factor` | Where the sign-up email lands. Static, one file |
-| **Supabase** `nprvrlpkdrgckzceyryc` | 18 migrations (2 more in the repo, not yet applied: the Sunday check-in); all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
+| **Supabase** `nprvrlpkdrgckzceyryc` | 18 migrations (3 more in the repo, not yet applied: the Sunday check-in and the reflection); all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
 
-Both phone channels were last published on **27 November 2026 from the code
-now at `07ce8fd` on `main`** (EAS records it as `6a74667`, the same files
-before the commits were re-authored):
-everything up to 25 November plus **the language and theme switches, Learn
-week by week (one-card lessons, the fact of the day, this week's advice
-first) and the Sunday check-in** (steps 23 to 25 in `SESSION-HANDOFF.md`).
+Both phone channels were last published on **27 November 2026 from `3ef3ecb`
+on `main`**: everything up to 25 November plus the language and theme
+switches, Learn week by week (one-card lessons, the fact of the day, this
+week's advice first), the Sunday check-in (steps 23 to 25 in
+`SESSION-HANDOFF.md`), and then **the end-of-programme reflection, the
+coach's CSV export, and Bahasa for the advice cards and for every lesson,
+theme and challenge**.
 Checked: all four channel/platform pairs serve these update ids.
 
 | Channel | Update group | Previous group, to roll back to |
 |---|---|---|
-| `preview` | `2867c8a5-2cbc-47c0-91e8-af83865a6d5d` | `82159e9f-e899-4bd3-85c5-45e4495a3baa` |
-| `share` | `ae2a0e26-03e1-4312-86ae-b167ea5e428d` | `8b8129a6-d1d1-4ec8-ba46-8efa7cea40ca` |
+| `preview` | `3ca35c7c-6294-4edb-9d19-28b365e67c77` | `b7e7876d-2ebf-4dec-a895-0c26dc8f4ef9`, then `2867c8a5-2cbc-47c0-91e8-af83865a6d5d` |
+| `share` | `59beb17e-ac9c-4a65-92cf-15d0d76ec6b3` | `5d740629-b27e-4d6a-a299-5b087104f4c6`, then `ae2a0e26-03e1-4312-86ae-b167ea5e428d` |
 
 The web app and the self-hosted Expo Go route follow `main` on Vercel, so
 they carry the same code.

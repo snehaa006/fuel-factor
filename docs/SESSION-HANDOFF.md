@@ -820,7 +820,51 @@ row, the log prefill, a choice question, editing a week already in, a week
 not reached). Looked at in the web build in English/light and Bahasa/dark,
 with the question row supplied by intercepting its request.
 
-**1368 tests pass.**
+**Step 26** — Everything else from the 25 November call that needed no new
+source (27 November). Sneha, the day before the demo: do what Sofia and Theo
+asked rather than wait for sign-off; leave the AI advice layer until the
+guideline sources arrive.
+
+*Weeks 1 and 4's check-in questions* are worded from the answers the tracker
+already holds for them ("Less cramps", "More energy and better sleep after
+rice at night"; "Better", "Bit better") -- `source = 'tracker-answers'` in
+seed `0016`. Week 1 asks "Did you notice any difference after adding carbs
+this week?"; week 4 offers Better / A bit better / The same / Worse.
+
+*The end-of-programme reflection* (`/reflection`, `lib/reflection.ts`,
+migration `20261127000003_programme_reflections`). Sofia's three questions in
+her order -- how was the programme (1-10), did you like it (Yes / Somewhat /
+No), what was your best takeaway -- and an optional fourth for the feedback
+Theo named. Opens with week 4's check-in (its sixth day) and stays open;
+offered on Today until it is in; one row per athlete, edited on a second
+visit. App tier: the tracker has no tab for it.
+
+*The coach's research export* (`/coach/export`, `lib/export.ts`), in the
+coach's menu. One CSV per tracker tab -- participants, daily log, weekly log,
+recalls, assessments -- plus the reflections, each with its table's columns in
+the table's order and the tracker's participant code and name in place of
+the internal id. Row level security decides whose rows: a coach gets their
+squad. A file download on web; the share sheet on a phone (no native module,
+so it is OTA-safe). Cells are RFC 4180-quoted, a typed formula is kept as
+text, and the file carries a byte-order mark so Excel reads the dashes and
+the Bahasa. Checked against the live project: the four original tables
+answer with every column listed.
+
+*Bahasa for the programme's content.* The twelve advice cards' `message_id`
+is filled (seed `0018`, loaded on the live project over REST). The lesson
+cards, their points, the themes and the challenges are translated in the app
+(`i18n/content-id.ts`, 289 entries keyed by the exact English, applied by
+`i18n/content.ts` at display only -- the check-in still saves the English
+theme). Citations, food and product names are left as written. None of it is
+reviewed by Sofia or a native speaker; `content-id.test.tsx` fails the moment
+a key stops matching a seed.
+
+**Still needs the SQL editor:** migrations `20261127000001`, `0002`, `0003` and
+seeds `0016`, `0017` (`docs/RUNNING-IT.md`). An API key can change rows, not
+tables, so this was done over REST only where rows were enough. The combined
+file was dry-run on PGlite on top of all 18 live migrations.
+
+**1401 tests pass.**
 
 `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
@@ -1422,12 +1466,10 @@ elsewhere in the brief are not**, and both are easy to miss for exactly that
 reason — they are not in the numbered list. Sneha's call on 31 October: remember
 them, build them later. Don't start either without asking.
 
-**The CSV export does not exist.** Not a line of it. Seven comments in this
-codebase and `supabase/README.md` justify the entire two-tier schema with "the
-CSV export reads only these four research tables", and nothing writes a CSV.
-The brief's research journey ends there: every log row out with columns matching
-the ASSESSMENTS and COMPARISON tabs, for Sofia's analysis, and from there Theo's
-deck. It is the step that turns the study into the pitch.
+**The CSV export exists as of step 26** (`/coach/export`): one file per
+tracker tab, the research tables' own columns. What it does not do yet is
+the COMPARISON tab's wide layout; the assessments file is the normalised
+pre/post list, which a pivot table turns into it.
 
 **Offline logging does not exist.** The stack table specifies `expo-sqlite` plus
 background sync, with the reason attached: athletes log at the training ground on
@@ -1482,13 +1524,11 @@ The roster seed has everything else the tracker holds.
 
 ## Still waiting on Sofia
 
-**Weeks 1 and 4's behaviour questions** for the Sunday check-in (drafts in
-seed `0016`), and her sign-off on all four · Bahasa wording for the
-programme's sentences, or her review of a draft · the post-programme
-reflection she raised on 25 November ("how was the program? ... what was your
-best takeaway?"), which she said can wait until the post-assessments are
-done · the guideline sources she offered to gather for any future AI advice
-layer.
+Her sign-off on the four check-in questions (weeks 1 and 4 are worded from
+the tracker's answers, seed `0016`) · a review of the app's Bahasa for the
+advice cards and lessons (`0018`, `i18n/content-id.ts`) · a look at the
+end-of-programme reflection (built in step 26 from her three questions) ·
+the guideline sources she offered to gather for any future AI advice layer.
 
 The DQ Score /12 formula · **the eight urine swatch colours** · serving and fluid
 targets · the anchor text for the five 1–10 scales (they ship with no adjectives) ·
