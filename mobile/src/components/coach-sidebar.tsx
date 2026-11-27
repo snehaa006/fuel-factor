@@ -49,6 +49,12 @@ export function CoachSidebar({
       onPress: () => router.push('/coach/assessments'),
     },
     {
+      key: 'export',
+      label: m.export,
+      detail: m.exportDetail,
+      onPress: () => router.push('/coach/export'),
+    },
+    {
       key: 'sign-out',
       label: m.signOut,
       onPress: () => {
