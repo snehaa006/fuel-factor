@@ -246,7 +246,12 @@ function subscribe(listener: () => void) {
 
 const readVersion = () => version;
 
-export type CheckedState = { status: 'loading' } | { status: 'ready'; weeks: number[] };
+export type CheckedState =
+  | { status: 'loading' }
+  | { status: 'ready'; weeks: number[] }
+  // The lookup failed -- most likely the table is not on the project yet.
+  // Nothing is offered then: a prompt that opens onto an error is worse than none.
+  | { status: 'error' };
 
 /** The weeks this athlete has checked in for, refreshed the moment one is saved. */
 export function useCheckedWeeks(participantId: string | null): CheckedState {
@@ -258,8 +263,7 @@ export function useCheckedWeeks(participantId: string | null): CheckedState {
     if (participantId === null) return;
     fetchCheckedWeeks(participantId)
       .then((weeks) => active && setState({ status: 'ready', weeks }))
-      // No table yet (the migration not applied) reads as nothing checked in.
-      .catch(() => active && setState({ status: 'ready', weeks: [] }));
+      .catch(() => active && setState({ status: 'error' }));
     return () => {
       active = false;
     };

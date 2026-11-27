@@ -320,3 +320,11 @@ describe('on Today', () => {
     expect(onOpenLesson).toHaveBeenCalledWith(1);
   });
 });
+
+describe('before the check-in table is on the project', () => {
+  it('offers no check-in on Today rather than one that opens onto an error', async () => {
+    jest.requireMock('@/lib/weekly-log').useCheckedWeeks = () => ({ status: 'error' });
+    await render(<WeekCheckPrompt programme={WEEK_2_DAY_3} participantId="p-theo" onOpen={() => {}} />);
+    expect(screen.queryByTestId('week-check-prompt')).toBeNull();
+  });
+});
