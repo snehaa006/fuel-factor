@@ -16,26 +16,26 @@ flag, profile or script can produce a build that draws from sample data.
 | **Confirmation page**, Vercel `fuel-factor` | Where the sign-up email lands. Static, one file |
 | **Supabase** `nprvrlpkdrgckzceyryc` | 18 migrations (2 more in the repo, not yet applied: the Sunday check-in); all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
 
-Both phone channels were last published on 25 November 2026 from commit
-`83398bc`: everything in the feedback list, the coach's fuel-gap charts, the
-long-team-name fix, the week 3 and week 4 challenges on Today, and **the
-week 3 and week 4 advice cards** (pre-sleep snack, urine 3–4, the top-up
-snack the hour before a session).
+Both phone channels were last published on **27 November 2026 from commit
+`6a74667` on the branch `claude/practical-darwin-x65d0i`**, not from `main`:
+everything up to 25 November plus **the language and theme switches, Learn
+week by week (one-card lessons, the fact of the day, this week's advice
+first) and the Sunday check-in** (steps 23 to 25 in `SESSION-HANDOFF.md`).
+Checked: all four channel/platform pairs serve these update ids.
 
 | Channel | Update group | Previous group, to roll back to |
 |---|---|---|
-| `preview` | `82159e9f-e899-4bd3-85c5-45e4495a3baa` | `9dbf2a48-15f7-4060-b5ce-c2d02057e992` |
-| `share` | `8b8129a6-d1d1-4ec8-ba46-8efa7cea40ca` | `6fe0554c-09c8-47c6-9e04-c205405bff5b` |
+| `preview` | `2867c8a5-2cbc-47c0-91e8-af83865a6d5d` | `82159e9f-e899-4bd3-85c5-45e4495a3baa` |
+| `share` | `ae2a0e26-03e1-4312-86ae-b167ea5e428d` | `8b8129a6-d1d1-4ec8-ba46-8efa7cea40ca` |
 
-The web app and the self-hosted Expo Go route follow `main` on Vercel.
+**Merge that branch before the next publish.** The phones are ahead of
+`main`: an `eas update` run from `main` as it stands would take all of the
+above off them again. The web app and the self-hosted Expo Go route follow
+`main` on Vercel, so they do not have it yet either.
 
-**Not on the phones yet: the language and theme switches, Learn week by
-week, and the Sunday check-in** (steps 23 to 25 in `SESSION-HANDOFF.md`).
-None adds a native module, so the APK does not need rebuilding: an `eas
-update` to `preview` and `share` carries them, and the web app picks them up
-when they reach `main`.
-
-**Before that update, apply the check-in's database changes** to
+**The check-in's database changes are not applied yet**, so on the phones
+the check-in stays hidden (a failed lookup offers nothing) until they are;
+it appears without another update once they are. Apply to
 `nprvrlpkdrgckzceyryc`, in this order (SQL editor, or `supabase db push` for
 the two migrations):
 
