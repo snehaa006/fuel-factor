@@ -848,6 +848,57 @@ export const en = {
    * lower-cased. Empty in English: the message is shown as it came.
    */
   errors: {} as Record<string, string>,
+
+  /** Learn run week by week: the gate, the one-card lesson, the fact, the check. */
+  weekly: {
+    thisWeek: 'THIS WEEK',
+    doneCaps: 'DONE',
+    opensOn: (date: string) => `Opens ${date}`,
+    lockedTitle: (week: number) => `Week ${week} is not open yet`,
+    lockedBody: (date: string) => `It opens on ${date}, for the whole squad at once.`,
+    backToLearn: 'Back to Learn',
+    cardOf: (n: number, total: number) => `${n} of ${total}`,
+    next: 'Next',
+    previous: 'Back',
+    showAll: 'Show the whole lesson',
+    showOne: 'One card at a time',
+    lessonDone: 'That’s the lesson.',
+    checkCta: 'Check what you learned',
+    didYouKnow: 'DID YOU KNOW?',
+    tapToSee: 'Tap for today’s fact',
+    hide: 'Hide',
+    showFact: 'Show today’s fact',
+    hideFact: 'Hide today’s fact',
+    fromWeek: (week: number, heading: string | null) =>
+      `Week ${week} material${heading ? ` · ${heading}` : ''}`,
+    readLesson: 'Read the lesson →',
+    /** Under the deck's own words when the app speaks Bahasa. Empty in English. */
+    deckWords: '',
+    checkTitle: (week: number) => `Week ${week} check`,
+    checkLead: (n: number) => `${n} quick questions, all from this week’s lesson.`,
+    start: 'Start',
+    questionOf: (n: number, total: number) => `QUESTION ${n} OF ${total}`,
+    whichFigure: 'Which figure goes with this?',
+    mythOrFact: 'Myth or fact?',
+    myth: 'Myth',
+    fact: 'Fact',
+    right: 'Right.',
+    notQuite: 'Not quite.',
+    itIs: (answer: string) => `It’s ${answer}.`,
+    itsAMyth: 'It’s a myth. The deck’s fact:',
+    nextQuestion: 'Next question',
+    seeScore: 'See how you did',
+    score: (right: number, total: number) => `${right} of ${total} right`,
+    allRight: 'Every one right.',
+    retake: 'Try it again',
+    finish: 'Done',
+    promptTitle: (week: number) => `WEEK ${week} CHECK`,
+    promptBody: (n: number) => `${n} quick questions on what the week covered.`,
+    promptCta: 'Take the check →',
+    result: (right: number, total: number) => `Check: ${right}/${total}`,
+    notChecked: 'Check not done yet',
+    noQuestions: 'This week’s lesson has nothing to check yet.',
+  },
 };
 
 export type Strings = typeof en;
