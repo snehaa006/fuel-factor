@@ -806,8 +806,9 @@ The lesson's last card now goes back to Learn.
 **Not on the live project yet.** This session's Supabase connection reaches
 a different project, so the two migrations and seeds `0016`/`0017` are in the
 repository and have to be applied by hand (`docs/RUNNING-IT.md`) before the
-update goes to the phones. Until then the check-in screen shows the
-database's refusal and Today offers nothing.
+update goes to the phones. Until then the lookup of which weeks are in
+fails, and a failed lookup offers nothing: no prompt on Today and no link on
+Learn, rather than a prompt that opens onto an error.
 
 Tests: `weekly-log.test.ts` (the logs' averages, the starting answers, what
 is required, the row in the tab's columns), `weekly-log-schema.test.ts` (the

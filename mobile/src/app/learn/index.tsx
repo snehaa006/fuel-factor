@@ -94,7 +94,8 @@ export default function Learn() {
             const open = week.unlocked && canRead(access);
             const current = access.state === 'current';
             const done = checkedWeeks.includes(week.weekNumber);
-            const due = checkInOpen(week.weekNumber, programmeState);
+            // Only once the lookup answered: no link onto a check-in that cannot load.
+            const due = checked.status === 'ready' && checkInOpen(week.weekNumber, programmeState);
             return (
               <Pressable
                 key={week.weekNumber}
