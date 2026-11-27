@@ -739,6 +739,44 @@ languages and both themes, at 360 px: no clipping or overflow anywhere.
 
 **1296 tests pass.**
 
+**Step 24** — Learn run week by week (27 November). The rest of the 25
+November call's Learn feedback, all of it the app's side:
+
+| Asked | By | Built |
+|---|---|---|
+| "Can the learning section be in tandem with the week that the athlete is on?" | Sofia, 13:18 | Learn leads with the current programme week, marked *This week*. Earlier weeks stay open and show how their check went; later weeks are locked and say the day they open, and a direct link to one says the same instead of showing it early. No programme to follow (a coach, no first day) means every written week is open; after the programme ends, all four are. |
+| "If it's protein, it's the protein week" -- advice "in real time for that week" | Sofia, 16:00 | The advice cards put this week's material first, then severity. The week is read off each rule's own `source` (`week-2-deck`), so the app ranks no domain itself. |
+| "Is it quite long ... if you keep on scrolling?" / "not too overwhelming" | Theo, 19:53 and 20:02 | A week is one card at a time: progress bar, "3 of 10", Back and Next, ending on the week's check. *Show the whole lesson* puts the old column back. The challenge stays under the card, because ticking it is daily. |
+| A quiz "before they move on to the next week ... to ensure that they actually learn" | Theo, 20:02; Sneha, 20:43 | A **week check**, up to five questions, at the end of each lesson and offered on Today from a week's sixth day until it is done. It never blocks the next week. |
+| "A toggle ... did you know, or fact for the day" | Sofia, 20:59; Theo, 21:31 | *Did you know?* on Today, folded until tapped: one of the week's statistic cards a day, in turn, the same for the whole squad, with its week and card and a link to the lesson. After the programme, all four weeks' facts take turns. |
+
+**Nothing in the fact or the check is written by the app.** Both come from
+the week's own `stats` and `myth_fact` rows (`lib/weekly.ts`): a fact is a
+statistic's figure and caption as the deck prints them; a check asks "which
+figure goes with this caption", offering only that card's own figures (cut to
+four, rotated so the answer is not where the deck put it), and "myth or
+fact?" on a myth the deck quotes, answered with the deck's own fact. A myth the
+deck did not put in quotation marks is skipped rather than paraphrased, which
+is why weeks 3 and 4 have figure questions only. After every answer the
+deck's own figure or fact is shown, so the check teaches on the way through.
+
+Check results are kept **on the phone** (`lib/week-check.ts`), per athlete.
+They are engagement, not data: the coach does not see them and a new phone
+starts with none. See *Decisions* for why, and what Sofia asked for instead.
+
+Tests: `weekly.test.ts` (the week arithmetic, access, facts, the check built
+from the week 1 and 2 fixtures that mirror the seeds, when it is offered),
+`week-check.test.ts`, three new advice-ordering tests, and
+`learn-weekly.test.tsx` for the list, the locked week, the one-card lesson,
+the check start to finish, the prompt and the fact card. Looked at in the web
+build in both languages: the lesson stepper, the check, the prompt and the
+fact card. Without a demo login the lesson rows were supplied to the browser
+by intercepting the two `lesson_cards` / `weekly_challenges` requests with
+the fixture rows; the gated list (*This week*, *Opens Wed 11 Nov*) needs a
+signed-in athlete and is held by the tests instead.
+
+**1349 tests pass.**
+
 `cd mobile && npm run check` runs theme generation, typecheck,
 lint and tests. Run it before saying anything is done.
 
@@ -1056,6 +1094,28 @@ Theo, with her review) writes the Bahasa, or I draft it into the seeds with
 the same "Awaiting dietitian review" mark the English rules carry. For advice
 the column exists (`message_id`); lessons and challenges would need one each.
 
+**The week check is built from the decks, not from the WEEKLY LOG.** Sofia, on
+the call: "There's a tab called Weekly Log, so you can use those questions
+for capturing if the athlete has really understood what has been taught."
+Those questions are in the research tracker, which is not in this repository
+or in the Drive this session could see. So the check asks what the deck
+itself states (figures, and the deck's own myths), and its results stay on
+the phone as engagement. If Sofia wants understanding *captured* -- as data,
+for the study -- that is the WEEKLY LOG's questions as a table mirroring the
+tab column for column, like the other research tables, which needs the tab.
+
+**Earlier weeks stay readable.** Sneha on the call: "if the current week is
+week two, it should show the insights on week two only." Read as what
+leads, not what is allowed: week 2 opens first and is marked, but week 1
+stays there to look something up. Locking past weeks is one line in
+`weekAccess` if that is what was meant.
+
+**The check does not hold the next week back.** Theo asked for it "before
+they move on to the next week". It is offered from the week's sixth day and
+stays on Today until done, but week 3 opens on its day regardless: the
+programme's calendar is the coach's, and a 15 year old who skips a quiz
+should not fall a week behind the squad.
+
 **The app opens in the phone's language.** An Indonesian phone opens in
 Bahasa on first launch; everything else in English. Either is one tap to
 change, on the first screen, and the choice is remembered on the phone.
@@ -1363,6 +1423,14 @@ The 15 recall-days' meal text, so they can be re-run through the food database.
 The roster seed has everything else the tracker holds.
 
 ## Still waiting on Sofia
+
+**The WEEKLY LOG tab's questions**, if the week check should capture
+understanding as study data (see *Decisions*) · Bahasa wording for the
+programme's sentences, or her review of a draft · the post-programme
+reflection she raised on 25 November ("how was the program? ... what was your
+best takeaway?"), which she said can wait until the post-assessments are
+done · the guideline sources she offered to gather for any future AI advice
+layer.
 
 The DQ Score /12 formula · **the eight urine swatch colours** · serving and fluid
 targets · the anchor text for the five 1–10 scales (they ship with no adjectives) ·
