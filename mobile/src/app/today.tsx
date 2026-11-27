@@ -19,6 +19,7 @@ import { SessionTimes } from '@/components/session-times';
 import { SidebarButton } from '@/components/sidebar';
 import { StreakChip } from '@/components/streak-chip';
 import { StreakStrip } from '@/components/streak-strip';
+import { ReflectionPrompt } from '@/components/reflection-prompt';
 import { WeekCheckPrompt } from '@/components/week-check-prompt';
 import { topNudges } from '@/lib/advice';
 import { dayCue } from '@/lib/mascot-copy';
@@ -168,6 +169,16 @@ function TodayScreen() {
             programme={programme}
             participantId={data.participantId}
             onOpen={(week) => router.push(`/learn/check/${week}`)}
+          />
+        </View>
+
+        {/* Four weeks done: Sofia's "how was the programme? Did you like it?
+            What was your best takeaway?" Until it is in. */}
+        <View style={{ marginTop: spacing['space-4'] }}>
+          <ReflectionPrompt
+            programme={programme}
+            participantId={data.participantId}
+            onOpen={() => router.push('/reflection')}
           />
         </View>
 

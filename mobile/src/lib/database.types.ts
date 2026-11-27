@@ -205,6 +205,40 @@ export type Database = {
         };
         Relationships: [];
       };
+      // 20261127000003_programme_reflections.sql: the end-of-programme reflection.
+      programme_reflections: {
+        Row: {
+          id: string;
+          participant_id: string;
+          rating: number | null;
+          liked: string | null;
+          best_takeaway: string | null;
+          feedback: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          participant_id: string;
+          rating?: number | null;
+          liked?: string | null;
+          best_takeaway?: string | null;
+          feedback?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          participant_id?: string;
+          rating?: number | null;
+          liked?: string | null;
+          best_takeaway?: string | null;
+          feedback?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       // 20261127000002_checkin_questions.sql: each week's behaviour question.
       checkin_questions: {
         Row: {
