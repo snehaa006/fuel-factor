@@ -14,7 +14,7 @@ flag, profile or script can produce a build that draws from sample data.
 | **Web app**, <https://fuel-factor-expo-go.vercel.app> | `main`, the real app, opened in any phone's or laptop's browser. **The demo build**: a release build, no dev menu, nothing to install. Deployed by Vercel on every push to `main` |
 | **Expo Go route**, same host | `main`, for Expo Go only (`exps://fuel-factor-expo-go.vercel.app`). A developer tool: shake opens Expo Go's menu |
 | **Confirmation page**, Vercel `fuel-factor` | Where the sign-up email lands. Static, one file |
-| **Supabase** `nprvrlpkdrgckzceyryc` | 18 migrations (3 more in the repo, not yet applied: the Sunday check-in and the reflection); all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
+| **Supabase** `nprvrlpkdrgckzceyryc` | 21 migrations, every one in the repo (the last three, the Sunday check-in and the reflection, applied 28 November); all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
 
 Both phone channels were last published on **27 November 2026 from `3ef3ecb`
 on `main`**: everything up to 25 November plus the language and theme
@@ -33,26 +33,15 @@ Checked: all four channel/platform pairs serve these update ids.
 The web app and the self-hosted Expo Go route follow `main` on Vercel, so
 they carry the same code.
 
-**The check-in's and the reflection's database changes are not applied
-yet**, so on the phones both stay hidden (a failed lookup offers nothing)
-until they are; they appear without another update once they are. The
-coach's export works for the four original tabs now and gives the weekly
-log and reflections files once these are in. Apply to
-`nprvrlpkdrgckzceyryc`, in this order (SQL editor, or `supabase db push` for
-the two migrations):
-
-1. `supabase/migrations/20261127000001_weekly_logs.sql`
-2. `supabase/migrations/20261127000002_checkin_questions.sql`
-3. `supabase/seed/0016_checkin_questions.sql`
-4. `supabase/seed/0017_demo_squad_weekly_logs.sql` (the demo squad's rows
-   from the tracker; safe to run twice)
-5. `supabase/migrations/20261127000003_programme_reflections.sql`
-
-`0018_advice_bahasa.sql` is already on the project (loaded 27 November over
-the REST API, which can change rows but not tables).
-
-Without them the check-in screen shows the database's refusal and Today
-offers nothing; everything else works.
+**The check-in's and the reflection's database changes are on the live
+project** (28 November, through the Supabase connector): the three
+migrations `20261127000001`-`0003` and seeds `0016` (the four week questions)
+and `0017` (the demo squad's 12 weekly rows). `0018_advice_bahasa.sql` went
+in on 27 November. Checked afterwards: the API serves all three tables with
+every column the app and the export read, row level security is on for each
+(7 policies), and Supabase's security advisor raises nothing about them.
+So the Sunday check-in, the reflection on Today, and the weekly log and
+reflections files in the coach's export all work now.
 
 **Pushing to GitHub does not change the phones.** A bundle moves only when
 somebody runs `eas update` (below). The two are separate systems.

@@ -240,12 +240,12 @@ schema, and ran after them.
 | `0017_demo_squad_weekly_logs.sql` | The WEEKLY LOG tab's 12 rows for the demo squad's Jeongho, Theo and Jacob, verbatim from the tracker (26 November) |
 | `0018_advice_bahasa.sql` | Bahasa Indonesia for the 12 advice cards (`message_id`), the app's translation, unreviewed. **On the live project** (27 November) |
 
-**Every migration and every seed here is on the live project except the
-check-in's and the reflection's** -- `20261127000001_weekly_logs`,
+**Every migration and every seed here is on the live project.** The
+check-in's and the reflection's -- `20261127000001_weekly_logs`,
 `20261127000002_checkin_questions`, `20261127000003_programme_reflections`
-and seeds `0016`, `0017`, added 27 November and to be applied by hand (see
-`docs/RUNNING-IT.md`). The rest was checked 18 November; `0015` loaded 25
-November: 18 migrations; all four weeks, the
+and seeds `0016`, `0017` -- were applied 28 November; `0018` loaded 27
+November. The rest was checked 18 November; `0015` loaded 25
+November: 21 migrations; all four weeks, the
 12 advice rules, the badges and the composition table. Nothing else is in it but what people have entered in the app, and one
 test squad (below).
 

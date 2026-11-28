@@ -803,12 +803,10 @@ from a week's sixth day until it is in (it never blocks the next week), and
 from each week on Learn once it is open, marked *Checked in ✓* when done.
 The lesson's last card now goes back to Learn.
 
-**Not on the live project yet.** This session's Supabase connection reaches
-a different project, so the two migrations and seeds `0016`/`0017` are in the
-repository and have to be applied by hand (`docs/RUNNING-IT.md`) before the
-update goes to the phones. Until then the lookup of which weeks are in
-fails, and a failed lookup offers nothing: no prompt on Today and no link on
-Learn, rather than a prompt that opens onto an error.
+**Applied to the live project on 28 November** (see step 26). Before that,
+the lookup of which weeks are in failed, and a failed lookup offers nothing:
+no prompt on Today and no link on Learn, rather than a prompt that opens onto
+an error. That guard stays, for any project the tables are missing from.
 
 Tests: `weekly-log.test.ts` (the logs' averages, the starting answers, what
 is required, the row in the tab's columns), `weekly-log-schema.test.ts` (the
@@ -859,10 +857,11 @@ theme). Citations, food and product names are left as written. None of it is
 reviewed by Sofia or a native speaker; `content-id.test.tsx` fails the moment
 a key stops matching a seed.
 
-**Still needs the SQL editor:** migrations `20261127000001`, `0002`, `0003` and
-seeds `0016`, `0017` (`docs/RUNNING-IT.md`). An API key can change rows, not
-tables, so this was done over REST only where rows were enough. The combined
-file was dry-run on PGlite on top of all 18 live migrations.
+**On the live project since 28 November:** migrations `20261127000001`,
+`0002`, `0003` and seeds `0016`, `0017`, applied through the Supabase
+connector once it reached this project (the combined file had first been
+dry-run on PGlite on top of all 18 earlier migrations). 21 migrations live,
+the same 21 as the repository.
 
 **1401 tests pass.**
 
