@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
+import { MASCOT_POSES } from '@/components/mascot';
+
 const root = resolve(__dirname, '../../../..');
 // SQL's doubled quote reads as one, as the database holds it.
 const read = (p: string) => readFileSync(resolve(root, p), 'utf8').replace(/''/g, "'");
@@ -33,6 +35,40 @@ const rows = [
 /** Every figure in a sentence: "1,500–2,000", "80–90", "1.6–2.2", "400". */
 const figures = (text: string) =>
   [...text.matchAll(/\d[\d.,–]*/g)].map((m) => m[0].replace(/[.,–]+$/, ''));
+
+const picturesSql = readFileSync(resolve(root, 'supabase/seed/0020_daily_facts_pictures.sql'), 'utf8');
+const pictures = [
+  ...picturesSql.matchAll(new RegExp(`\\((\\d), (\\d), ${text}, ${text}, ${text}, '([a-z]+)'\\)`, 'g')),
+].map((m) => ({
+  week: Number(m[1]),
+  day: Number(m[2]),
+  emoji: unquote(m[3]),
+  headline: unquote(m[4]),
+  headlineId: unquote(m[5]),
+  pose: m[6],
+}));
+
+describe('the fact of the day’s pictures', () => {
+  it('gives every fact a picture, a headline and a mascot pose', () => {
+    expect(pictures.map((p) => `${p.week}/${p.day}`)).toEqual(rows.map((r) => `${r.week}/${r.day}`));
+    for (const p of pictures) {
+      expect(p.emoji.trim()).not.toBe('');
+      expect(p.headline.length).toBeLessThanOrEqual(24);
+      expect(MASCOT_POSES).toContain(p.pose);
+    }
+  });
+
+  it('puts no figure in a headline that its fact does not state, in either language', () => {
+    const strays = pictures.flatMap((p) => {
+      const row = rows.find((r) => r.week === p.week && r.day === p.day)!;
+      return [
+        ...figures(p.headline).filter((n) => !row.fact.includes(n)).map((n) => `${p.week}/${p.day} en ${n}`),
+        ...figures(p.headlineId).filter((n) => !row.factId.includes(n)).map((n) => `${p.week}/${p.day} id ${n}`),
+      ];
+    });
+    expect(strays).toEqual([]);
+  });
+});
 
 describe('the fact of the day', () => {
   it('has seven for each of the four weeks, one per day', () => {
