@@ -276,8 +276,8 @@ export const id: Strings = {
     bestSoFar: (days: number) => `Terbaik sejauh ini: ${days} hari`,
     meals: 'Waktu makan',
     dqScore: 'SKOR KUALITAS DIET',
-    logMeal: 'Catat makanan',
-    checkIn: 'Check-in malam',
+    logMeal: '🍽️ Catat makan',
+    checkIn: '🌙 Check-in',
     whatsLeft: 'YANG TERSISA',
     endedOn: (date: string) => `Empat minggu berakhir pada ${date}. Catatan makan dan check-in malam sudah ditutup.`,
     recallAllIn: 'Recall makanan lanjutanmu sudah lengkap.',
@@ -306,6 +306,7 @@ export const id: Strings = {
   },
 
   nudge: {
+    nextTip: 'Tips berikutnya →',
     domains: {
       carbohydrate: 'KARBOHIDRAT',
       hydration: 'HIDRASI',
@@ -960,6 +961,9 @@ export const id: Strings = {
     showFact: 'Tampilkan fakta hari ini',
     hideFact: 'Sembunyikan fakta hari ini',
     dayOf: (day: number, week: number) => `Hari ${day} dari 7 · Minggu ${week}`,
+    funFact: 'Fakta seru hari ini',
+    newFact: 'Fakta seru baru hari ini',
+    gotIt: 'Oke, paham!',
     partsCovered: (day: number) => `Bagian ${day} dari 7 materi minggu ini`,
     fromLesson: (topic: string) => `Dari materi: ${topic}`,
   },
@@ -1021,6 +1025,9 @@ export const id: Strings = {
     promptTitle: (week: number) => `CHECK-IN MINGGU ${week}`,
     promptBody: 'Lima pertanyaan singkat tentang minggumu.',
     promptCta: 'Check-in →',
+    lineDone: (week: number) => `Check-in minggu ${week} selesai`,
+    seeAnswers: 'Lihat jawaban',
+    lineUpcoming: (week: number, date: string) => `Check-in minggu ${week} dibuka ${date}`,
     statusDone: 'Sudah check-in',
     statusNotDone: 'Belum check-in',
   },

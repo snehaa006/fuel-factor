@@ -892,7 +892,30 @@ shows the fact straight away (Sofia's toggle folds it), *Day 3 of 7 · Week
 lesson" link is gone. Bahasa sits in `fact_id`. Applied to the live project
 28 November. Unreviewed.
 
-**1420 tests pass.**
+**Step 28** — Today made friendlier and shorter (28 November), from a
+design critique of the screen (about 2,900px of scroll, 12 stacked blocks,
+the meals near the bottom, the weekly check-in invisible unless due).
+
+* **The fun fact lives behind a 💡** in the top-right corner, which glows and
+  pulses until today's fact is opened. It opens a card: the mascot in a pose
+  picked for that fact, the fact's own picture (an emoji) and its one number
+  drawn big, the fact, and a dot per part of the week's lesson. Pictures,
+  headlines and poses are columns on `daily_facts` (migration
+  `20261128000002`, seed `0020`); every figure in a headline is one its fact
+  states, in both languages, and the test checks it. The fact is on the card,
+  never in the mascot's speech.
+* **One cheerful card at the top**: the astronaut, the day's line, the week's
+  streak dots and the streak chip -- what were three separate blocks.
+* **The weekly check-in is always on Today**: a card when it is due, and
+  otherwise one line -- "Week 4 check-in opens Mon 23 Nov", or "Week 3
+  check-in done · See answers" (`checkInStatus` in `lib/weekly.ts`).
+* **Meals moved up** to straight after the fuel ring; *Log a meal* and
+  *Check-in* sit side by side; the **advice is one card you flip through**
+  (`NudgeStack`); prompts that are not due take no space.
+* Today is now a loader (`TodayScreen`) and a view (`TodayView`), so it can be
+  drawn from fixed data in a test or a design preview.
+
+**1428 tests pass.**
 
 **1401 tests pass.**
 

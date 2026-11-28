@@ -53,7 +53,7 @@ jest.mock('@/components/reflection-prompt', () => {
 jest.mock('@/components/app-sidebar', () => ({ AppSidebar: () => null }));
 jest.mock('@/components/did-you-know', () => {
   const { Text } = jest.requireActual('react-native');
-  return { DidYouKnow: () => <Text testID="did-you-know">fact</Text> };
+  return { FactButton: () => <Text testID="fact-button">💡</Text> };
 });
 
 beforeEach(async () => {
@@ -72,7 +72,7 @@ describe('Today once the four weeks are over', () => {
 
   it('asks for no meals, no evening check-in and no fact of the day', async () => {
     await render(<Today />);
-    for (const id of ['log-meal', 'check-in', 'timeline', 'fuel-ring', 'day-type', 'streak', 'did-you-know', 'nudge']) {
+    for (const id of ['log-meal', 'check-in', 'timeline', 'fuel-ring', 'day-type', 'streak', 'fact-button', 'nudge']) {
       expect(screen.queryByTestId(id)).toBeNull();
     }
   });

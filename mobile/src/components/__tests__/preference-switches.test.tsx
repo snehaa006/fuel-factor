@@ -38,14 +38,14 @@ describe('the language switch', () => {
         <Probe />
       </>
     );
-    expect(screen.getByTestId('probe-copy')).toHaveTextContent('Log a meal');
+    expect(screen.getByTestId('probe-copy')).toHaveTextContent('Log a meal', { exact: false });
 
     await act(async () => {
       fireEvent.press(screen.getByTestId('language-switch-id'));
     });
 
     expect(currentLanguage()).toBe('id');
-    expect(screen.getByTestId('probe-copy')).toHaveTextContent('Catat makanan');
+    expect(screen.getByTestId('probe-copy')).toHaveTextContent('Catat makan', { exact: false });
     expect(screen.getByTestId('language-switch-id').props.accessibilityState.selected).toBe(true);
   });
 

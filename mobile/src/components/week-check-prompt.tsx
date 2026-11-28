@@ -1,10 +1,11 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useStrings } from '@/i18n';
 import type { ProgrammeState } from '@/lib/programme';
 import { useWeeks } from '@/lib/use-learn';
 import { useCheckedWeeks } from '@/lib/weekly-log';
-import { weekToCheck } from '@/lib/weekly';
+import { shortDate } from '@/components/calendar';
+import { checkInStatus } from '@/lib/weekly';
 import { useTheme } from '@/theme';
 
 /**
@@ -40,8 +41,51 @@ export function WeekCheckPrompt({
   // Every programme week has a check-in, written lesson or not: it asks about
   // the athlete's week, not about the lesson.
   const all = weeks.weeks.map((w) => w.weekNumber);
-  const week = weekToCheck(programme, (n) => checked.weeks.includes(n), all);
-  if (week === null) return null;
+  const status = checkInStatus(programme, (n) => checked.weeks.includes(n), all);
+  if (status === null) return null;
+
+  // Not due: one compact line, so the check-in is always visible on Today
+  // without taking a card's worth of the scroll. Done opens the answers.
+  if (status.kind !== 'due') {
+    const done = status.kind === 'done';
+    return (
+      <Pressable
+        onPress={done ? () => onOpen(status.week) : undefined}
+        disabled={!done}
+        accessibilityRole={done ? 'button' : 'text'}
+        testID={`${testID}-${status.kind}`}
+        style={({ pressed }) => [
+          styles.line,
+          {
+            backgroundColor: pressed ? colors['daun-tint'] : colors['surface-raised'],
+            borderRadius: radius['radius-lg'],
+            paddingVertical: spacing['space-3'],
+            paddingHorizontal: spacing['space-4'],
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.badge,
+            { backgroundColor: done ? colors.daun : colors['surface-sunken'] },
+          ]}
+        >
+          <Text style={[typography.label, { color: done ? colors['on-bright'] : colors['ink-muted'] }]}>
+            {done ? '✓' : '📝'}
+          </Text>
+        </View>
+        <Text style={[typography['body-m'], styles.lineText, { color: done ? colors.ink : colors['ink-muted'] }]}>
+          {done
+            ? t.checkin.lineDone(status.week)
+            : t.checkin.lineUpcoming(status.week, shortDate(status.opensOn, t))}
+        </Text>
+        {done && (
+          <Text style={[typography.label, { color: colors['air-deep'] }]}>{t.checkin.seeAnswers} ›</Text>
+        )}
+      </Pressable>
+    );
+  }
+  const week = status.week;
 
   return (
     <Pressable
@@ -72,4 +116,7 @@ export function WeekCheckPrompt({
 
 const styles = StyleSheet.create({
   card: { width: '100%', borderWidth: 1.5 },
+  line: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: 12 },
+  lineText: { flex: 1 },
+  badge: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
 });

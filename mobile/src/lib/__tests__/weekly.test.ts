@@ -1,6 +1,7 @@
 import { programmeState } from '@/lib/programme';
 import {
   canRead,
+  checkInStatus,
   checkInOpen,
   dayOfWeek,
   weekAccess,
@@ -127,5 +128,36 @@ describe('when the check is offered', () => {
   it('offers nothing before day one or without a programme', () => {
     expect(weekToCheck(on('2026-10-20'), none, written)).toBeNull();
     expect(weekToCheck(null, none, written)).toBeNull();
+  });
+});
+
+describe('the check-in line on Today', () => {
+  const START = '2026-10-28';
+  const all = [1, 2, 3, 4];
+  const on = (date: string) => programmeState(START, date);
+  const doneUpTo = (n: number) => (week: number) => week <= n;
+
+  it('says when this week’s opens, early in the week', () => {
+    // Week 4, day 3: week 3 is in, week 4's opens on its sixth day.
+    expect(checkInStatus(on('2026-11-20'), doneUpTo(3), all)).toEqual({
+      kind: 'upcoming',
+      week: 4,
+      opensOn: '2026-11-23',
+    });
+  });
+
+  it('is due from the sixth day until it is in', () => {
+    expect(checkInStatus(on('2026-11-23'), doneUpTo(3), all)).toEqual({ kind: 'due', week: 4 });
+    // Last week's, still missing, is due before anything else.
+    expect(checkInStatus(on('2026-11-20'), doneUpTo(2), all)).toEqual({ kind: 'due', week: 3 });
+  });
+
+  it('shows it done once it is in, so the answers can be looked at', () => {
+    expect(checkInStatus(on('2026-11-24'), doneUpTo(4), all)).toEqual({ kind: 'done', week: 4 });
+    expect(checkInStatus(on('2026-12-12'), doneUpTo(4), all)).toEqual({ kind: 'done', week: 4 });
+  });
+
+  it('says nothing before day one', () => {
+    expect(checkInStatus(on('2026-10-20'), doneUpTo(0), all)).toBeNull();
   });
 });

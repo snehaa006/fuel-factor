@@ -274,8 +274,8 @@ export const en = {
     bestSoFar: (days: number) => `Best so far: ${days} days`,
     meals: 'Meals',
     dqScore: 'DIET QUALITY SCORE',
-    logMeal: 'Log a meal',
-    checkIn: 'Evening check-in',
+    logMeal: '🍽️ Log a meal',
+    checkIn: '🌙 Check-in',
     /** From day 29: the four weeks are over and only these are left. */
     whatsLeft: 'WHAT’S LEFT',
     endedOn: (date: string) => `The four weeks ended on ${date}. Meals and the evening check-in are closed.`,
@@ -306,6 +306,7 @@ export const en = {
   },
 
   nudge: {
+    nextTip: 'Next tip →',
     domains: {
       carbohydrate: 'CARBOHYDRATE',
       hydration: 'HYDRATION',
@@ -881,6 +882,9 @@ export const en = {
     hideFact: 'Hide today’s fact',
     /** Where today's fact sits in the week: one part of the lesson a day. */
     dayOf: (day: number, week: number) => `Day ${day} of 7 · Week ${week}`,
+    funFact: 'Today’s fun fact',
+    newFact: 'New fun fact for today',
+    gotIt: 'Got it!',
     partsCovered: (day: number) => `Part ${day} of 7 of this week’s lesson`,
     fromLesson: (topic: string) => `From the lesson: ${topic}`,
   },
@@ -928,6 +932,9 @@ export const en = {
     promptTitle: (week: number) => `WEEK ${week} CHECK-IN`,
     promptBody: 'Five quick questions on how the week went.',
     promptCta: 'Check in →',
+    lineDone: (week: number) => `Week ${week} check-in done`,
+    seeAnswers: 'See answers',
+    lineUpcoming: (week: number, date: string) => `Week ${week} check-in opens ${date}`,
     statusDone: 'Checked in',
     statusNotDone: 'Not checked in yet',
   },

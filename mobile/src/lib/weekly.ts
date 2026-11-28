@@ -126,3 +126,44 @@ export function weekToCheck(
     candidates.find((week) => week >= 1 && writtenWeeks.includes(week) && !done(week)) ?? null
   );
 }
+
+export type CheckInStatus =
+  | { kind: 'due'; week: number }
+  | { kind: 'done'; week: number }
+  | { kind: 'upcoming'; week: number; opensOn: IsoDate };
+
+/**
+ * Where the weekly check-in stands, for the one line Today always shows.
+ *
+ * Due when {@link weekToCheck} says so. Otherwise the most recent week whose
+ * check-in has opened, if it is in -- so an athlete who has done it sees that
+ * it is done, and can look at their answers -- or, early in a week whose
+ * previous check-in is in, the day this week's opens. Null with no programme
+ * running.
+ */
+export function checkInStatus(
+  programme: ProgrammeState | null,
+  done: (week: number) => boolean,
+  writtenWeeks: number[]
+): CheckInStatus | null {
+  const current = weekOfProgramme(programme);
+  const day = dayOfWeek(programme);
+  if (programme === null || programme.status !== 'open' || current === null || current < 1 || day === null) {
+    return null;
+  }
+  const due = weekToCheck(programme, done, writtenWeeks);
+  if (due !== null) return { kind: 'due', week: due };
+
+  const lastOpened = current > WEEK_COUNT ? WEEK_COUNT : day >= 6 ? current : current - 1;
+  if (current <= WEEK_COUNT && day < 6 && writtenWeeks.includes(current)) {
+    return {
+      kind: 'upcoming',
+      week: current,
+      opensOn: addDays(programme.startsOn, (current - 1) * DAYS_PER_WEEK + 5),
+    };
+  }
+  if (lastOpened >= 1 && writtenWeeks.includes(lastOpened) && done(lastOpened)) {
+    return { kind: 'done', week: lastOpened };
+  }
+  return null;
+}

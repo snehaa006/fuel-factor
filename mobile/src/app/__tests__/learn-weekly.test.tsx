@@ -4,7 +4,8 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import WeekCheckIn from '@/app/learn/check/[week]';
 import Learn from '@/app/learn/index';
 import Week from '@/app/learn/[week]';
-import { FactCard } from '@/components/did-you-know';
+import { FactSheet } from '@/components/did-you-know';
+import { NudgeStack } from '@/components/nudge-stack';
 import { WeekCheckPrompt } from '@/components/week-check-prompt';
 import { DEMO_LESSON_CARDS, DEMO_LESSON_CARDS_WEEK2 } from '@/lib/__fixtures__/today';
 import { programmeState, type ProgrammeState } from '@/lib/programme';
@@ -299,32 +300,62 @@ describe('on Today', () => {
     expect(onOpen).toHaveBeenCalledWith(1);
   });
 
-  it('goes away once that week is in', async () => {
+  it('turns into a one-line "done" once that week is in, which opens the answers', async () => {
     mockChecked = [1];
-    await render(<WeekCheckPrompt programme={WEEK_2_DAY_3} participantId="p-theo" onOpen={() => {}} />);
+    const onOpen = jest.fn();
+    await render(<WeekCheckPrompt programme={WEEK_2_DAY_3} participantId="p-theo" onOpen={onOpen} />);
     expect(screen.queryByTestId('week-check-prompt')).toBeNull();
+    // Week 2, day 3: week 1 is in, week 2's opens on its sixth day.
+    expect(screen.getByTestId('week-check-prompt-upcoming')).toHaveTextContent(/Week 2 check-in opens/);
   });
 
-  it('shows today’s part of the week’s lesson as one short fact', async () => {
+  it('shows the week done, and its answers, from the sixth day once it is in', async () => {
+    mockChecked = [1, 2];
+    const onOpen = jest.fn();
+    await render(
+      <WeekCheckPrompt programme={programmeState(START, '2026-11-09')} participantId="p-theo" onOpen={onOpen} />
+    );
+    expect(screen.getByTestId('week-check-prompt-done')).toHaveTextContent('Week 2 check-in done', { exact: false });
+    await act(async () => fireEvent.press(screen.getByTestId('week-check-prompt-done')));
+    expect(onOpen).toHaveBeenCalledWith(2);
+  });
+
+  it('opens today’s fun fact with its picture, its number and the mascot', async () => {
     const fact = {
       week: 1,
       day: 3,
       fact: 'The carbs you eat are stored as glycogen: about 400 g in your muscles and 100 g in your liver.',
       factId: 'Karbohidrat yang kamu makan disimpan sebagai glikogen.',
       topic: 'What Carbohydrates Actually Do',
+      emoji: '🔋',
+      headline: '400 g',
+      headlineId: '400 g',
+      pose: 'fuel' as const,
     };
-    await render(<FactCard fact={fact} />);
-    expect(screen.getByText('DID YOU KNOW?')).toBeTruthy();
-    expect(screen.getByTestId('did-you-know-day')).toHaveTextContent('Day 3 of 7 · Week 1');
-    expect(screen.getByTestId('did-you-know-fact')).toHaveTextContent(/stored as glycogen/);
-    expect(screen.getByTestId('did-you-know-dots').props.accessibilityLabel).toBe('Part 3 of 7 of this week’s lesson');
-    expect(screen.getByText('From the lesson: What Carbohydrates Actually Do')).toBeTruthy();
-    // A fact, not a pointer to the lesson.
+    const onClose = jest.fn();
+    await render(<FactSheet fact={fact} onClose={onClose} />);
+    expect(screen.getByTestId('fact-sheet-emoji')).toHaveTextContent('🔋');
+    expect(screen.getByTestId('fact-sheet-headline')).toHaveTextContent('400 g');
+    expect(screen.getByTestId('fact-sheet-day')).toHaveTextContent('Day 3 of 7 · Week 1');
+    expect(screen.getByTestId('fact-sheet-fact')).toHaveTextContent(/stored as glycogen/);
+    expect(screen.getByTestId('fact-sheet-dots').props.accessibilityLabel).toBe('Part 3 of 7 of this week’s lesson');
     expect(screen.queryByText(/Read the lesson/)).toBeNull();
+    await act(async () => fireEvent.press(screen.getByTestId('fact-sheet-close')));
+    expect(onClose).toHaveBeenCalled();
+  });
 
-    // Sofia's toggle folds it away.
-    await act(async () => fireEvent.press(screen.getByTestId('did-you-know-toggle')));
-    expect(screen.queryByTestId('did-you-know-fact')).toBeNull();
+  it('shows the advice one card at a time, with a next tip', async () => {
+    const tip = (code: string, message: string) => ({
+      code, domain: 'hydration', message, messageId: null, severity: 1, source: 'week-1-deck', reviewed: false,
+    });
+    const nudges = [tip('a', 'First tip.'), tip('b', 'Second tip.')] as unknown as Parameters<typeof NudgeStack>[0]['nudges'];
+    await render(<NudgeStack nudges={nudges} />);
+    expect(screen.getByText('First tip.')).toBeTruthy();
+    expect(screen.queryByText('Second tip.')).toBeNull();
+    await act(async () => fireEvent.press(screen.getByTestId('tips-next')));
+    expect(screen.getByText('Second tip.')).toBeTruthy();
+    await act(async () => fireEvent.press(screen.getByTestId('tips-next')));
+    expect(screen.getByText('First tip.')).toBeTruthy();
   });
 });
 
