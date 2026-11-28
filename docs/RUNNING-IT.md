@@ -14,7 +14,7 @@ flag, profile or script can produce a build that draws from sample data.
 | **Web app**, <https://fuel-factor-expo-go.vercel.app> | `main`, the real app, opened in any phone's or laptop's browser. **The demo build**: a release build, no dev menu, nothing to install. Deployed by Vercel on every push to `main` |
 | **Expo Go route**, same host | `main`, for Expo Go only (`exps://fuel-factor-expo-go.vercel.app`). A developer tool: shake opens Expo Go's menu |
 | **Confirmation page**, Vercel `fuel-factor` | Where the sign-up email lands. Static, one file |
-| **Supabase** `nprvrlpkdrgckzceyryc` | 24 migrations, every one in the repo (the check-in, the reflection and the fact of the day applied 28 November); all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
+| **Supabase** `nprvrlpkdrgckzceyryc` | 26 migrations, every one in the repo (the check-in, the reflection and the fact of the day applied 28 November); all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
 
 Both phone channels were last published on **28 November 2026 from `56118e8`
 on `main`**: everything up to 25 November plus the language and theme

@@ -14,7 +14,7 @@ import { supabase } from './supabase';
  * `participant_id` becomes the tracker's own participant code and name, which
  * is how the tabs say who a row belongs to.
  *
- * The reflections are the one app-tier table here. Sofia asked for them for
+ * The reflections and the mini quiz scores are the app-tier tables here. Sofia asked for them for
  * her analysis and the tracker has no tab for them yet, so they come out as a
  * file of their own, named as app data.
  *
@@ -31,7 +31,8 @@ export type SheetKey =
   | 'weekly_logs'
   | 'recalls'
   | 'assessments'
-  | 'programme_reflections';
+  | 'programme_reflections'
+  | 'quiz_results';
 
 type SheetDef = {
   key: SheetKey;
@@ -89,6 +90,11 @@ export const SHEETS: readonly SheetDef[] = [
     key: 'programme_reflections',
     columns: ['rating', 'liked', 'best_takeaway', 'feedback', 'updated_at'],
     orderBy: [],
+  },
+  {
+    key: 'quiz_results',
+    columns: ['week', 'score', 'total', 'answers', 'updated_at'],
+    orderBy: ['week'],
   },
 ];
 

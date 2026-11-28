@@ -33,6 +33,10 @@ export type AthleteStats = {
   bestStreak: number;
   /** Weekly challenges marked done, counted once per challenge. */
   challengesDone: number;
+  /** Weeks whose mini quiz has been finished. */
+  quizzesDone: number;
+  /** Weeks whose mini quiz was answered fully right. */
+  perfectQuizzes: number;
 };
 
 export type EarnedBadge = Badge & {
@@ -41,7 +45,13 @@ export type EarnedBadge = Badge & {
   progress: number;
 };
 
-export const NO_STATS: AthleteStats = { daysLogged: 0, bestStreak: 0, challengesDone: 0 };
+export const NO_STATS: AthleteStats = {
+  daysLogged: 0,
+  bestStreak: 0,
+  challengesDone: 0,
+  quizzesDone: 0,
+  perfectQuizzes: 0,
+};
 
 /** The stat a criterion is measured on. */
 export function valueFor(stats: AthleteStats, criterion: BadgeCriterion): number {
@@ -52,7 +62,29 @@ export function valueFor(stats: AthleteStats, criterion: BadgeCriterion): number
       return stats.bestStreak;
     case 'challenges_done':
       return stats.challengesDone;
+    case 'quizzes_done':
+      return stats.quizzesDone;
+    case 'perfect_quizzes':
+      return stats.perfectQuizzes;
   }
+}
+
+/** The quiz's two figures, from the athlete's quiz results. */
+export function quizStats(results: { score: number; total: number }[]): Pick<AthleteStats, 'quizzesDone' | 'perfectQuizzes'> {
+  return {
+    quizzesDone: results.length,
+    perfectQuizzes: results.filter((r) => r.total > 0 && r.score === r.total).length,
+  };
+}
+
+/**
+ * The badges an attempt has just earned: under the threshold before it, at
+ * or over it after. What the quiz's result card celebrates.
+ */
+export function newlyEarned(badges: Badge[], before: AthleteStats, after: AthleteStats): Badge[] {
+  return badges.filter(
+    (b) => valueFor(before, b.criterion) < b.threshold && valueFor(after, b.criterion) >= b.threshold
+  );
 }
 
 /**
@@ -93,10 +125,11 @@ export async function fetchBadges(): Promise<Badge[]> {
  * business and needs no hole in the wall.
  */
 export async function fetchStats(today: IsoDate): Promise<AthleteStats> {
-  const [logs, completions] = await Promise.all([
+  const [logs, completions, quizzes] = await Promise.all([
     // Nothing after today, which only matters with the time machine set back.
     supabase.from('daily_logs').select('log_date').lte('log_date', today),
     supabase.from('challenge_completions').select('challenge_id').lte('completed_on', today),
+    supabase.from('quiz_results').select('score, total'),
   ]);
 
   if (logs.error) throw asError(logs.error);
@@ -110,5 +143,7 @@ export async function fetchStats(today: IsoDate): Promise<AthleteStats> {
     // Counted once per challenge: finishing week 1's challenge on three
     // separate days is one challenge done, not three.
     challengesDone: new Set((completions.data ?? []).map((c) => c.challenge_id)).size,
+    // A project without the quiz table yet simply has no quiz badges earned.
+    ...quizStats(quizzes.error ? [] : (quizzes.data ?? [])),
   };
 }

@@ -238,6 +238,8 @@ schema, and ran after them.
 | `0015_week3_week4_advice.sql` | 3 advice rules, every message copied from 0013 and 0014: the week 3 pre-sleep snack and the deck's "3–4: drink more today", and the week 4 top-up snack the hour before a session. Unreviewed, like every rule |
 | `0016_checkin_questions.sql` | Each week's behaviour question for the Sunday check-in. Week 2 verbatim from the week 3 message, week 3 from its challenge slide; weeks 1 and 4 worded from the answers the tracker holds for them (`source = 'tracker-answers'`). None reviewed |
 | `0017_demo_squad_weekly_logs.sql` | The WEEKLY LOG tab's 12 rows for the demo squad's Jeongho, Theo and Jacob, verbatim from the tracker (26 November) |
+| `0023_quiz_badges.sql` | Four mini quiz badges: Quick Learner, Four Quizzes, Full Marks, Top of the Class. **On the live project** (28 November) |
+| `0022_weekly_quiz.sql` | The mini quiz: one question per day's fun fact, 28 in all, three options each, English and Bahasa; every right answer is its fact's own. **On the live project** (28 November) |
 | `0021_daily_facts_friendly.sql` | The 28 fun facts rewritten to read at a glance: a title, the fact with its key words in `**bold**`, and a "try this" tip, in English and Bahasa. Every figure is the lesson's. **On the live project** (28 November) |
 | `0020_daily_facts_pictures.sql` | A picture (emoji), a headline and a mascot pose for each of the 28 facts; every headline figure is one its fact states. **On the live project** (28 November) |
 | `0019_daily_facts.sql` | The fact of the day: 7 per week, one per day, in each week's lesson order, in the lesson's own figures (checked by `daily-facts-seed.test.ts`), with Bahasa. Unreviewed. **On the live project** (28 November) |
@@ -247,9 +249,9 @@ schema, and ran after them.
 check-in's and the reflection's -- `20261127000001_weekly_logs`,
 `20261127000002_checkin_questions`, `20261127000003_programme_reflections`
 and seeds `0016`, `0017` -- and the fact of the day's
-`20261128000001_daily_facts` `20261128000002_daily_facts_pictures` and `20261128000003_daily_facts_friendly` with seeds `0019`-`0021` were applied 28 November; `0018` loaded 27
+`20261128000001_daily_facts` `20261128000002_daily_facts_pictures` `20261128000003_daily_facts_friendly`, `20261128000004_weekly_quiz` and `20261128000005_quiz_badges` with seeds `0019`-`0023` were applied 28 November; `0018` loaded 27
 November. The rest was checked 18 November; `0015` loaded 25
-November: 24 migrations; all four weeks, the
+November: 26 migrations; all four weeks, the
 12 advice rules, the badges and the composition table. Nothing else is in it but what people have entered in the app, and one
 test squad (below).
 

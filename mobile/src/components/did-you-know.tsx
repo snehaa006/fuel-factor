@@ -3,8 +3,8 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import Svg, { Path } from 'react-native-svg';
 
 import { Mascot } from '@/components/mascot';
-import { PushButton } from '@/components/push-button';
 import { RichText } from '@/components/rich-text';
+import { StackCard } from '@/components/stack-card';
 import { useStrings } from '@/i18n';
 import { useContent } from '@/i18n/content';
 import { useDailyFact, useFactSeen, type DailyFact } from '@/lib/daily-facts';
@@ -95,11 +95,29 @@ export function FactButton({
   );
 }
 
+/** A bulb with three rays, drawn flat, for the top of the fact card. */
+function BulbRays({ color, ink }: { color: string; ink: string }) {
+  return (
+    <Svg width={46} height={46} viewBox="0 0 48 48" fill="none">
+      <Path d="M24 4v5M9 11l3.5 3.5M39 11l-3.5 3.5M4 25h5M44 25h-5" stroke={color} strokeWidth={3} strokeLinecap="round" />
+      <Path
+        d="M24 13a10 10 0 0 0-6 18c1 .8 1.5 1.8 1.5 3v1h9v-1c0-1.2.5-2.2 1.5-3a10 10 0 0 0-6-18Z"
+        fill={color}
+        stroke={ink}
+        strokeWidth={2}
+        strokeLinejoin="round"
+      />
+      <Path d="M20 39h8M21 43h6" stroke={ink} strokeWidth={2.5} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 /**
- * The fact itself, as a card over the screen -- built to be read at a glance,
- * the way Duolingo teaches: a chunky 7-step bar for the week's lesson, the
- * picture with its one number, a short bold title, the fact with its key
- * words highlighted, and one thing to try. Drawn and tested on its own.
+ * The fact itself, as a card over the screen: the printed "did you know?"
+ * card -- a cream card with a dark outline lying on a teal one, a bulb, the
+ * heading in the chunky display face, a plain title, the fact with its key
+ * point in bold, one thing to try, and the mascot at the foot beside which
+ * day of the week's lesson this is. Drawn and tested on its own.
  */
 export function FactSheet({
   fact,
@@ -110,7 +128,7 @@ export function FactSheet({
   onClose: () => void;
   testID?: string;
 }) {
-  const { colors, radius, spacing, typography } = useTheme();
+  const { colors, spacing, typography } = useTheme();
   const t = useStrings();
   const content = useContent();
   const language = useLanguage();
@@ -121,85 +139,48 @@ export function FactSheet({
   const text = pick(fact.fact, fact.factId) ?? fact.fact;
   const title = pick(fact.title, fact.titleId);
   const tip = pick(fact.tip, fact.tipId);
-  const headline = pick(fact.headline, fact.headlineId);
-  const longHeadline = (headline ?? '').length > 10;
 
   return (
     <Modal visible transparent animationType={reduceMotion ? 'none' : 'fade'} onRequestClose={onClose}>
       <View style={styles.host} accessibilityViewIsModal testID={testID}>
         <Pressable
-          style={[styles.scrim, { backgroundColor: colors.langit, opacity: 0.55 }]}
+          style={[styles.scrim, { backgroundColor: colors.langit, opacity: 0.6 }]}
           onPress={onClose}
           accessibilityRole="button"
           accessibilityLabel={w.gotIt}
           testID={`${testID}-scrim`}
         />
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: colors['surface-raised'], borderRadius: radius['radius-xl'] },
-          ]}
+        <StackCard
+          color={colors['surface-raised']}
+          shadow={colors.air}
+          border={colors.ink}
+          style={styles.card}
         >
           <ScrollView
-            contentContainerStyle={{ padding: spacing['space-4'], gap: spacing['space-3'] }}
+            contentContainerStyle={{ padding: spacing['space-5'], gap: spacing['space-3'] }}
             showsVerticalScrollIndicator={false}
           >
-            {/* The week's lesson as a 7-step bar: one step a day. */}
-            <View
-              style={styles.progressRow}
-              accessible
-              accessibilityLabel={w.partsCovered(fact.day)}
-              testID={`${testID}-dots`}
-            >
-              <View style={styles.segments}>
-                {[1, 2, 3, 4, 5, 6, 7].map((d) => (
-                  <View
-                    key={d}
-                    style={[
-                      styles.segment,
-                      { backgroundColor: d <= fact.day ? colors['pisang-deep'] : colors.hairline },
-                    ]}
-                  />
-                ))}
-              </View>
-              <Text testID={`${testID}-day`} style={[typography['body-s'], { color: colors['ink-muted'] }]}>
-                {w.dayOf(fact.day, fact.week)}
+            <View style={styles.topRow}>
+              <BulbRays color={colors.pisang} ink={colors.ink} />
+              <Pressable
+                onPress={onClose}
+                accessibilityRole="button"
+                accessibilityLabel={w.gotIt}
+                testID={`${testID}-x`}
+                hitSlop={8}
+                style={[styles.closeX, { backgroundColor: colors.ink }]}
+              >
+                <Text style={[styles.closeXText, { color: colors['surface-raised'] }]}>✕</Text>
+              </Pressable>
+            </View>
+
+            <Text style={[typography['display-l'], { color: colors.pisang }]}>{w.didYouKnow}</Text>
+
+            {title !== null && (
+              <Text testID={`${testID}-title`} style={[typography['heading-l'], { color: colors.ink }]}>
+                {title}
               </Text>
-            </View>
-
-            {/* The picture: the mascot, the fact's own emoji, its number. */}
-            <View
-              style={[
-                styles.picture,
-                { backgroundColor: colors['surface-sunken'], borderRadius: radius['radius-lg'] },
-              ]}
-            >
-              <Mascot pose={fact.pose} size={104} motion={reduceMotion ? 'none' : 'enter'} />
-              {headline !== null && (
-                <Text
-                  testID={`${testID}-headline`}
-                  style={[
-                    longHeadline ? typography['heading-l'] : typography['display-m'],
-                    styles.headline,
-                    { color: colors['pisang-deep'] },
-                  ]}
-                >
-                  {headline}
-                </Text>
-              )}
-            </View>
-
-            <View style={{ gap: spacing['space-1'] }}>
-              <Text style={[typography.label, { color: colors['air-deep'] }]}>{w.didYouKnow}</Text>
-              {title !== null && (
-                <Text
-                  testID={`${testID}-title`}
-                  style={[typography['heading-l'], { color: colors.ink }]}
-                >
-                  {title}
-                </Text>
-              )}
-            </View>
+            )}
 
             <RichText
               testID={`${testID}-fact`}
@@ -209,22 +190,36 @@ export function FactSheet({
             />
 
             {tip !== null && (
-              <View
-                testID={`${testID}-tip`}
-                style={[styles.tip, { borderLeftColor: colors.daun, paddingLeft: spacing['space-3'] }]}
-              >
-                <Text style={[typography.label, { color: colors['daun-deep'] }]}>{w.tryThis}</Text>
-                <Text style={[typography['body-m'], { color: colors.ink }]}>{tip}</Text>
-              </View>
+              <Text testID={`${testID}-tip`} style={[typography['body-m'], { color: colors.ink }]}>
+                <Text style={{ fontFamily: typography['heading-m'].fontFamily }}>{w.tryThisInline} </Text>
+                {tip}
+              </Text>
             )}
 
-            <PushButton label={w.gotIt} fullWidth onPress={onClose} testID={`${testID}-close`} />
-
-            <Text style={[typography['body-s'], { color: colors['ink-muted'], textAlign: 'center' }]}>
-              {w.fromLesson(content(fact.topic) ?? fact.topic)}
-            </Text>
+            <View style={[styles.foot, { marginTop: spacing['space-2'] }]}>
+              <Mascot pose={fact.pose} size={64} motion={reduceMotion ? 'none' : 'enter'} />
+              <View style={{ flex: 1 }} accessible accessibilityLabel={w.partsCovered(fact.day)} testID={`${testID}-dots`}>
+                <Text testID={`${testID}-day`} style={[typography['body-s'], { color: colors.ink }]}>
+                  {w.dayOf(fact.day, fact.week)}
+                </Text>
+                <Text numberOfLines={2} style={[typography['body-s'], { color: colors['ink-muted'] }]}>
+                  {content(fact.topic) ?? fact.topic}
+                </Text>
+              </View>
+              <Pressable
+                onPress={onClose}
+                accessibilityRole="button"
+                testID={`${testID}-close`}
+                style={({ pressed }) => [
+                  styles.gotIt,
+                  { backgroundColor: colors.ink, opacity: pressed ? 0.85 : 1 },
+                ]}
+              >
+                <Text style={[typography.button, { color: colors['surface-raised'] }]}>{w.gotIt}</Text>
+              </Pressable>
+            </View>
           </ScrollView>
-        </View>
+        </StackCard>
       </View>
     </Modal>
   );
@@ -242,11 +237,10 @@ const styles = StyleSheet.create({
   newDot: { position: 'absolute', top: 2, right: 2, width: 10, height: 10, borderRadius: 5, borderWidth: 2 },
   host: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center' },
   scrim: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
-  card: { width: '92%', maxWidth: 420, maxHeight: '90%', overflow: 'hidden' },
-  progressRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  segments: { flex: 1, flexDirection: 'row', gap: 4 },
-  segment: { flex: 1, height: 4, borderRadius: 2 },
-  picture: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 12, gap: 12 },
-  headline: { flex: 1, textAlign: 'center' },
-  tip: { borderLeftWidth: 3, gap: 2 },
+  card: { width: '90%', maxWidth: 400, maxHeight: '88%' },
+  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  closeX: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  closeXText: { fontSize: 16, lineHeight: 18, fontWeight: '700' },
+  foot: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  gotIt: { borderRadius: 999, paddingHorizontal: 18, paddingVertical: 10 },
 });

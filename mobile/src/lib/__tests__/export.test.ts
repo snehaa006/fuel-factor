@@ -37,9 +37,9 @@ describe('each file has its tab’s columns, in the tab’s order', () => {
     expect(sheet.columns).toEqual(columnsOf(sources[key], key).filter((c) => !INTERNAL.includes(c)));
   });
 
-  it('reads nothing of the app tier but the reflections Sofia asked for', () => {
+  it('reads nothing of the app tier but the reflections and the quiz scores', () => {
     expect(SHEETS.map((s) => s.key).sort()).toEqual(
-      ['assessments', 'daily_logs', 'participants', 'programme_reflections', 'recalls', 'weekly_logs']
+      ['assessments', 'daily_logs', 'participants', 'programme_reflections', 'quiz_results', 'recalls', 'weekly_logs']
     );
   });
 });

@@ -176,3 +176,55 @@ describe('the fact of the day', () => {
     expect(seed.replace(/--.*$/gm, '')).not.toMatch(/reviewed_by/);
   });
 });
+
+const quizSql = readFileSync(resolve(root, 'supabase/seed/0022_weekly_quiz.sql'), 'utf8');
+const arrayOf = (s: string) => [...s.matchAll(new RegExp(text, 'g'))].map((m) => unquote(m[1]));
+const quiz = [
+  ...quizSql.matchAll(
+    new RegExp(
+      `\\((\\d), (\\d),\\s*${text},\\s*${text},\\s*array\\[([^\\]]+)\\],\\s*array\\[([^\\]]+)\\],\\s*(\\d), 'week-(\\d)-facts'\\)`,
+      'g'
+    )
+  ),
+].map((m) => ({
+  week: Number(m[1]),
+  position: Number(m[2]),
+  question: unquote(m[3]),
+  questionId: unquote(m[4]),
+  options: arrayOf(m[5]),
+  optionsId: arrayOf(m[6]),
+  answer: Number(m[7]),
+  sourceWeek: Number(m[8]),
+}));
+
+describe('the mini quiz', () => {
+  it('asks one question for each day’s fact, seven a week', () => {
+    expect(quiz.map((q) => `${q.week}/${q.position}`)).toEqual(friendly.map((f) => `${f.week}/${f.day}`));
+    expect(quiz.every((q) => q.sourceWeek === q.week)).toBe(true);
+  });
+
+  it('gives three answers, one of them right, in both languages', () => {
+    for (const q of quiz) {
+      expect(q.options).toHaveLength(3);
+      expect(q.optionsId).toHaveLength(3);
+      expect(q.answer).toBeGreaterThanOrEqual(0);
+      expect(q.answer).toBeLessThan(3);
+      expect(q.questionId).not.toBe(q.question);
+    }
+  });
+
+  it('takes each right answer from its day’s own fact', () => {
+    const strays = quiz.flatMap((q) => {
+      const f = friendly.find((r) => r.week === q.week && r.day === q.position)!;
+      return [
+        ...figures(q.options[q.answer]).filter((n) => !allEn(f).includes(n)).map((n) => `${q.week}/${q.position} en ${n}`),
+        ...figures(q.optionsId[q.answer]).filter((n) => !allId(f).includes(n)).map((n) => `${q.week}/${q.position} id ${n}`),
+      ];
+    });
+    expect(strays).toEqual([]);
+  });
+
+  it('does not always put the right answer in the same place', () => {
+    expect(new Set(quiz.map((q) => q.answer)).size).toBe(3);
+  });
+});

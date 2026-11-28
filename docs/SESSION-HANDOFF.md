@@ -927,7 +927,32 @@ button. The seed test still fails on any figure the week's lesson does not
 print -- now across title, fact and tip -- and on an unclosed highlight or a
 fact too long to read in a few seconds. The app's wording; unreviewed.
 
-**1437 tests pass.**
+**Step 30** — Quieter facts, the mini quiz, and its rewards (28 November).
+
+* *Quieter.* Sneha: "it is looking very AI generated, make it subtle." The
+  copy lost its em dashes and exclamations and keeps one bold point per fact;
+  no emoji on the card or the buttons; a drawn bulb with a small dot.
+* *The printed card.* From Sneha's references: the fact is a cream card with
+  a dark outline on a teal one (`components/stack-card.tsx`), a drawn bulb,
+  "DID YOU KNOW?" in the display face, the title, the fact, "Try this", the
+  mascot at the foot beside the day, a black close and a "Got it" pill.
+* *The mini quiz* (`/learn/quiz/[week]`, `lib/quiz.ts`, migration
+  `20261128000004`, seed `0022`). Theo's "quiz before they move on to the
+  next week"; step 25 had replaced the first quiz with Sofia's WEEKLY LOG
+  questions, which stay as the check-in. Now one question per day's fact,
+  three options, so a score says which days did not stick. Opens on the
+  week's seventh day; offered on Today as a small teal card until taken,
+  then one line with the score and a retake. Each answer says at once if it
+  was right and which day's fact it was; the end shows the score, a star per
+  right answer, and the days to look at again. The latest attempt per week
+  is in `quiz_results`, which the coach reads and exports. Every right
+  answer's figures are its fact's own (checked).
+* *Rewards.* Four badges on the existing ladder (migration `20261128000005`
+  adds two criteria, seed `0023`): Quick Learner (1 quiz), Four Quizzes,
+  Full Marks (7/7), Top of the Class (7/7 on all four). The result screen
+  shows a gold "NEW BADGE" card for each one that attempt earned.
+
+All on the live project. **1453 tests pass.**
 
 **1401 tests pass.**
 

@@ -21,6 +21,7 @@ import { SessionTimes } from '@/components/session-times';
 import { SidebarButton } from '@/components/sidebar';
 import { StreakChip } from '@/components/streak-chip';
 import { StreakStrip } from '@/components/streak-strip';
+import { QuizPrompt } from '@/components/quiz-prompt';
 import { ReflectionPrompt } from '@/components/reflection-prompt';
 import { WeekCheckPrompt } from '@/components/week-check-prompt';
 import { topNudges } from '@/lib/advice';
@@ -222,6 +223,13 @@ export function TodayView({
             />
           </View>
           <View style={{ marginTop: spacing['space-3'] }}>
+            <QuizPrompt
+              programme={programme}
+              participantId={data.participantId}
+              onOpen={(n) => router.push(`/learn/quiz/${n}`)}
+            />
+          </View>
+          <View style={{ marginTop: spacing['space-3'] }}>
             <ReflectionPrompt
               programme={programme}
               participantId={data.participantId}
@@ -323,6 +331,11 @@ export function TodayView({
             programme={programme}
             participantId={data.participantId}
             onOpen={(n) => router.push(`/learn/check/${n}`)}
+          />
+          <QuizPrompt
+            programme={programme}
+            participantId={data.participantId}
+            onOpen={(n) => router.push(`/learn/quiz/${n}`)}
           />
           {recall.status === 'ready' && recall.window.status === 'due' && (
             <RecallPrompt

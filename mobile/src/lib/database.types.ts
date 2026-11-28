@@ -247,6 +247,20 @@ export type Database = {
         Update: { week_number?: number; day?: number; fact?: string; fact_id?: string | null; topic?: string; source?: string; reviewed_by?: string | null; created_at?: string };
         Relationships: [];
       };
+      quiz_questions: {
+        // App tier. The mini quiz: one question per day's fun fact.
+        Row: { week_number: number; position: number; question: string; question_id: string | null; options: string[]; options_id: string[] | null; answer: number; source: string; reviewed_by: string | null; created_at: string };
+        Insert: { week_number: number; position: number; question: string; question_id?: string | null; options: string[]; options_id?: string[] | null; answer: number; source: string; reviewed_by?: string | null; created_at?: string };
+        Update: { week_number?: number; position?: number; question?: string; question_id?: string | null; options?: string[]; options_id?: string[] | null; answer?: number; source?: string; reviewed_by?: string | null; created_at?: string };
+        Relationships: [];
+      };
+      quiz_results: {
+        // App tier. An athlete's latest mini quiz score for a week.
+        Row: { id: string; participant_id: string; week: number; answers: number[]; score: number; total: number; created_at: string; updated_at: string };
+        Insert: { id?: string; participant_id: string; week: number; answers: number[]; score: number; total: number; created_at?: string; updated_at?: string };
+        Update: { id?: string; participant_id?: string; week?: number; answers?: number[]; score?: number; total?: number; created_at?: string; updated_at?: string };
+        Relationships: [{ foreignKeyName: 'quiz_results_participant_id_fkey'; columns: ['participant_id']; isOneToOne: false; referencedRelation: 'participants'; referencedColumns: ['id'] }];
+      };
       checkin_questions: {
         Row: {
           week_number: number;
@@ -360,7 +374,7 @@ export type Database = {
       };
     };
     Enums: {
-      badge_criterion: 'days_logged' | 'streak' | 'challenges_done';
+      badge_criterion: 'days_logged' | 'streak' | 'challenges_done' | 'quizzes_done' | 'perfect_quizzes';
       day_type: 'training' | 'match' | 'rest';
       meal_slot: 'breakfast' | 'pre_training' | 'lunch' | 'post_training' | 'dinner' | 'evening_snack';
       nutrition_method: 'not_computed' | 'food_database';
@@ -380,7 +394,7 @@ export type Enums<T extends keyof DefaultSchema['Enums']> = DefaultSchema['Enums
 export const Constants = {
   public: {
     Enums: {
-      badge_criterion: ['days_logged', 'streak', 'challenges_done'],
+      badge_criterion: ['days_logged', 'streak', 'challenges_done', 'quizzes_done', 'perfect_quizzes'],
       day_type: ['training', 'match', 'rest'],
       meal_slot: ['breakfast', 'pre_training', 'lunch', 'post_training', 'dinner', 'evening_snack'],
       nutrition_method: ['not_computed', 'food_database'],

@@ -553,7 +553,7 @@ export const DEMO_MONTH_MVP: string[] = [DEMO_NAMES.first];
  * `completedOn`. A badge count that disagreed with the Learn screen would be
  * the demo contradicting itself on two taps.
  */
-export const DEMO_STATS = { daysLogged: 7, bestStreak: 4, challengesDone: 0 };
+export const DEMO_STATS = { daysLogged: 7, bestStreak: 4, challengesDone: 0, quizzesDone: 0, perfectQuizzes: 0 };
 
 /**
  * Theo's badges, matching supabase/seed/0007_badges.sql row for row.

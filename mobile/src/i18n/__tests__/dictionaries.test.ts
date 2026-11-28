@@ -152,10 +152,10 @@ describe('lookups keyed by the app’s own codes', () => {
   });
 
   it('translates every badge the database seeds, by its code', () => {
-    const seed = readFileSync(
-      join(__dirname, '..', '..', '..', '..', 'supabase', 'seed', '0007_badges.sql'),
-      'utf8'
-    );
+    // The ladder, and the mini quiz's badges added to it.
+    const seed = ['0007_badges.sql', '0023_quiz_badges.sql']
+      .map((f) => readFileSync(join(__dirname, '..', '..', '..', '..', 'supabase', 'seed', f), 'utf8'))
+      .join('\n');
     const codes = [...seed.matchAll(/^\s*\('([a-z_]+)',/gm)].map((m) => m[1]).sort();
     expect(codes.length).toBeGreaterThan(0);
     expect(Object.keys(id.badges.names).sort()).toEqual(codes);
