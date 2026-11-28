@@ -26,7 +26,7 @@ from (values
   (3, 5, '💧', '2% = −10%', '2% = −10%', 'run'),
   (3, 6, '🚦', 'Every morning', 'Setiap pagi', 'think'),
   (3, 7, '🥥', '1–2 L/hour', '1–2 L/jam', 'stand'),
-  (4, 1, '🧩', 'All 4 weeks', 'Semua 4 minggu', 'best'),
+  (4, 1, '🧩', 'Same day', 'Hari yang sama', 'best'),
   (4, 2, '📊', '1,702 kcal', '1.702 kkal', 'think'),
   (4, 3, '🧠', '20%', '20%', 'learn'),
   (4, 4, '☀️', 'Food first', 'Makanan dulu', 'stand'),

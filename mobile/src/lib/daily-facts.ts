@@ -25,6 +25,11 @@ export type DailyFact = {
   factId: string | null;
   /** The lesson card it comes from. */
   topic: string;
+  /** A short catchy title, and a "try this" action -- each with its Bahasa. */
+  title: string | null;
+  titleId: string | null;
+  tip: string | null;
+  tipId: string | null;
   /** The fact's picture, and its one number or word, drawn big. */
   emoji: string | null;
   headline: string | null;
@@ -44,7 +49,7 @@ export function factPlace(programme: ProgrammeState | null): { week: number; day
 export async function fetchWeekFacts(week: number): Promise<DailyFact[]> {
   const { data, error } = await supabase
     .from('daily_facts')
-    .select('week_number, day, fact, fact_id, topic, emoji, headline, headline_id, pose')
+    .select('week_number, day, fact, fact_id, topic, emoji, headline, headline_id, pose, title, title_id, tip, tip_id')
     .eq('week_number', week)
     .order('day');
   if (error) throw asError(error);
@@ -54,6 +59,10 @@ export async function fetchWeekFacts(week: number): Promise<DailyFact[]> {
     fact: r.fact,
     factId: r.fact_id,
     topic: r.topic,
+    title: r.title,
+    titleId: r.title_id,
+    tip: r.tip,
+    tipId: r.tip_id,
     emoji: r.emoji,
     headline: r.headline,
     headlineId: r.headline_id,

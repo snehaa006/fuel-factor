@@ -915,7 +915,19 @@ the meals near the bottom, the weekly check-in invisible unless due).
 * Today is now a loader (`TodayScreen`) and a view (`TodayView`), so it can be
   drawn from fixed data in a test or a design preview.
 
-**1428 tests pass.**
+**Step 29** — The fun facts, rewritten to be read at a glance (28 November).
+Sneha: "it just looks like text ... highlight things, like Duolingo". Each of
+the 28 now has a short catchy title ("The golden 30 minutes"), the fact in a
+sentence or two with its key words marked `**like this**`, and a green "Try
+this" action -- English and Bahasa (migration `20261128000003`, seed `0021`).
+The card draws a chunky 7-step bar (*Day 6/7*), the picture band with the
+mascot and the number in a pill, the bold title, the fact with the marked
+words bold and highlighted (`components/rich-text.tsx`), the tip box and the
+button. The seed test still fails on any figure the week's lesson does not
+print -- now across title, fact and tip -- and on an unclosed highlight or a
+fact too long to read in a few seconds. The app's wording; unreviewed.
+
+**1437 tests pass.**
 
 **1401 tests pass.**
 

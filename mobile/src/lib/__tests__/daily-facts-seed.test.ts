@@ -36,6 +36,27 @@ const rows = [
 const figures = (text: string) =>
   [...text.matchAll(/\d[\d.,–]*/g)].map((m) => m[0].replace(/[.,–]+$/, ''));
 
+/** The words as the app shows them: seed 0021 rewrote 0019's, row for row. */
+const friendlySql = readFileSync(resolve(root, 'supabase/seed/0021_daily_facts_friendly.sql'), 'utf8');
+const friendly = [
+  ...friendlySql.matchAll(
+    new RegExp(`\\((\\d), (\\d),\\s*${text}, ${text},\\s*${text},\\s*${text},\\s*${text}, ${text}\\)`, 'g')
+  ),
+].map((m) => ({
+  week: Number(m[1]),
+  day: Number(m[2]),
+  title: unquote(m[3]),
+  titleId: unquote(m[4]),
+  fact: unquote(m[5]),
+  factId: unquote(m[6]),
+  tip: unquote(m[7]),
+  tipId: unquote(m[8]),
+}));
+/** The text without the highlight marks. */
+const plain = (s: string) => s.replace(/\*\*/g, '');
+const allEn = (f: (typeof friendly)[number]) => plain(`${f.title} ${f.fact} ${f.tip}`);
+const allId = (f: (typeof friendly)[number]) => plain(`${f.titleId} ${f.factId} ${f.tipId}`);
+
 const picturesSql = readFileSync(resolve(root, 'supabase/seed/0020_daily_facts_pictures.sql'), 'utf8');
 const pictures = [
   ...picturesSql.matchAll(new RegExp(`\\((\\d), (\\d), ${text}, ${text}, ${text}, '([a-z]+)'\\)`, 'g')),
@@ -60,13 +81,54 @@ describe('the fact of the day’s pictures', () => {
 
   it('puts no figure in a headline that its fact does not state, in either language', () => {
     const strays = pictures.flatMap((p) => {
-      const row = rows.find((r) => r.week === p.week && r.day === p.day)!;
+      const f = friendly.find((r) => r.week === p.week && r.day === p.day)!;
       return [
-        ...figures(p.headline).filter((n) => !row.fact.includes(n)).map((n) => `${p.week}/${p.day} en ${n}`),
-        ...figures(p.headlineId).filter((n) => !row.factId.includes(n)).map((n) => `${p.week}/${p.day} id ${n}`),
+        ...figures(p.headline).filter((n) => !allEn(f).includes(n)).map((n) => `${p.week}/${p.day} en ${n}`),
+        ...figures(p.headlineId).filter((n) => !allId(f).includes(n)).map((n) => `${p.week}/${p.day} id ${n}`),
       ];
     });
     expect(strays).toEqual([]);
+  });
+});
+
+describe('the fun fact, written to be read at a glance', () => {
+  it('rewrites every one of the 28, in the same places', () => {
+    expect(friendly.map((f) => `${f.week}/${f.day}`)).toEqual(rows.map((r) => `${r.week}/${r.day}`));
+  });
+
+  it('uses no figure the week’s lesson does not print, in its title, fact or tip', () => {
+    const invented = friendly.flatMap((f) =>
+      figures(allEn(f))
+        .filter((n) => !lessons[f.week].includes(n))
+        .map((n) => `week ${f.week} day ${f.day}: ${n}`)
+    );
+    expect(invented).toEqual([]);
+  });
+
+  it('highlights the words that matter, with every highlight closed', () => {
+    for (const f of friendly) {
+      for (const s of [f.fact, f.factId]) {
+        const marks = s.split('**').length - 1;
+        expect(marks % 2).toBe(0);
+        expect(marks).toBeGreaterThanOrEqual(2);
+      }
+    }
+  });
+
+  it('is short enough to read in a few seconds', () => {
+    const long = friendly.filter(
+      (f) => f.title.length > 40 || plain(f.fact).length > 140 || f.tip.length > 72
+    );
+    expect(long.map((f) => `${f.week}/${f.day}`)).toEqual([]);
+  });
+
+  it('says it all in Bahasa too', () => {
+    for (const f of friendly) {
+      for (const [en, id] of [[f.title, f.titleId], [f.fact, f.factId], [f.tip, f.tipId]]) {
+        expect(id.trim()).not.toBe('');
+        expect(id).not.toBe(en);
+      }
+    }
   });
 });
 

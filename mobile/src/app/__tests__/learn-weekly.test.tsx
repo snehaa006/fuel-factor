@@ -324,9 +324,13 @@ describe('on Today', () => {
     const fact = {
       week: 1,
       day: 3,
-      fact: 'The carbs you eat are stored as glycogen: about 400 g in your muscles and 100 g in your liver.',
-      factId: 'Karbohidrat yang kamu makan disimpan sebagai glikogen.',
+      fact: 'Carbs are stored as **glycogen**: about **400 g** in your muscles and **100 g** in your liver.',
+      factId: 'Karbo disimpan sebagai **glikogen**.',
       topic: 'What Carbohydrates Actually Do',
+      title: 'Your body has a fuel tank',
+      titleId: 'Tubuhmu punya tangki bahan bakar',
+      tip: 'Refill the tank after every training.',
+      tipId: 'Isi ulang tangkinya setiap selesai latihan.',
       emoji: '🔋',
       headline: '400 g',
       headlineId: '400 g',
@@ -336,8 +340,14 @@ describe('on Today', () => {
     await render(<FactSheet fact={fact} onClose={onClose} />);
     expect(screen.getByTestId('fact-sheet-emoji')).toHaveTextContent('🔋');
     expect(screen.getByTestId('fact-sheet-headline')).toHaveTextContent('400 g');
-    expect(screen.getByTestId('fact-sheet-day')).toHaveTextContent('Day 3 of 7 · Week 1');
-    expect(screen.getByTestId('fact-sheet-fact')).toHaveTextContent(/stored as glycogen/);
+    expect(screen.getByTestId('fact-sheet-day')).toHaveTextContent('DAY 3/7');
+    expect(screen.getByTestId('fact-sheet-title')).toHaveTextContent('Your body has a fuel tank');
+    // The marks become highlights, not asterisks on the screen.
+    expect(screen.getByTestId('fact-sheet-fact')).toHaveTextContent(
+      'Carbs are stored as glycogen: about 400 g in your muscles and 100 g in your liver.'
+    );
+    expect(screen.getByText('glycogen')).toBeTruthy();
+    expect(screen.getByTestId('fact-sheet-tip')).toHaveTextContent(/TRY THIS.*Refill the tank/);
     expect(screen.getByTestId('fact-sheet-dots').props.accessibilityLabel).toBe('Part 3 of 7 of this week’s lesson');
     expect(screen.queryByText(/Read the lesson/)).toBeNull();
     await act(async () => fireEvent.press(screen.getByTestId('fact-sheet-close')));
