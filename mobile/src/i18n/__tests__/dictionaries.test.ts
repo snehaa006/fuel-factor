@@ -107,8 +107,6 @@ describe('the Indonesian dictionary', () => {
         '.scales.stepperValue',
         '.session.value',
         '.streak.dayInitials.6',
-        // "Check-in" is the word Indonesian athletes use too.
-        '.today.checkIn',
       ].sort()
     );
   });

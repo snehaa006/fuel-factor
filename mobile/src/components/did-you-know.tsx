@@ -1,13 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Animated, {
-  cancelAnimation,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
+import Svg, { Path } from 'react-native-svg';
 
 import { Mascot } from '@/components/mascot';
 import { PushButton } from '@/components/push-button';
@@ -28,14 +21,30 @@ import { useTheme } from '@/theme';
  * November: the week's lesson a part a day; make it fun, with pictures and the
  * mascot, so it is easy to remember -- and out of the scroll.
  *
- * So Today carries a small 💡 in its top-right corner. It glows and pulses
- * until today's fact has been opened. Tapping it opens the fact as a card:
- * the mascot in the pose picked for that fact, the fact's own picture, its one
- * number drawn big, the fact, and a dot for each part of the week's lesson so
- * far (`lib/daily-facts.ts`, seeds 0019 and 0020). The astronaut is the
+ * So Today carries a small bulb in its top-right corner, with a dot until
+ * today's fact has been opened. Tapping it opens the fact as a card: a thin
+ * 7-step bar for the week's lesson, the mascot in the pose picked for that
+ * fact beside its one number, a plain title, the fact with its key point in
+ * bold, and one thing to try (`lib/daily-facts.ts`, seeds 0019-0021). Kept
+ * quiet on purpose -- Sneha, 28 November: "make it subtle". The astronaut is the
  * illustration: the fact sits on the card, never in its speech bubble
  * (`mascot-copy.ts`). Nothing shows before day one or after day 28.
  */
+
+/** A plain line-drawn bulb, sized for the 44px button. */
+function BulbIcon({ color }: { color: string }) {
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M9 18h6M10 21.5h4M12 2.5a6.5 6.5 0 0 0-4 11.6c.7.6 1.1 1.4 1.1 2.3v.1h5.8v-.1c0-.9.4-1.7 1.1-2.3A6.5 6.5 0 0 0 12 2.5Z"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
 
 export function FactButton({
   programme,
@@ -50,23 +59,7 @@ export function FactButton({
   const fact = state.status === 'ready' ? state.fact : null;
   const [seen, markSeen] = useFactSeen(fact ? `${fact.week}-${fact.day}` : null);
   const [open, setOpen] = useState(false);
-  const reduceMotion = useReduceMotion();
-  const pulse = useSharedValue(1);
   const glow = fact !== null && !seen;
-
-  useEffect(() => {
-    if (glow && !reduceMotion) {
-      pulse.value = withRepeat(
-        withSequence(withTiming(1.14, { duration: 520 }), withTiming(1, { duration: 520 })),
-        -1
-      );
-    } else {
-      cancelAnimation(pulse);
-      pulse.value = 1;
-    }
-  }, [glow, reduceMotion, pulse]);
-
-  const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
 
   if (fact === null) return null;
 
@@ -82,24 +75,20 @@ export function FactButton({
         testID={testID}
         hitSlop={6}
       >
-        <Animated.View
+        <View
           style={[
             styles.bulb,
-            {
-              backgroundColor: glow ? colors.pisang : colors['pisang-tint'],
-              borderColor: colors['pisang-deep'],
-            },
-            pulseStyle,
+            { backgroundColor: colors['surface-raised'], borderColor: colors.hairline },
           ]}
         >
-          <Text style={styles.bulbIcon}>💡</Text>
+          <BulbIcon color={glow ? colors['pisang-deep'] : colors['ink-muted']} />
           {glow && (
             <View
               testID={`${testID}-new`}
-              style={[styles.newDot, { backgroundColor: colors.cabai, borderColor: colors.surface }]}
+              style={[styles.newDot, { backgroundColor: colors.pisang, borderColor: colors.surface }]}
             />
           )}
-        </Animated.View>
+        </View>
       </Pressable>
       {open && <FactSheet fact={fact} onClose={() => setOpen(false)} />}
     </>
@@ -168,13 +157,13 @@ export function FactSheet({
                     key={d}
                     style={[
                       styles.segment,
-                      { backgroundColor: d <= fact.day ? colors.pisang : colors['surface-sunken'] },
+                      { backgroundColor: d <= fact.day ? colors['pisang-deep'] : colors.hairline },
                     ]}
                   />
                 ))}
               </View>
-              <Text testID={`${testID}-day`} style={[typography.label, { color: colors['pisang-deep'] }]}>
-                {w.progress(fact.day)}
+              <Text testID={`${testID}-day`} style={[typography['body-s'], { color: colors['ink-muted'] }]}>
+                {w.dayOf(fact.day, fact.week)}
               </Text>
             </View>
 
@@ -182,48 +171,30 @@ export function FactSheet({
             <View
               style={[
                 styles.picture,
-                { backgroundColor: colors['langit-tint'], borderRadius: radius['radius-lg'] },
+                { backgroundColor: colors['surface-sunken'], borderRadius: radius['radius-lg'] },
               ]}
             >
-              <Mascot pose={fact.pose} size={120} motion={reduceMotion ? 'none' : 'enter'} />
-              <View style={styles.pictureRight}>
-                {fact.emoji !== null && (
-                  <Text testID={`${testID}-emoji`} style={styles.emoji}>
-                    {fact.emoji}
-                  </Text>
-                )}
-                {headline !== null && (
-                  <View
-                    style={[
-                      styles.headlinePill,
-                      { backgroundColor: colors.pisang, borderColor: colors['pisang-deep'] },
-                    ]}
-                  >
-                    <Text
-                      testID={`${testID}-headline`}
-                      style={[
-                        longHeadline ? typography['heading-m'] : typography['display-m'],
-                        { color: colors['on-bright'], textAlign: 'center' },
-                      ]}
-                    >
-                      {headline}
-                    </Text>
-                  </View>
-                )}
-              </View>
+              <Mascot pose={fact.pose} size={104} motion={reduceMotion ? 'none' : 'enter'} />
+              {headline !== null && (
+                <Text
+                  testID={`${testID}-headline`}
+                  style={[
+                    longHeadline ? typography['heading-l'] : typography['display-m'],
+                    styles.headline,
+                    { color: colors['pisang-deep'] },
+                  ]}
+                >
+                  {headline}
+                </Text>
+              )}
             </View>
 
             <View style={{ gap: spacing['space-1'] }}>
-              <View style={styles.eyebrowRow}>
-                <Text style={[typography.label, { color: colors['air-deep'] }]}>💡 {w.didYouKnow}</Text>
-                <Text style={[typography.label, { color: colors['ink-muted'] }]}>
-                  {w.weekShort(fact.week)}
-                </Text>
-              </View>
+              <Text style={[typography.label, { color: colors['air-deep'] }]}>{w.didYouKnow}</Text>
               {title !== null && (
                 <Text
                   testID={`${testID}-title`}
-                  style={[typography['heading-l'], styles.title, { color: colors.ink }]}
+                  style={[typography['heading-l'], { color: colors.ink }]}
                 >
                   {title}
                 </Text>
@@ -234,35 +205,20 @@ export function FactSheet({
               testID={`${testID}-fact`}
               text={text}
               style={[typography['body-l'], { color: colors.ink }]}
-              strongStyle={{
-                fontFamily: typography['heading-m'].fontFamily,
-                color: colors['pisang-deep'],
-                backgroundColor: colors['pisang-tint'],
-              }}
+              strongStyle={{ fontFamily: typography['heading-m'].fontFamily }}
             />
 
             {tip !== null && (
               <View
                 testID={`${testID}-tip`}
-                style={[
-                  styles.tip,
-                  {
-                    backgroundColor: colors['daun-tint'],
-                    borderColor: colors.daun,
-                    borderRadius: radius['radius-lg'],
-                    padding: spacing['space-3'],
-                  },
-                ]}
+                style={[styles.tip, { borderLeftColor: colors.daun, paddingLeft: spacing['space-3'] }]}
               >
-                <Text style={styles.tipIcon}>✅</Text>
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={[typography.label, { color: colors['daun-deep'] }]}>{w.tryThis}</Text>
-                  <Text style={[typography['heading-m'], { color: colors.ink }]}>{tip}</Text>
-                </View>
+                <Text style={[typography.label, { color: colors['daun-deep'] }]}>{w.tryThis}</Text>
+                <Text style={[typography['body-m'], { color: colors.ink }]}>{tip}</Text>
               </View>
             )}
 
-            <PushButton label={`${w.gotIt} 👍`} fullWidth onPress={onClose} testID={`${testID}-close`} />
+            <PushButton label={w.gotIt} fullWidth onPress={onClose} testID={`${testID}-close`} />
 
             <Text style={[typography['body-s'], { color: colors['ink-muted'], textAlign: 'center' }]}>
               {w.fromLesson(content(fact.topic) ?? fact.topic)}
@@ -283,20 +239,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bulbIcon: { fontSize: 22, lineHeight: 26 },
-  newDot: { position: 'absolute', top: -2, right: -2, width: 14, height: 14, borderRadius: 7, borderWidth: 2 },
+  newDot: { position: 'absolute', top: 2, right: 2, width: 10, height: 10, borderRadius: 5, borderWidth: 2 },
   host: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center' },
   scrim: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
   card: { width: '92%', maxWidth: 420, maxHeight: '90%', overflow: 'hidden' },
   progressRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   segments: { flex: 1, flexDirection: 'row', gap: 4 },
-  segment: { flex: 1, height: 10, borderRadius: 5 },
-  picture: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, gap: 8 },
-  pictureRight: { flex: 1, alignItems: 'center', gap: 8 },
-  emoji: { fontSize: 56, lineHeight: 66 },
-  headlinePill: { borderRadius: 999, borderWidth: 2, borderBottomWidth: 4, paddingHorizontal: 14, paddingVertical: 6 },
-  title: { fontSize: 23, lineHeight: 29 },
-  tip: { flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1.5 },
-  tipIcon: { fontSize: 22 },
-  eyebrowRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  segment: { flex: 1, height: 4, borderRadius: 2 },
+  picture: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 12, gap: 12 },
+  headline: { flex: 1, textAlign: 'center' },
+  tip: { borderLeftWidth: 3, gap: 2 },
 });

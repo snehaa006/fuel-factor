@@ -324,7 +324,7 @@ describe('on Today', () => {
     const fact = {
       week: 1,
       day: 3,
-      fact: 'Carbs are stored as **glycogen**: about **400 g** in your muscles and **100 g** in your liver.',
+      fact: 'Carbs are stored as **glycogen**: about 400 g in your muscles and 100 g in your liver.',
       factId: 'Karbo disimpan sebagai **glikogen**.',
       topic: 'What Carbohydrates Actually Do',
       title: 'Your body has a fuel tank',
@@ -338,9 +338,8 @@ describe('on Today', () => {
     };
     const onClose = jest.fn();
     await render(<FactSheet fact={fact} onClose={onClose} />);
-    expect(screen.getByTestId('fact-sheet-emoji')).toHaveTextContent('🔋');
     expect(screen.getByTestId('fact-sheet-headline')).toHaveTextContent('400 g');
-    expect(screen.getByTestId('fact-sheet-day')).toHaveTextContent('DAY 3/7');
+    expect(screen.getByTestId('fact-sheet-day')).toHaveTextContent('Day 3 of 7 · Week 1');
     expect(screen.getByTestId('fact-sheet-title')).toHaveTextContent('Your body has a fuel tank');
     // The marks become highlights, not asterisks on the screen.
     expect(screen.getByTestId('fact-sheet-fact')).toHaveTextContent(

@@ -67,12 +67,12 @@ export function WeekCheckPrompt({
         <View
           style={[
             styles.badge,
-            { backgroundColor: done ? colors.daun : colors['surface-sunken'] },
+            done
+              ? { backgroundColor: colors.daun }
+              : { borderWidth: 1.5, borderColor: colors['ink-faint'] },
           ]}
         >
-          <Text style={[typography.label, { color: done ? colors['on-bright'] : colors['ink-muted'] }]}>
-            {done ? '✓' : '📝'}
-          </Text>
+          {done && <Text style={[typography.label, { color: colors['on-bright'] }]}>✓</Text>}
         </View>
         <Text style={[typography['body-m'], styles.lineText, { color: done ? colors.ink : colors['ink-muted'] }]}>
           {done
