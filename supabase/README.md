@@ -238,14 +238,16 @@ schema, and ran after them.
 | `0015_week3_week4_advice.sql` | 3 advice rules, every message copied from 0013 and 0014: the week 3 pre-sleep snack and the deck's "3–4: drink more today", and the week 4 top-up snack the hour before a session. Unreviewed, like every rule |
 | `0016_checkin_questions.sql` | Each week's behaviour question for the Sunday check-in. Week 2 verbatim from the week 3 message, week 3 from its challenge slide; weeks 1 and 4 worded from the answers the tracker holds for them (`source = 'tracker-answers'`). None reviewed |
 | `0017_demo_squad_weekly_logs.sql` | The WEEKLY LOG tab's 12 rows for the demo squad's Jeongho, Theo and Jacob, verbatim from the tracker (26 November) |
+| `0019_daily_facts.sql` | The fact of the day: 7 per week, one per day, in each week's lesson order, in the lesson's own figures (checked by `daily-facts-seed.test.ts`), with Bahasa. Unreviewed. **On the live project** (28 November) |
 | `0018_advice_bahasa.sql` | Bahasa Indonesia for the 12 advice cards (`message_id`), the app's translation, unreviewed. **On the live project** (27 November) |
 
 **Every migration and every seed here is on the live project.** The
 check-in's and the reflection's -- `20261127000001_weekly_logs`,
 `20261127000002_checkin_questions`, `20261127000003_programme_reflections`
-and seeds `0016`, `0017` -- were applied 28 November; `0018` loaded 27
+and seeds `0016`, `0017` -- and the fact of the day's
+`20261128000001_daily_facts` with seed `0019` were applied 28 November; `0018` loaded 27
 November. The rest was checked 18 November; `0015` loaded 25
-November: 21 migrations; all four weeks, the
+November: 22 migrations; all four weeks, the
 12 advice rules, the badges and the composition table. Nothing else is in it but what people have entered in the app, and one
 test squad (below).
 

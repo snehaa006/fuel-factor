@@ -164,6 +164,8 @@ export const id: Strings = {
   },
 
   mascot: {
+    programmeDone: 'PROGRAM SELESAI',
+    programmeDoneLine: 'Empat minggu selesai. Tidak ada lagi catatan harian mulai sekarang.',
     readyWhenYouAre: 'SIAP KAPAN SAJA',
     nothingLogged: 'Belum ada yang dicatat. Mulai dari makanan terakhirmu.',
     allSix: 'SEMUA ENAM',
@@ -276,6 +278,10 @@ export const id: Strings = {
     dqScore: 'SKOR KUALITAS DIET',
     logMeal: 'Catat makanan',
     checkIn: 'Check-in malam',
+    whatsLeft: 'YANG TERSISA',
+    endedOn: (date: string) => `Empat minggu berakhir pada ${date}. Catatan makan dan check-in malam sudah ditutup.`,
+    recallAllIn: 'Recall makanan lanjutanmu sudah lengkap.',
+    seeYourWeeks: 'Lihat empat minggumu',
   },
 
   streak: {
@@ -850,6 +856,8 @@ export const id: Strings = {
     yourSquad: 'Skuad Anda',
     loggedToday: (logged: number, total: number, days: number) =>
       `${logged} dari ${total} mencatat hari ini · ${days} hari terakhir`,
+    programmeEnded: (date: string, logged: number, total: number, days: number) =>
+      `Empat minggu berakhir pada ${date}; catatan harian sudah ditutup. ${logged} dari ${total} mencatat di hari terakhir · ${days} hari terakhirnya.`,
     noAthletes: 'Belum ada atlet di tim ini.',
     athletesJoin: 'Atlet bergabung dengan kode ini.',
     counts: (days: number, breakfast: number) => `Mencatat ${days} hari · sarapan ${breakfast} · `,
@@ -948,14 +956,12 @@ export const id: Strings = {
     showOne: 'Satu kartu sekaligus',
     lessonDone: 'Itu tadi materinya.',
     didYouKnow: 'TAHUKAH KAMU?',
-    tapToSee: 'Ketuk untuk fakta hari ini',
     hide: 'Sembunyikan',
     showFact: 'Tampilkan fakta hari ini',
     hideFact: 'Sembunyikan fakta hari ini',
-    fromWeek: (week: number, heading: string | null) =>
-      `Materi minggu ${week}${heading ? ` · ${heading}` : ''}`,
-    readLesson: 'Baca materinya →',
-    deckWords: 'Dalam kata-kata asli dari materi program.',
+    dayOf: (day: number, week: number) => `Hari ${day} dari 7 · Minggu ${week}`,
+    partsCovered: (day: number) => `Bagian ${day} dari 7 materi minggu ini`,
+    fromLesson: (topic: string) => `Dari materi: ${topic}`,
   },
 
   checkin: {

@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { award, fetchBadges, fetchStats, type EarnedBadge } from './badges';
 import { messageOf } from './errors';
 import { fetchLeaderboard, fetchMvp, MONTH_DAYS, type Leaderboard } from './team';
+import { loggingAsOf } from './programme';
+import { fetchProgrammeStart } from './programme-start';
 import { todayIso } from './today';
 
 export type TeamView = {
@@ -27,16 +29,19 @@ export function useTeam(): TeamState {
   useEffect(() => {
     let active = true;
 
-    const today = todayIso();
-
     // Four independent reads. The badges are the athlete's own rows and need
-    // no function; only the two boards do.
-    Promise.all([
-      fetchLeaderboard(today),
-      fetchMvp(today, MONTH_DAYS),
-      fetchBadges(),
-      fetchStats(today),
-    ])
+    // no function; only the two boards do. The boards end on the programme's
+    // last day once the four weeks are over.
+    fetchProgrammeStart()
+      .then((startsOn) => {
+        const today = loggingAsOf(todayIso(), startsOn);
+        return Promise.all([
+          fetchLeaderboard(today),
+          fetchMvp(today, MONTH_DAYS),
+          fetchBadges(),
+          fetchStats(today),
+        ]);
+      })
       .then(([week, monthMvp, badges, stats]) => {
         if (!active) return;
         setState({

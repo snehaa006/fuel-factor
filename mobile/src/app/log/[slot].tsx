@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
  */
 export default function LogMeal() {
   return (
-    <ProgrammeGate>
+    <ProgrammeGate daily>
       <LogMealForm />
     </ProgrammeGate>
   );

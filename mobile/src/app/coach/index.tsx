@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { longDate } from '@/components/calendar';
 import { CoachSidebar } from '@/components/coach-sidebar';
 import { PushButton } from '@/components/push-button';
 import { SidebarButton } from '@/components/sidebar';
@@ -233,7 +234,9 @@ function CoachDashboard() {
           testID="coach-today"
           style={[typography['body-m'], { color: colors['ink-muted'], marginTop: spacing['space-2'] }]}
         >
-          {t.coach.loggedToday(view.loggedToday, view.athletes.length, view.windowDays)}
+          {view.endedOn
+            ? t.coach.programmeEnded(longDate(view.endedOn, t), view.loggedToday, view.athletes.length, view.windowDays)
+            : t.coach.loggedToday(view.loggedToday, view.athletes.length, view.windowDays)}
         </Text>
 
         <View style={{ marginTop: spacing['space-6'], gap: spacing['space-3'] }}>

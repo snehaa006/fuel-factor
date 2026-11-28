@@ -75,6 +75,9 @@ export type CoachView = {
   /** How many of the squad logged today. The number a coach opens this for. */
   loggedToday: number;
   windowDays: number;
+  /** The programme's last day once it is over; the view then ends there. */
+  endedOn?: string | null;
+  startsOn?: string | null;
 };
 
 /**

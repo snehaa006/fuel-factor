@@ -110,6 +110,11 @@ export function saveFailedCue(t: Strings = en): MascotCue {
   return { pose: 'think', eyebrow: t.mascot.didNotSave, message: t.mascot.saveFailed, motion: 'shake' };
 }
 
+/** Today once the four weeks are over: the daily logging has ended. */
+export function finishedCue(t: Strings = en): MascotCue {
+  return { pose: 'best', eyebrow: t.mascot.programmeDone, message: t.mascot.programmeDoneLine, motion: 'celebrate' };
+}
+
 export const LEARN_CUE = learnCue();
 export const WELCOME_CUE = welcomeCue();
 export const PROGRESS_CUE = progressCue();
@@ -127,6 +132,7 @@ function cuesIn(t: Strings): MascotCue[] {
     welcomeCue(t),
     progressCue(t),
     saveFailedCue(t),
+    finishedCue(t),
   ];
 }
 

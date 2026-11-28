@@ -55,6 +55,43 @@ export function programmeState(startsOn: IsoDate | null, today: IsoDate): Progra
   return { status: 'open', startsOn, day: 1 - daysUntil, of: PROGRAMME_DAYS };
 }
 
+/** The last of the 28 days: day one plus 27. */
+export function lastProgrammeDay(startsOn: IsoDate): IsoDate {
+  return new Date(Date.parse(`${startsOn}T00:00:00Z`) + (PROGRAMME_DAYS - 1) * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+}
+
+/**
+ * The day a "last N days" view should end on.
+ *
+ * Today while the four weeks run. Once they are over nobody logs any more, so
+ * a window ending today would slide, a day at a time, into days that were
+ * never going to have a log in them, and a fortnight of real logging would
+ * read as a fortnight of nothing. From day 29 the window ends on the
+ * programme's last day instead.
+ */
+export function loggingAsOf(today: IsoDate, startsOn: IsoDate | null): IsoDate {
+  if (startsOn === null) return today;
+  const last = lastProgrammeDay(startsOn);
+  return today > last ? last : today;
+}
+
+/**
+ * Whether the four weeks are behind the athlete: day 29 onwards.
+ *
+ * The programme runs 28 days. After the last one there is nothing to log day
+ * by day any more -- no meals, no evening check-in, no fact of the day -- and
+ * what is left is the follow-up recall and the end-of-programme questions.
+ * The state stays 'open' (Learn, Progress and the rest still work); this is
+ * the one question every screen asks to know the daily part has ended.
+ */
+export function programmeOver(
+  state: ProgrammeState | null
+): state is Extract<ProgrammeState, { status: 'open' }> {
+  return state !== null && state.status === 'open' && state.day > state.of;
+}
+
 /**
  * Whether the app's own half is open.
  *

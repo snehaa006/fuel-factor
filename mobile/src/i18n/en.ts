@@ -162,6 +162,8 @@ export const en = {
   mascot: {
     readyWhenYouAre: 'READY WHEN YOU ARE',
     nothingLogged: 'Nothing logged yet. Start with your last meal.',
+    programmeDone: 'PROGRAMME COMPLETE',
+    programmeDoneLine: 'Four weeks done. No more daily logging from here.',
     allSix: 'ALL SIX',
     everyMeal: 'Every meal logged today.',
     inProgress: 'IN PROGRESS',
@@ -274,6 +276,11 @@ export const en = {
     dqScore: 'DIET QUALITY SCORE',
     logMeal: 'Log a meal',
     checkIn: 'Evening check-in',
+    /** From day 29: the four weeks are over and only these are left. */
+    whatsLeft: 'WHAT’S LEFT',
+    endedOn: (date: string) => `The four weeks ended on ${date}. Meals and the evening check-in are closed.`,
+    recallAllIn: 'Your follow-up food recall is all in.',
+    seeYourWeeks: 'See your four weeks',
   },
 
   streak: {
@@ -792,6 +799,9 @@ export const en = {
     yourSquad: 'Your squad',
     loggedToday: (logged: number, total: number, days: number) =>
       `${logged} of ${total} logged today · last ${days} days`,
+    /** From day 29: the dashboard shows the programme's last days. */
+    programmeEnded: (date: string, logged: number, total: number, days: number) =>
+      `The four weeks ended on ${date}; daily logging is closed. ${logged} of ${total} logged on the last day · its last ${days} days.`,
     noAthletes: 'No athletes on this team yet.',
     athletesJoin: 'Athletes join with this code.',
     counts: (days: number, breakfast: number) => `Logged ${days} days · breakfast ${breakfast} · `,
@@ -866,15 +876,13 @@ export const en = {
     showOne: 'One card at a time',
     lessonDone: 'That’s the lesson.',
     didYouKnow: 'DID YOU KNOW?',
-    tapToSee: 'Tap for today’s fact',
     hide: 'Hide',
     showFact: 'Show today’s fact',
     hideFact: 'Hide today’s fact',
-    fromWeek: (week: number, heading: string | null) =>
-      `Week ${week} material${heading ? ` · ${heading}` : ''}`,
-    readLesson: 'Read the lesson →',
-    /** Under the deck's own words when the app speaks Bahasa. Empty in English. */
-    deckWords: '',
+    /** Where today's fact sits in the week: one part of the lesson a day. */
+    dayOf: (day: number, week: number) => `Day ${day} of 7 · Week ${week}`,
+    partsCovered: (day: number) => `Part ${day} of 7 of this week’s lesson`,
+    fromLesson: (topic: string) => `From the lesson: ${topic}`,
   },
 
   /** The Sunday check-in: the WEEKLY LOG tab's five questions. */

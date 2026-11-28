@@ -61,6 +61,27 @@ describe('the programme gate', () => {
     expect(mockRedirect).toHaveBeenCalledWith('/before-you-start');
   });
 
+  it('closes the meal logger and the evening check-in once the four weeks are over', async () => {
+    // Day 29: nobody logs meals any more, so the daily screens send the
+    // athlete back to Today, which says so.
+    programme({ status: 'open', startsOn: '2026-10-28', day: 29, of: 28 });
+    await render(<ProgrammeGate daily>{behind}</ProgrammeGate>);
+    expect(mockRedirect).toHaveBeenCalledWith('/today');
+    expect(screen.queryByTestId('behind')).toBeNull();
+  });
+
+  it('keeps them open on the last day', async () => {
+    programme({ status: 'open', startsOn: '2026-10-28', day: 28, of: 28 });
+    await render(<ProgrammeGate daily>{behind}</ProgrammeGate>);
+    expect(screen.getByTestId('behind')).toBeTruthy();
+  });
+
+  it('leaves Today, Learn and the rest open after the programme', async () => {
+    programme({ status: 'open', startsOn: '2026-10-28', day: 40, of: 28 });
+    await render(<ProgrammeGate>{behind}</ProgrammeGate>);
+    expect(screen.getByTestId('behind')).toBeTruthy();
+  });
+
   it('renders nothing behind it while it is still asking', async () => {
     mockUseProgramme.mockReturnValue({ status: 'loading', reload: jest.fn() });
     await render(<ProgrammeGate>{behind}</ProgrammeGate>);

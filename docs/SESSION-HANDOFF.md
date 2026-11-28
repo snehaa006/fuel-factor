@@ -863,6 +863,37 @@ connector once it reached this project (the combined file had first been
 dry-run on PGlite on top of all 18 earlier migrations). 21 migrations live,
 the same 21 as the repository.
 
+**Step 27** — The programme behaves like the programme (28 November).
+Sneha: after 24 November the athletes are not logging meals any more, so the
+app must not ask them to; and the fact of the day should be a fact, not a
+pointer to the lesson.
+
+*Three phases, each as it is in real life* (`programmeOver`, `loggingAsOf`
+in `lib/programme.ts`). Before day one: the baseline recall only (unchanged).
+Days 1-28: the daily app. **From day 29** (25 November for the demo squad):
+Today drops meals, the evening check-in, the streak, the fuel ring, the
+challenge, the advice and the fact of the day, says the four weeks ended on
+the 24th, and lists only what is left -- the follow-up food recall (or that
+it is all in), week 4's check-in if missing, the reflection -- with a link to
+Progress. The meal logger and the evening check-in close (`ProgrammeGate
+daily` sends them to Today). Fuel gaps, the coach dashboard and the team
+boards end their "last N days" on day 28 instead of sliding into days nobody
+logs, and the coach is told the programme has ended rather than "0 of 3
+logged today".
+
+*The fact of the day, rebuilt* (`daily_facts`, migration `20261128000001`,
+seed `0019`, `lib/daily-facts.ts`). Seven short facts per week, one per day,
+in the order the week's lesson runs, so day 7 finishes the lesson: the week
+taught a part a day. Each is the lesson's own claim in its own figures,
+shortened; `daily-facts-seed.test.ts` fails on a figure the week's lesson
+does not print, on a card from another week, or on the wrong order. The card
+shows the fact straight away (Sofia's toggle folds it), *Day 3 of 7 · Week
+1*, a dot per part covered, and the card it comes from; the "Read the
+lesson" link is gone. Bahasa sits in `fact_id`. Applied to the live project
+28 November. Unreviewed.
+
+**1420 tests pass.**
+
 **1401 tests pass.**
 
 `cd mobile && npm run check` runs theme generation, typecheck,

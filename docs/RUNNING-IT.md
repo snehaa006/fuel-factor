@@ -14,7 +14,7 @@ flag, profile or script can produce a build that draws from sample data.
 | **Web app**, <https://fuel-factor-expo-go.vercel.app> | `main`, the real app, opened in any phone's or laptop's browser. **The demo build**: a release build, no dev menu, nothing to install. Deployed by Vercel on every push to `main` |
 | **Expo Go route**, same host | `main`, for Expo Go only (`exps://fuel-factor-expo-go.vercel.app`). A developer tool: shake opens Expo Go's menu |
 | **Confirmation page**, Vercel `fuel-factor` | Where the sign-up email lands. Static, one file |
-| **Supabase** `nprvrlpkdrgckzceyryc` | 21 migrations, every one in the repo (the last three, the Sunday check-in and the reflection, applied 28 November); all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
+| **Supabase** `nprvrlpkdrgckzceyryc` | 22 migrations, every one in the repo (the check-in, the reflection and the fact of the day applied 28 November); all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
 
 Both phone channels were last published on **28 November 2026 from `a49d31a`
 on `main`**: everything up to 25 November plus the language and theme
@@ -376,6 +376,12 @@ holds. Their logins and the squad's codes are not written here, because this
 repository is public; the codes are on the coach's *Team and codes* screen.
 What in the squad is the tracker's and what is constructed is in
 `supabase/README.md`.
+
+**Two dates show two phases.** On **24 November**, the last day, the daily
+app is all there: meals, the evening check-in, the fact of the day (day 7 of
+week 4), the challenge and the advice. From **25 November** -- and on the
+real date -- the four weeks are over: Today shows only the follow-up recall
+and the reflection, and the meal logger and evening check-in are closed.
 
 **Set the time machine to 24 November first.** The squad's logs end on
 24 November 2026, the last day of the programme, on purpose: nothing exists

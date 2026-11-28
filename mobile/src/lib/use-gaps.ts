@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 
 import { messageOf } from './errors';
 import { fetchGaps, type GapAnalysis } from './gaps';
+import { loggingAsOf } from './programme';
+import { fetchProgrammeStart } from './programme-start';
 import { todayIso } from './today';
 
 /**
@@ -44,8 +46,12 @@ export function useGaps(participantId?: string): GapsState {
   useEffect(() => {
     let active = true;
 
-    const today = todayIso();
-    fetchGaps(windowFrom(today), today, participantId)
+    // Ends on the programme's last day once the four weeks are over.
+    fetchProgrammeStart()
+      .then((startsOn) => {
+        const asOf = loggingAsOf(todayIso(), startsOn);
+        return fetchGaps(windowFrom(asOf), asOf, participantId);
+      })
       .then((analysis) => {
         if (!active) return;
         setState(

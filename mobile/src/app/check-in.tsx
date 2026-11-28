@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
  */
 export default function CheckInScreen() {
   return (
-    <ProgrammeGate>
+    <ProgrammeGate daily>
       <CheckInForm />
     </ProgrammeGate>
   );

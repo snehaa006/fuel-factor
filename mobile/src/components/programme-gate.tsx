@@ -2,7 +2,7 @@ import { Redirect } from 'expo-router';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { isProgrammeOpen } from '@/lib/programme';
+import { isProgrammeOpen, programmeOver } from '@/lib/programme';
 import { useProgramme } from '@/lib/use-programme';
 import { useTheme } from '@/theme';
 
@@ -21,7 +21,18 @@ import { useTheme } from '@/theme';
  * restored yesterday's route should land on the screen that tells them when
  * the programme opens, not on a dead end inside a screen they cannot use.
  */
-export function ProgrammeGate({ children }: { children: React.ReactNode }) {
+export function ProgrammeGate({
+  children,
+  daily = false,
+}: {
+  children: React.ReactNode;
+  /**
+   * A screen that only exists while the four weeks run -- the meal logger
+   * and the evening check-in. From day 29 it sends the athlete to Today,
+   * which says the daily logging is over.
+   */
+  daily?: boolean;
+}) {
   const state = useProgramme();
   const { colors } = useTheme();
 
@@ -52,6 +63,8 @@ export function ProgrammeGate({ children }: { children: React.ReactNode }) {
   }
 
   if (!isProgrammeOpen(state.programme)) return <Redirect href="/before-you-start" />;
+
+  if (daily && programmeOver(state.programme)) return <Redirect href="/today" />;
 
   return <>{children}</>;
 }

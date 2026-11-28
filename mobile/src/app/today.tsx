@@ -4,6 +4,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppSidebar } from '@/components/app-sidebar';
+import { longDate } from '@/components/calendar';
 import { MealChallengeCard } from '@/components/meal-challenge-card';
 import { DayTypeSwitch } from '@/components/day-type-switch';
 import { DidYouKnow } from '@/components/did-you-know';
@@ -22,7 +23,9 @@ import { StreakStrip } from '@/components/streak-strip';
 import { ReflectionPrompt } from '@/components/reflection-prompt';
 import { WeekCheckPrompt } from '@/components/week-check-prompt';
 import { topNudges } from '@/lib/advice';
-import { dayCue } from '@/lib/mascot-copy';
+import { dayCue, finishedCue } from '@/lib/mascot-copy';
+import { shiftDate } from '@/lib/clock';
+import { programmeOver } from '@/lib/programme';
 import { hasSession, nowMinutes } from '@/lib/session';
 import { bestStreak, loggedToday, recentDays, streakLength } from '@/lib/streak';
 import { hasSessionDay, PROTEIN_WEEK } from '@/lib/targets';
@@ -100,6 +103,104 @@ function TodayScreen() {
 
   const { data, rules, date } = state;
   const { summary } = data;
+
+  // Day 29 onwards: the four weeks are over, and so is the daily logging. No
+  // meals, no evening check-in, no streak to keep, no challenge or advice --
+  // the athletes are not logging any more, so the app does not ask them to.
+  // What is left is what the programme still collects after the four weeks:
+  // the follow-up food recall, week 4's check-in if it is not in, and the
+  // reflection.
+  if (programmeOver(programme)) {
+    const finished = finishedCue(t);
+    const endedOn = shiftDate(programme.startsOn, programme.of - 1);
+    return (
+      <SafeAreaView style={[styles.safe, { backgroundColor: colors.surface }]}>
+        <ScrollView contentContainerStyle={[styles.content, { padding: spacing['space-4'] }]}>
+          <View style={styles.title}>
+            <SidebarButton onPress={() => setMenuOpen(true)} testID="menu" />
+            <View>
+              <Text style={[typography.label, { color: colors['ink-muted'] }]}>{t.today.today}</Text>
+              <Text style={[typography['display-l'], { color: colors.ink }]}>{data.participantName}</Text>
+            </View>
+          </View>
+
+          <View style={{ marginTop: spacing['space-6'] }}>
+            <MascotBanner
+              pose={finished.pose}
+              message={finished.message}
+              eyebrow={finished.eyebrow}
+              motion={finished.motion}
+              testID="day-mascot"
+            />
+          </View>
+          <Text
+            testID="programme-ended"
+            style={[typography['body-m'], { color: colors['ink-muted'], marginTop: spacing['space-3'] }]}
+          >
+            {t.today.endedOn(longDate(endedOn, t))}
+          </Text>
+
+          <Text style={[typography.label, { color: colors['ink-muted'], marginTop: spacing['space-8'] }]}>
+            {t.today.whatsLeft}
+          </Text>
+          {recall.status === 'ready' && recall.window.status === 'due' && (
+            <View style={{ marginTop: spacing['space-3'] }}>
+              <RecallPrompt
+                window={recall.window}
+                onPress={() =>
+                  router.push(
+                    recall.window.status === 'due' ? `/recall/${recall.window.dayNumber}` : '/recall'
+                  )
+                }
+                testID="recall-prompt"
+              />
+            </View>
+          )}
+          {recall.status === 'ready' &&
+            recall.window.status === 'none' &&
+            recall.window.reason === 'complete' && (
+              <Text
+                testID="recall-all-in"
+                style={[typography['body-m'], { color: colors['daun-deep'], marginTop: spacing['space-3'] }]}
+              >
+                {t.today.recallAllIn}
+              </Text>
+            )}
+          <View style={{ marginTop: spacing['space-3'] }}>
+            <WeekCheckPrompt
+              programme={programme}
+              participantId={data.participantId}
+              onOpen={(week) => router.push(`/learn/check/${week}`)}
+            />
+          </View>
+          <View style={{ marginTop: spacing['space-3'] }}>
+            <ReflectionPrompt
+              programme={programme}
+              participantId={data.participantId}
+              onOpen={() => router.push('/reflection')}
+            />
+          </View>
+
+          <View style={{ marginTop: spacing['space-8'] }}>
+            <PushButton
+              label={t.today.seeYourWeeks}
+              fullWidth
+              testID="see-progress"
+              onPress={() => router.push('/progress')}
+            />
+          </View>
+        </ScrollView>
+
+        <AppSidebar
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          title={data.participantName}
+          current="today"
+        />
+      </SafeAreaView>
+    );
+  }
+
   const streak = streakLength(data.activeDates, date);
   const best = bestStreak(data.activeDates, date);
   const week = recentDays(data.activeDates, date);
@@ -206,10 +307,10 @@ function TodayScreen() {
           />
         </View>
 
-        {/* Folded until tapped: Sofia's "toggle ... did you know, or fact for
-            the day". One of this week's own statistic cards. */}
+        {/* Sofia's "did you know, or fact for the day": the week's lesson a
+            part a day, so day 7 finishes it. */}
         <View style={{ marginTop: spacing['space-4'] }}>
-          <DidYouKnow programme={programme} onOpenLesson={(week) => router.push(`/learn/${week}`)} />
+          <DidYouKnow programme={programme} />
         </View>
 
         <View style={{ marginTop: spacing['space-6'] }}>

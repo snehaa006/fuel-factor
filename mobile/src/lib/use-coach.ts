@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { claimCoach, fetchCoachView, isCoach, type CoachView } from './coach';
 import { messageOf } from './errors';
 import { sinceDate } from './use-progress';
+import { loggingAsOf } from './programme';
+import { fetchProgrammeStart } from './programme-start';
 import { todayIso } from './today';
 
 /** The dashboard's window. A fortnight is enough to see a habit or its absence. */
@@ -40,7 +42,15 @@ export function useCoach(): CoachController {
           setState({ status: 'needs-code' });
           return null;
         }
-        return fetchCoachView(today, sinceDate(today, COACH_WINDOW_DAYS), COACH_WINDOW_DAYS);
+        // Once the four weeks are over, the dashboard shows their last days
+        // and says the programme has ended, rather than a squad that "logged
+        // nothing today" because logging has closed.
+        return fetchProgrammeStart().then(async (startsOn) => {
+          const asOf = loggingAsOf(today, startsOn);
+          const view = await fetchCoachView(asOf, sinceDate(asOf, COACH_WINDOW_DAYS), COACH_WINDOW_DAYS);
+          const over = startsOn !== null && asOf !== today;
+          return { ...view, endedOn: over ? asOf : null, startsOn: startsOn ?? null } satisfies CoachView;
+        });
       })
       .then((view) => {
         if (active && view) setState({ status: 'ready', view });
