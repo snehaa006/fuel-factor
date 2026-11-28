@@ -240,6 +240,13 @@ export type Database = {
         Relationships: [];
       };
       // 20261127000002_checkin_questions.sql: each week's behaviour question.
+      daily_facts: {
+        // App tier. The fact of the day: seven per week, in lesson order.
+        Row: { week_number: number; day: number; fact: string; fact_id: string | null; topic: string; source: string; reviewed_by: string | null; created_at: string };
+        Insert: { week_number: number; day: number; fact: string; fact_id?: string | null; topic: string; source: string; reviewed_by?: string | null; created_at?: string };
+        Update: { week_number?: number; day?: number; fact?: string; fact_id?: string | null; topic?: string; source?: string; reviewed_by?: string | null; created_at?: string };
+        Relationships: [];
+      };
       checkin_questions: {
         Row: {
           week_number: number;

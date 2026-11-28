@@ -1,11 +1,8 @@
-import { DEMO_LESSON_CARDS } from '@/lib/__fixtures__/today';
 import { programmeState } from '@/lib/programme';
 import {
   canRead,
   checkInOpen,
   dayOfWeek,
-  factFor,
-  factsFrom,
   weekAccess,
   weekDates,
   weekOfProgramme,
@@ -69,41 +66,6 @@ describe('Learn follows the week', () => {
       expect(weekAccess(week, null)).toEqual({ state: 'open' });
       expect(weekAccess(week, programmeState(null, '2026-11-01'))).toEqual({ state: 'open' });
     }
-  });
-});
-
-describe('did you know', () => {
-  const facts = factsFrom(DEMO_LESSON_CARDS, 1);
-
-  it('is the deck’s own statistic, figure and caption unchanged', () => {
-    expect(facts[0]).toEqual({
-      value: '60–70%',
-      label: 'Of energy during team sports comes from carbohydrates',
-      heading: 'Why it matters',
-      week: 1,
-    });
-  });
-
-  it('takes statistics only, not the timeline or the targets', () => {
-    // The glycogen timeline and the target bands carry figures too, but they
-    // are a sequence and a prescription, not a fact to read on its own.
-    expect(facts).toHaveLength(4);
-    expect(facts.map((f) => f.value)).not.toContain('~60%');
-    expect(facts.map((f) => f.value)).not.toContain('350–490g');
-  });
-
-  it('is the same fact all day, for the whole squad', () => {
-    expect(factFor(facts, 3)).toBe(factFor(facts, 3));
-  });
-
-  it('moves on a day at a time and comes round again', () => {
-    expect(factFor(facts, 1)?.value).toBe('60–70%');
-    expect(factFor(facts, 2)?.value).toBe('2%');
-    expect(factFor(facts, 5)?.value).toBe('60–70%');
-  });
-
-  it('says nothing when the week has no statistics', () => {
-    expect(factFor([], 1)).toBeNull();
   });
 });
 

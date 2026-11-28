@@ -1,4 +1,3 @@
-import type { LessonCard } from './learn';
 import type { ProgrammeState } from './programme';
 import type { IsoDate } from './streak';
 
@@ -77,43 +76,6 @@ export function weekAccess(weekNumber: number, programme: ProgrammeState | null)
 /** Whether the athlete may read a week today. */
 export function canRead(access: WeekAccess): boolean {
   return access.state !== 'future';
-}
-
-// ---------------------------------------------------------------------------
-// Did you know
-
-export type Fact = {
-  /** The figure, as the deck prints it: "60–70%". */
-  value: string;
-  /** Its caption, as the deck prints it. */
-  label: string;
-  /** The card it came from, so the athlete can find it in the lesson. */
-  heading: string | null;
-  week: number;
-};
-
-/** Every statistic in a week's cards, in the deck's order. */
-export function factsFrom(cards: LessonCard[], week: number): Fact[] {
-  return cards
-    .filter((card) => card.kind === 'stats')
-    .flatMap((card) =>
-      card.points
-        .filter((p) => (p.value ?? '').trim() !== '' && (p.label ?? '').trim() !== '')
-        .map((p) => ({ value: p.value as string, label: p.label as string, heading: card.heading, week }))
-    );
-}
-
-/**
- * Today's fact: the week's statistics in turn, one a day.
- *
- * Keyed on the programme day rather than chosen at random, so the whole squad
- * sees the same fact on the same day and can talk about it, and a reload does
- * not change it.
- */
-export function factFor(facts: Fact[], programmeDay: number): Fact | null {
-  if (facts.length === 0) return null;
-  const index = (((programmeDay - 1) % facts.length) + facts.length) % facts.length;
-  return facts[index];
 }
 
 // ---------------------------------------------------------------------------

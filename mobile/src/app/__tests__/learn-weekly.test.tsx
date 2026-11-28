@@ -305,19 +305,26 @@ describe('on Today', () => {
     expect(screen.queryByTestId('week-check-prompt')).toBeNull();
   });
 
-  it('folds the fact of the day until it is tapped', async () => {
-    const fact = { value: '60–70%', label: 'Of energy during team sports comes from carbohydrates', heading: 'Why it matters', week: 1 };
-    const onOpenLesson = jest.fn();
-    await render(<FactCard fact={fact} onOpenLesson={onOpenLesson} />);
+  it('shows today’s part of the week’s lesson as one short fact', async () => {
+    const fact = {
+      week: 1,
+      day: 3,
+      fact: 'The carbs you eat are stored as glycogen: about 400 g in your muscles and 100 g in your liver.',
+      factId: 'Karbohidrat yang kamu makan disimpan sebagai glikogen.',
+      topic: 'What Carbohydrates Actually Do',
+    };
+    await render(<FactCard fact={fact} />);
     expect(screen.getByText('DID YOU KNOW?')).toBeTruthy();
-    expect(screen.queryByTestId('did-you-know-fact')).toBeNull();
+    expect(screen.getByTestId('did-you-know-day')).toHaveTextContent('Day 3 of 7 · Week 1');
+    expect(screen.getByTestId('did-you-know-fact')).toHaveTextContent(/stored as glycogen/);
+    expect(screen.getByTestId('did-you-know-dots').props.accessibilityLabel).toBe('Part 3 of 7 of this week’s lesson');
+    expect(screen.getByText('From the lesson: What Carbohydrates Actually Do')).toBeTruthy();
+    // A fact, not a pointer to the lesson.
+    expect(screen.queryByText(/Read the lesson/)).toBeNull();
 
+    // Sofia's toggle folds it away.
     await act(async () => fireEvent.press(screen.getByTestId('did-you-know-toggle')));
-    expect(screen.getByTestId('did-you-know-fact')).toHaveTextContent('60–70%', { exact: false });
-    expect(screen.getByTestId('did-you-know-fact')).toHaveTextContent('Week 1 material · Why it matters', { exact: false });
-
-    await act(async () => fireEvent.press(screen.getByTestId('did-you-know-lesson')));
-    expect(onOpenLesson).toHaveBeenCalledWith(1);
+    expect(screen.queryByTestId('did-you-know-fact')).toBeNull();
   });
 });
 
