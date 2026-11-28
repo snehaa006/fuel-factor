@@ -16,7 +16,7 @@ flag, profile or script can produce a build that draws from sample data.
 | **Confirmation page**, Vercel `fuel-factor` | Where the sign-up email lands. Static, one file |
 | **Supabase** `nprvrlpkdrgckzceyryc` | 26 migrations, every one in the repo (the check-in, the reflection and the fact of the day applied 28 November); all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
 
-Both phone channels were last published on **28 November 2026 from `56118e8`
+Both phone channels were last published on **28 November 2026 from `3258180`
 on `main`**: everything up to 25 November plus the language and theme
 switches, Learn week by week (one-card lessons, the fact of the day, this
 week's advice first), the Sunday check-in (steps 23 to 25 in
@@ -25,13 +25,15 @@ coach's CSV export, and Bahasa for the advice cards and for every lesson,
 theme and challenge**, and then **the fact of the day as the week's lesson a
 part a day, and the app closing daily logging after day 28** (step 27),
 and **the friendlier Today: the 💡 fun fact with the mascot, the always-on
-check-in line, and the shorter scroll** (step 28).
+check-in line, and the shorter scroll** (step 28), then **the quieter
+facts, the printed fact card, the weekly mini quiz and its badges** (steps
+29-30).
 Checked: all four channel/platform pairs serve these update ids.
 
 | Channel | Update group | Previous group, to roll back to |
 |---|---|---|
-| `preview` | `a99b4b25-05ef-4407-8013-65f7f7525dcc` | `8f714b30-3e31-4f5b-8271-9aa212c6331e`, then `6b1a0572-dba6-4510-89b9-aedb17980b20` |
-| `share` | `0ff4cdbd-99e4-4bec-9783-d1a5a7eb8f0d` | `bfa0997d-d69f-418c-b1a0-56532d0ded04`, then `19b61df5-d534-413c-bdfa-372edd15ad48` |
+| `preview` | `172fc36a-ef20-408d-8824-7c4ff2ccd1e6` | `a7e1db4e-16be-41c0-9bd4-2eb767ce67f1`, then `60d0866a-72b0-4071-8cd5-3c8920c15f58` |
+| `share` | `ccb081dc-48f7-4348-8fdf-c832a29b8e7e` | `b74377cd-5986-4e10-a1d5-369e1c08ae2b`, then `cc241309-153d-4e6a-9cbd-92904172577c` |
 
 The web app and the self-hosted Expo Go route follow `main` on Vercel, so
 they carry the same code.
