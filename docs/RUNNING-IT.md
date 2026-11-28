@@ -16,19 +16,20 @@ flag, profile or script can produce a build that draws from sample data.
 | **Confirmation page**, Vercel `fuel-factor` | Where the sign-up email lands. Static, one file |
 | **Supabase** `nprvrlpkdrgckzceyryc` | 22 migrations, every one in the repo (the check-in, the reflection and the fact of the day applied 28 November); all four weeks, badges, the food database; the pitch's demo squad, Jakarta Youth Football (see `supabase/README.md`) |
 
-Both phone channels were last published on **28 November 2026 from `a49d31a`
+Both phone channels were last published on **28 November 2026 from `53593c7`
 on `main`**: everything up to 25 November plus the language and theme
 switches, Learn week by week (one-card lessons, the fact of the day, this
 week's advice first), the Sunday check-in (steps 23 to 25 in
 `SESSION-HANDOFF.md`), and then **the end-of-programme reflection, the
 coach's CSV export, and Bahasa for the advice cards and for every lesson,
-theme and challenge**.
+theme and challenge**, and then **the fact of the day as the week's lesson a
+part a day, and the app closing daily logging after day 28** (step 27).
 Checked: all four channel/platform pairs serve these update ids.
 
 | Channel | Update group | Previous group, to roll back to |
 |---|---|---|
-| `preview` | `6b1a0572-dba6-4510-89b9-aedb17980b20` | `3ca35c7c-6294-4edb-9d19-28b365e67c77` (same code), then `2867c8a5-2cbc-47c0-91e8-af83865a6d5d` |
-| `share` | `19b61df5-d534-413c-bdfa-372edd15ad48` | `59beb17e-ac9c-4a65-92cf-15d0d76ec6b3` (same code), then `ae2a0e26-03e1-4312-86ae-b167ea5e428d` |
+| `preview` | `8f714b30-3e31-4f5b-8271-9aa212c6331e` | `6b1a0572-dba6-4510-89b9-aedb17980b20`, then `2867c8a5-2cbc-47c0-91e8-af83865a6d5d` |
+| `share` | `bfa0997d-d69f-418c-b1a0-56532d0ded04` | `19b61df5-d534-413c-bdfa-372edd15ad48`, then `ae2a0e26-03e1-4312-86ae-b167ea5e428d` |
 
 The web app and the self-hosted Expo Go route follow `main` on Vercel, so
 they carry the same code.
